@@ -21,7 +21,6 @@ class _FinancialHealthCardState extends State<FinancialHealthCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _animCtrl;
   late Animation<double> _anim;
-  int? _expandedIndex;
 
   @override
   void initState() {
@@ -43,17 +42,27 @@ class _FinancialHealthCardState extends State<FinancialHealthCard>
   @override
   Widget build(BuildContext context) {
     final score = widget.score;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(Spacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(context, score),
-          const SizedBox(height: Spacing.xxl),
-          _buildSpiderChart(context, score),
-          const SizedBox(height: Spacing.xxl),
-          _buildDimensionList(context, score),
-        ],
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Financial Health'),
+        backgroundColor:
+            AppStyles.getCardColor(context).withValues(alpha: 0.90),
+        border: null,
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(Spacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(context, score),
+              const SizedBox(height: Spacing.xxl),
+              _buildSpiderChart(context, score),
+              const SizedBox(height: Spacing.xxl),
+              _buildDimensionList(context, score),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -154,26 +163,16 @@ class _FinancialHealthCardState extends State<FinancialHealthCard>
 
   Widget _buildDimensionList(BuildContext context, FinancialHealthScore score) {
     return Column(
-      children: score.dimensions.asMap().entries.map((entry) {
-        final i = entry.key;
-        final dim = entry.value;
-        final isExpanded = _expandedIndex == i;
-        return _buildDimensionTile(context, dim, i, isExpanded);
-      }).toList(),
+      children: score.dimensions
+          .map((dim) => _buildDimensionTile(context, dim))
+          .toList(),
     );
   }
 
-  Widget _buildDimensionTile(
-    BuildContext context,
-    HealthDimension dim,
-    int index,
-    bool isExpanded,
-  ) {
+  Widget _buildDimensionTile(BuildContext context, HealthDimension dim) {
     final color = _scoreColor(dim.score, context);
     return GestureDetector(
-      onTap: () {
-        HealthScoreDimensionSheet.show(context, dim);
-      },
+      onTap: () => HealthScoreDimensionSheet.show(context, dim),
       child: Container(
         margin: const EdgeInsets.only(bottom: Spacing.sm),
         padding: const EdgeInsets.all(Spacing.md),
@@ -181,109 +180,81 @@ class _FinancialHealthCardState extends State<FinancialHealthCard>
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isExpanded
-                ? color.withValues(alpha: 0.4)
-                : AppStyles.getCardColor(context),
+            color: AppStyles.getDividerColor(context),
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Row(
-              children: [
-                // Score pill
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      dim.score.toStringAsFixed(0),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: Spacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        dim.name,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppStyles.getTextColor(context),
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            _trendIcon(dim.trend),
-                            size: 12,
-                            color: _trendColor(dim.trend, context),
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            _trendLabel(dim.trend),
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: _trendColor(dim.trend, context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                // Mini score bar
-                SizedBox(
-                  width: 60,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(3),
-                    child: LinearProgressIndicator(
-                      value: dim.score / 100,
-                      minHeight: 6,
-                      backgroundColor: color.withValues(alpha: 0.1),
-                      valueColor: AlwaysStoppedAnimation(color),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: Spacing.sm),
-                Icon(
-                  isExpanded
-                      ? CupertinoIcons.chevron_up
-                      : CupertinoIcons.chevron_down,
-                  size: 14,
-                  color: AppStyles.getSecondaryTextColor(context),
-                ),
-              ],
-            ),
-            // Expanded action sentence
-            AnimatedCrossFade(
-              firstChild: const SizedBox.shrink(),
-              secondChild: Padding(
-                padding: const EdgeInsets.only(top: Spacing.md, left: 56),
+            // Score circle
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
                 child: Text(
-                  dim.actionSentence,
+                  dim.score.toStringAsFixed(0),
                   style: TextStyle(
-                    fontSize: 13,
-                    color: AppStyles.getSecondaryTextColor(context),
-                    height: 1.5,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: color,
                   ),
                 ),
               ),
-              crossFadeState: isExpanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 200),
+            ),
+            const SizedBox(width: Spacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    dim.name,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        _trendIcon(dim.trend),
+                        size: 12,
+                        color: _trendColor(dim.trend, context),
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        _trendLabel(dim.trend),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: _trendColor(dim.trend, context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Mini score bar
+            SizedBox(
+              width: 60,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(
+                  value: dim.score / 100,
+                  minHeight: 6,
+                  backgroundColor: color.withValues(alpha: 0.1),
+                  valueColor: AlwaysStoppedAnimation(color),
+                ),
+              ),
+            ),
+            const SizedBox(width: Spacing.sm),
+            Icon(
+              CupertinoIcons.chevron_right,
+              size: 14,
+              color: AppStyles.getSecondaryTextColor(context),
             ),
           ],
         ),

@@ -1360,6 +1360,16 @@ class _DashboardScreenContent extends StatelessWidget {
 
     return Consumer<DashboardController>(
       builder: (context, dashboardController, child) {
+        // Pre-compute hasDue here to avoid nested Consumer2 in nav bar trailing.
+        // A nested Consumer inside CupertinoNavigationBar.trailing can disrupt
+        // Cupertino's hero animation, causing trailing widgets to disappear on
+        // back navigation. Pulling the watch calls to this level keeps the nav
+        // bar widget tree structurally stable.
+        final hasDue = _hasEventDueWithin7Days(
+          context.watch<InvestmentsController>().investments,
+          context.watch<LoanController>().loans,
+        );
+
         if (!dashboardController.isInitialized) {
           return Scaffold(
             backgroundColor: AppStyles.getBackground(context),
@@ -1496,40 +1506,34 @@ class _DashboardScreenContent extends StatelessWidget {
                       const SizedBox(width: Spacing.xl),
                       Semantics(
                         label: 'Financial calendar',
-                        child: Consumer2<InvestmentsController, LoanController>(
-                          builder: (context, investments, loans, _) {
-                            final hasDue = _hasEventDueWithin7Days(
-                                investments.investments, loans.loans);
-                            return BouncyButton(
-                              key: calendarIconKey,
-                              onPressed: () => Navigator.of(context).push(
-                                  FadeScalePageRoute(
-                                      page: const FinancialCalendarScreen())),
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  Icon(
-                                    CupertinoIcons.calendar,
-                                    size: IconSizes.navIcon,
-                                    color: AppStyles.getTextColor(context),
-                                  ),
-                                  if (hasDue)
-                                    Positioned(
-                                      top: -2,
-                                      right: -2,
-                                      child: Container(
-                                        width: 7,
-                                        height: 7,
-                                        decoration: const BoxDecoration(
-                                          color: AppStyles.plasmaRed,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                    ),
-                                ],
+                        child: BouncyButton(
+                          key: calendarIconKey,
+                          onPressed: () => Navigator.of(context).push(
+                              FadeScalePageRoute(
+                                  page: const FinancialCalendarScreen())),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Icon(
+                                CupertinoIcons.calendar,
+                                size: IconSizes.navIcon,
+                                color: AppStyles.getTextColor(context),
                               ),
-                            );
-                          },
+                              if (hasDue)
+                                Positioned(
+                                  top: -2,
+                                  right: -2,
+                                  child: Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: const BoxDecoration(
+                                      color: AppStyles.plasmaRed,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -2392,19 +2396,7 @@ class _DashboardScreenContent extends StatelessWidget {
             : hour < 21
                 ? 'Good Evening'
                 : 'Good Night';
-    // Append first name from most-used account (non-cash, non-investment)
-    final accountsCtrl = context.read<AccountsController>();
-    final mainAccount = accountsCtrl.accounts
-        .where((a) => !a.isHidden &&
-            a.type != AccountType.investment &&
-            a.type != AccountType.cash)
-        .toList();
-    final firstName = mainAccount.isNotEmpty
-        ? mainAccount.first.name.split(' ').first
-        : '';
-    final greeting = firstName.isNotEmpty && firstName.length <= 12
-        ? '$baseGreeting, $firstName'
-        : baseGreeting;
+    final greeting = baseGreeting;
 
     final dateFormatter = _formatHeaderDate(now);
 

@@ -61,6 +61,12 @@ class EngagementStripWidget extends StatelessWidget {
           transactions: txCtrl.transactions,
         );
         final showNextMove = move != null;
+        // Only show Quick Access when there's room — max 2 pills at once
+        final showQuickAccess = !(showOnboarding && showNextMove);
+
+        if (!showOnboarding && !showNextMove && !showQuickAccess) {
+          return const SizedBox.shrink();
+        }
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -79,11 +85,12 @@ class EngagementStripWidget extends StatelessWidget {
                 Expanded(
                   child: _NextMovePill(move: move),
                 ),
-                const SizedBox(width: Spacing.sm),
+                if (showQuickAccess) const SizedBox(width: Spacing.sm),
               ],
-              Expanded(
-                child: const _QuickAccessPill(),
-              ),
+              if (showQuickAccess)
+                Expanded(
+                  child: const _QuickAccessPill(),
+                ),
             ],
           ),
         );
