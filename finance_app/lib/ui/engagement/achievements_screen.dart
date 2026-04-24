@@ -1,5 +1,7 @@
+import 'dart:math' show Random, pi, cos, sin;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 
@@ -486,10 +488,14 @@ class AchievementsScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final a = achievements[index];
                 final isUnlocked = unlocked.contains(a.id);
+                final unlockedDate = eng.getAchievementDate(a.id);
+                final isNew = unlockedDate != null &&
+                    DateTime.now().difference(unlockedDate).inHours < 24;
                 return _AchievementCard(
                   achievement: a,
                   isUnlocked: isUnlocked,
-                  date: eng.getAchievementDate(a.id),
+                  date: unlockedDate,
+                  isNewlyUnlocked: isNew,
                 );
               },
             ),
@@ -529,11 +535,13 @@ class _AchievementCard extends StatefulWidget {
   final Achievement achievement;
   final bool isUnlocked;
   final DateTime? date;
+  final bool isNewlyUnlocked;
 
   const _AchievementCard({
     required this.achievement,
     required this.isUnlocked,
     this.date,
+    this.isNewlyUnlocked = false,
   });
 
   @override
@@ -543,6 +551,7 @@ class _AchievementCard extends StatefulWidget {
 class _AchievementCardState extends State<_AchievementCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _shimmerCtrl;
+  bool _showBurst = false;
 
   @override
   void initState() {
@@ -553,6 +562,24 @@ class _AchievementCardState extends State<_AchievementCard>
     );
     if (widget.isUnlocked) {
       _shimmerCtrl.repeat();
+    }
+    if (widget.isNewlyUnlocked) {
+      // Fire haptic + trigger burst with small delay for mount
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          HapticFeedback.heavyImpact();
+          Future.delayed(const Duration(milliseconds: 120), () {
+            if (mounted) HapticFeedback.lightImpact();
+          });
+          Future.delayed(const Duration(milliseconds: 240), () {
+            if (mounted) HapticFeedback.lightImpact();
+          });
+          setState(() => _showBurst = true);
+          Future.delayed(const Duration(milliseconds: 1200), () {
+            if (mounted) setState(() => _showBurst = false);
+          });
+        }
+      });
     }
   }
 
@@ -762,7 +789,10 @@ class _AchievementCardState extends State<_AchievementCard>
         ? AppStyles.getSecondaryTextColor(context)
         : AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.65);
 
-    return GestureDetector(
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+    GestureDetector(
       onTap: () => _showDetail(context),
       child: AnimatedBuilder(
         animation: _shimmerCtrl,
@@ -867,7 +897,16 @@ class _AchievementCardState extends State<_AchievementCard>
           ),
         ),
       ),
-    );
+    ), // GestureDetector
+    // Particle burst overlay for newly unlocked achievements
+    if (_showBurst)
+      Positioned.fill(
+        child: IgnorePointer(
+          child: _ParticleBurst(color: color),
+        ),
+      ),
+      ], // Stack children
+    ); // Stack
   }
 }
 
@@ -912,4 +951,89 @@ String _tierLabel(AchievementTier tier) {
     case AchievementTier.legend:
       return 'LEGEND';
   }
+}
+
+// ── Particle burst for newly-unlocked achievements ───────────────────────────
+
+class _ParticleBurst extends StatefulWidget {
+  final Color color;
+  const _ParticleBurst({required this.color});
+
+  @override
+  State<_ParticleBurst> createState() => _ParticleBurstState();
+}
+
+class _ParticleBurstState extends State<_ParticleBurst>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final List<_BurstParticle> _particles;
+  final _rng = Random();
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 900));
+    _particles = List.generate(16, (_) => _BurstParticle(_rng));
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        return CustomPaint(
+          painter: _BurstPainter(
+              particles: _particles,
+              progress: _ctrl.value,
+              color: widget.color),
+        );
+      },
+    );
+  }
+}
+
+class _BurstParticle {
+  final double angle;
+  final double speed;
+  final double size;
+  _BurstParticle(Random rng)
+      : angle = rng.nextDouble() * 2 * pi,
+        speed = 0.3 + rng.nextDouble() * 0.7,
+        size = 3 + rng.nextDouble() * 4;
+}
+
+class _BurstPainter extends CustomPainter {
+  final List<_BurstParticle> particles;
+  final double progress;
+  final Color color;
+  const _BurstPainter(
+      {required this.particles, required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final fade = Curves.easeOut.transform(1 - progress);
+    for (final p in particles) {
+      final dist = p.speed * progress * 60;
+      final x = cx + dist * cos(p.angle);
+      final y = cy + dist * sin(p.angle);
+      canvas.drawCircle(
+        Offset(x, y),
+        p.size * (1 - progress * 0.5),
+        Paint()..color = color.withValues(alpha: fade),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_BurstPainter old) => old.progress != progress;
 }

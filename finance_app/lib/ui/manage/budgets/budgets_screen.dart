@@ -1195,10 +1195,15 @@ class _ShakingBudgetBarState extends State<_ShakingBudgetBar>
         offset: Offset(_offset.value, 0),
         child: child,
       ),
-      child: LiquidLinearProgress(
-        progress: widget.progress.clamp(0.0, 1.0),
-        height: 12,
-        color: widget.color,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: widget.progress.clamp(0.0, 1.0)),
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeOutCubic,
+        builder: (_, value, __) => LiquidLinearProgress(
+          progress: value,
+          height: 12,
+          color: widget.color,
+        ),
       ),
     );
   }

@@ -428,7 +428,12 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                   }
                   return false;
                 },
-                child: _buildEventSection(context, filteredEvents, isDark),
+                child: _buildEventSection(
+                  context,
+                  filteredEvents,
+                  isDark,
+                  isComputingAI: context.watch<AIIntelligenceController>().isComputing,
+                ),
               ),
             ),
           ],
@@ -898,8 +903,9 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
   Widget _buildEventSection(
     BuildContext context,
     List<CalendarEvent> events,
-    bool isDark,
-  ) {
+    bool isDark, {
+    bool isComputingAI = false,
+  }) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -983,7 +989,35 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
           ),
         ),
         Expanded(
-          child: events.isEmpty
+          child: isComputingAI
+              ? ListView(
+                  padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.massive),
+                  children: List.generate(
+                    4,
+                    (_) => Padding(
+                      padding: const EdgeInsets.only(bottom: Spacing.md),
+                      child: Row(
+                        children: [
+                          SkeletonLoader(width: 44, height: 44, borderRadius: 12),
+                          const SizedBox(width: Spacing.md),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SkeletonLoader.text(width: double.infinity),
+                                const SizedBox(height: 6),
+                                SkeletonLoader.text(width: 120),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: Spacing.md),
+                          SkeletonLoader(width: 60, height: 20, borderRadius: 6),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              : events.isEmpty
               ? CustomScrollView(
                   controller: _eventsScrollCtrl,
                   physics: const ClampingScrollPhysics(),

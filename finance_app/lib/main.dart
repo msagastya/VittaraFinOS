@@ -2385,13 +2385,26 @@ class _DashboardScreenContent extends StatelessWidget {
   Widget _buildHeaderSection(BuildContext context) {
     final now = DateTime.now();
     final hour = now.hour;
-    final greeting = hour >= 5 && hour < 12
+    final baseGreeting = hour >= 5 && hour < 12
         ? 'Good Morning'
         : hour < 17
             ? 'Good Afternoon'
             : hour < 21
                 ? 'Good Evening'
                 : 'Good Night';
+    // Append first name from most-used account (non-cash, non-investment)
+    final accountsCtrl = context.read<AccountsController>();
+    final mainAccount = accountsCtrl.accounts
+        .where((a) => !a.isHidden &&
+            a.type != AccountType.investment &&
+            a.type != AccountType.cash)
+        .toList();
+    final firstName = mainAccount.isNotEmpty
+        ? mainAccount.first.name.split(' ').first
+        : '';
+    final greeting = firstName.isNotEmpty && firstName.length <= 12
+        ? '$baseGreeting, $firstName'
+        : baseGreeting;
 
     final dateFormatter = _formatHeaderDate(now);
 

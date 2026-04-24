@@ -742,10 +742,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
               ],
             ),
             const SizedBox(height: Spacing.lg),
-            LiquidLinearProgress(
-              progress: goal.progressPercentage / 100,
-              height: 12,
-              color: goal.color,
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: goal.progressPercentage / 100),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              builder: (_, value, __) => LiquidLinearProgress(
+                progress: value,
+                height: 12,
+                color: goal.color,
+              ),
             ),
             const SizedBox(height: Spacing.md),
             Row(

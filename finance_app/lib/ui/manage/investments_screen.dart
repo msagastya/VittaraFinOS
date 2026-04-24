@@ -3741,17 +3741,26 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                                       context),
                                             ),
                                           ),
-                                          Text(
-                                            CurrencyFormatter.compact(
-                                                currentValue),
-                                            style: TextStyle(
-                                              fontSize: TypeScale.subhead,
-                                              fontWeight: FontWeight.w700,
-                                              color: isProfit
-                                                  ? AppStyles.gain(context)
-                                                  : AppStyles.loss(context),
-                                            ),
-                                          ),
+                                          _isRefreshingCurrentValues
+                                              ? const Padding(
+                                                  padding: EdgeInsets.only(top: 2),
+                                                  child: SkeletonLoader(
+                                                    width: 56,
+                                                    height: 14,
+                                                    borderRadius: 4,
+                                                  ),
+                                                )
+                                              : Text(
+                                                  CurrencyFormatter.compact(
+                                                      currentValue),
+                                                  style: TextStyle(
+                                                    fontSize: TypeScale.subhead,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isProfit
+                                                        ? AppStyles.gain(context)
+                                                        : AppStyles.loss(context),
+                                                  ),
+                                                ),
                                         ],
                                       ),
                                     ),

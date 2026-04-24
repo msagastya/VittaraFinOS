@@ -9,7 +9,7 @@ import 'voice_result_card.dart';
 
 /// Full-screen voice interaction overlay.
 /// Show via [VoiceOverlayWidget.show].
-class VoiceOverlayWidget extends StatelessWidget {
+class VoiceOverlayWidget extends StatefulWidget {
   const VoiceOverlayWidget({super.key});
 
   /// Shows the voice overlay and returns the confirmed [VoiceResult] or null.
@@ -37,15 +37,34 @@ class VoiceOverlayWidget extends StatelessWidget {
   }
 
   @override
+  State<VoiceOverlayWidget> createState() => _VoiceOverlayWidgetState();
+}
+
+class _VoiceOverlayWidgetState extends State<VoiceOverlayWidget> {
+  VoiceState? _prevState;
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<VoiceController>(
       builder: (context, voice, _) {
+        // Fire haptic when transcript is finalized (state enters confirming)
+        if (voice.state == VoiceState.confirming &&
+            _prevState != VoiceState.confirming) {
+          HapticFeedback.lightImpact();
+        }
+        _prevState = voice.state;
+
         // Show result card when confirming
         if (voice.state == VoiceState.confirming &&
             voice.pendingResult != null) {
           return VoiceResultCard(
             result: voice.pendingResult!,
             onConfirm: () {
+              HapticFeedback.heavyImpact();
+              Future.delayed(const Duration(milliseconds: 120),
+                  () => HapticFeedback.lightImpact());
+              Future.delayed(const Duration(milliseconds: 240),
+                  () => HapticFeedback.lightImpact());
               voice.confirm();
               Navigator.of(context).pop(voice.pendingResult);
             },
@@ -284,7 +303,7 @@ class VoiceOverlayWidget extends StatelessWidget {
       },
       onTap: () async {
         if (voice.state == VoiceState.idle) {
-          HapticFeedback.lightImpact();
+          HapticFeedback.mediumImpact();
           await voice.startListening();
         }
       },

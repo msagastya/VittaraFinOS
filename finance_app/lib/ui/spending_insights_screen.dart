@@ -15,6 +15,7 @@ import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Full-screen Spending Intelligence Screen
@@ -228,6 +229,26 @@ class _SpendIntelBody extends StatelessWidget {
             isDark: isDark,
           ),
         ),
+      // Skeleton loaders while AI is computing
+      Builder(builder: (ctx) {
+        final ai = ctx.watch<AIIntelligenceController>();
+        if (!ai.isComputing) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: Spacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SkeletonLoader.text(width: double.infinity),
+              const SizedBox(height: Spacing.sm),
+              SkeletonLoader.text(width: 200),
+              const SizedBox(height: Spacing.lg),
+              SkeletonLoader.card(),
+              const SizedBox(height: Spacing.md),
+              SkeletonLoader.card(),
+            ],
+          ),
+        );
+      }),
       // Monthly narrative from AI Intelligence Controller
       Builder(builder: (ctx) {
         final ai = ctx.watch<AIIntelligenceController>();

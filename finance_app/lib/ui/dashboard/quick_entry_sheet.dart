@@ -534,7 +534,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         toast_lib.toast.showError('Edit window expired (24h limit)');
         return;
       }
-      HapticFeedback.heavyImpact();
+      Haptics.success();
       if (mounted) {
         await _triggerSaveFlash();
         if (mounted) Navigator.pop(context);
@@ -572,7 +572,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
       }
 
       await transactionsCtrl.addTransaction(tx);
-      HapticFeedback.heavyImpact();
+      Haptics.success();
       dashboardSavedSignal.value++; // triggers FAB checkmark morph
       if (mounted) {
         await _triggerSaveFlash();
