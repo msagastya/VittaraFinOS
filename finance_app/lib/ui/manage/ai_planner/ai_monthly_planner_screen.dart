@@ -16,7 +16,11 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
+import 'package:flutter/services.dart';
+import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
+import 'package:vittara_fin_os/logic/ai/monthly_narrative.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -178,6 +182,161 @@ class AIMonthlyPlannerScreen extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// T-093: Monthly narrative card — shown as first card above plans list
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _NarrativeCard extends StatelessWidget {
+  final MonthlyNarrative? narrative;
+  const _NarrativeCard({this.narrative});
+
+  @override
+  Widget build(BuildContext context) {
+    if (narrative == null) return const SizedBox.shrink();
+    final n = narrative!;
+    return Container(
+      margin: const EdgeInsets.only(bottom: Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(Radii.xxl),
+        border: Border.all(
+          color: AppStyles.aetherTeal.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(Spacing.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Lens badge
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.md, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppStyles.aetherTeal.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(Radii.full),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(CupertinoIcons.sparkles,
+                          size: 11, color: AppStyles.aetherTeal),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Monthly Insight',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.aetherTeal,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                // Share button (T-093)
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minSize: 32,
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: n.toShareText()));
+                    ToastController().showSuccess('Narrative copied to clipboard');
+                  },
+                  child: Icon(
+                    CupertinoIcons.doc_on_clipboard,
+                    size: 18,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: Spacing.md),
+            // Headline — large title2 font (T-093)
+            Text(
+              n.headline,
+              style: TextStyle(
+                fontSize: TypeScale.title2,
+                fontWeight: FontWeight.w700,
+                color: AppStyles.getTextColor(context),
+                letterSpacing: -0.5,
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(height: Spacing.md),
+            // Body paragraph
+            Text(
+              n.paragraph,
+              style: TextStyle(
+                fontSize: TypeScale.body,
+                color: AppStyles.getSecondaryTextColor(context),
+                height: 1.55,
+              ),
+            ),
+            if (n.highlight != null) ...[
+              const SizedBox(height: Spacing.md),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: Spacing.md, vertical: Spacing.sm),
+                decoration: BoxDecoration(
+                  color: AppStyles.accentGreen.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(Radii.md),
+                ),
+                child: Row(
+                  children: [
+                    Icon(CupertinoIcons.checkmark_circle_fill,
+                        size: 14, color: AppStyles.accentGreen),
+                    const SizedBox(width: Spacing.sm),
+                    Expanded(
+                      child: Text(
+                        n.highlight!,
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          color: AppStyles.accentGreen,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (n.watchOut != null) ...[
+              const SizedBox(height: Spacing.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: Spacing.md, vertical: Spacing.sm),
+                decoration: BoxDecoration(
+                  color: AppStyles.accentOrange.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(Radii.md),
+                ),
+                child: Row(
+                  children: [
+                    Icon(CupertinoIcons.exclamationmark_triangle_fill,
+                        size: 14, color: AppStyles.accentOrange),
+                    const SizedBox(width: Spacing.sm),
+                    Expanded(
+                      child: Text(
+                        n.watchOut!,
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          color: AppStyles.accentOrange,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Empty state — onboarding for first-time users
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -326,19 +485,26 @@ class _PlansList extends StatelessWidget {
       builder: (ctx, txCtrl, accCtrl, invCtrl, budCtrl, goalCtrl, _) {
         final mlAnalysis = MLPlannerEngine.analyze(transactions: txCtrl.transactions, currentSaved: 0);
         final suggestions = _computeSuggestions(plans, mlAnalysis);
+        final narrative = ctx.watch<AIIntelligenceController>().currentMonthNarrative;
 
         return ListView.builder(
           padding: const EdgeInsets.fromLTRB(
               Spacing.lg, Spacing.md, Spacing.lg, 100),
-          itemCount: plans.length + 2, // +1 suggestions header, +1 Add Plan footer
+          // +1 narrative card, +1 suggestions, +1 Add Plan footer
+          itemCount: plans.length + 3,
           itemBuilder: (context, i) {
-            // Index 0: Suggested Plans section
+            // Index 0: Monthly narrative card (T-093)
             if (i == 0) {
+              return _NarrativeCard(narrative: narrative);
+            }
+
+            // Index 1: Suggested Plans section
+            if (i == 1) {
               if (suggestions.isEmpty) return const SizedBox.shrink();
               return _buildSuggestionsSection(context, suggestions);
             }
 
-            final planIndex = i - 1;
+            final planIndex = i - 2;
 
             // Last item: Add Plan button
             if (planIndex == plans.length) {

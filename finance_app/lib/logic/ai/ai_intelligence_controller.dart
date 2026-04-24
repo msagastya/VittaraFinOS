@@ -259,15 +259,26 @@ class AIIntelligenceController extends ChangeNotifier {
         );
       }
 
-      // Phase 3b: monthly narrative
+      // Phase 3b: monthly narrative — T-089/T-091: select lens first
       if (_readiness.canGenerateInsights) {
         final now = DateTime.now();
+        final rawGoals = goals?.map((g) => g.toMap()).toList();
+        final lens = await MonthlyNarrativeGenerator.selectLens(
+          transactions: transactions,
+          year: now.year,
+          month: now.month,
+          budgets: budgets,
+          goals: rawGoals,
+        );
         _currentMonthNarrative = MonthlyNarrativeGenerator.generate(
           transactions: transactions,
           year: now.year,
           month: now.month,
           fingerprint: _readiness.canComputeFingerprint ? _fingerprint : null,
           patterns: _patterns,
+          lens: lens,
+          budgets: budgets,
+          goals: rawGoals,
         );
       }
 
