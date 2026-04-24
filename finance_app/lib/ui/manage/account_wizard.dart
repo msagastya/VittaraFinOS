@@ -25,7 +25,10 @@ class AccountWizard extends StatefulWidget {
 class _AccountWizardState extends State<AccountWizard> {
   static const String _cashBankName = 'Cash';
 
-  final PageController _pageController = PageController();
+  // PageController is created with the current step so that if the widget tree
+  // is ever rebuilt (e.g. after an orientation change that was not locked), the
+  // controller restores to the correct page rather than jumping to page 0.
+  late PageController _pageController;
   int _currentStep = 0;
   late final int _totalSteps;
 
@@ -61,6 +64,15 @@ class _AccountWizardState extends State<AccountWizard> {
   @override
   void initState() {
     super.initState();
+    // Lock orientation to portrait for the duration of this wizard.
+    // This prevents orientation-change from rebuilding the wizard mid-fill,
+    // which would clear text fields and reset the current step.
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    // Initialise with current step so a rebuild never jumps back to page 0.
+    _pageController = PageController(initialPage: _currentStep);
     // Set total steps based on account type
     _totalSteps = widget.isInvestment ? 3 : 4;
 
@@ -116,6 +128,8 @@ class _AccountWizardState extends State<AccountWizard> {
 
   @override
   void dispose() {
+    // Restore all orientations when the wizard is dismissed.
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     _pageController.dispose();
     _nameController.dispose();
     _accountNumberController.dispose();
@@ -182,7 +196,31 @@ class _AccountWizardState extends State<AccountWizard> {
       );
       setState(() => _currentStep--);
     } else {
-      Navigator.pop(context);
+      final hasData = _nameController.text.isNotEmpty;
+      if (hasData && widget.existingAccount == null) {
+        showCupertinoDialog<bool>(
+          context: context,
+          builder: (ctx) => CupertinoAlertDialog(
+            title: const Text('Discard changes?'),
+            content: const Text('Account setup is not saved. Discard?'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('Keep editing'),
+                onPressed: () => Navigator.pop(ctx, false),
+              ),
+              CupertinoDialogAction(
+                isDestructiveAction: true,
+                child: const Text('Discard'),
+                onPressed: () => Navigator.pop(ctx, true),
+              ),
+            ],
+          ),
+        ).then((discard) {
+          if (discard == true && mounted) Navigator.pop(context);
+        });
+      } else {
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -302,7 +340,12 @@ class _AccountWizardState extends State<AccountWizard> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _prevStep();
+      },
+      child: CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(widget.existingAccount != null
@@ -343,7 +386,7 @@ class _AccountWizardState extends State<AccountWizard> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildProgressBar() {

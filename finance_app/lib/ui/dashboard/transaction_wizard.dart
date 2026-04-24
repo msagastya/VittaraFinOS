@@ -77,6 +77,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
 
   @override
   void dispose() {
+    // Restore all orientations when the wizard is dismissed.
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     _pageController.dispose();
     _amountController.dispose();
     _cashbackController.dispose();
@@ -375,6 +377,12 @@ class _TransactionWizardState extends State<TransactionWizard> {
   @override
   void initState() {
     super.initState();
+    // Lock to portrait for the duration of the wizard so orientation changes
+    // don't rebuild the form and clear entered data.
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     _amountController.addListener(() {
       setState(() {
         final text = _amountController.text;
@@ -937,7 +945,12 @@ class _TransactionWizardState extends State<TransactionWizard> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _previousStep();
+      },
+      child: CupertinoPageScaffold(
       navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: const Text('Transaction Wizard'),
         leading: CupertinoButton(
@@ -996,7 +1009,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildBranchPage() {
