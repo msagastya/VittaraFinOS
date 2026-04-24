@@ -81,6 +81,7 @@ import 'package:vittara_fin_os/logic/engagement_service.dart';
 import 'package:vittara_fin_os/ui/engagement/achievements_screen.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart';
 import 'package:vittara_fin_os/ui/widgets/global_search_overlay.dart';
+import 'package:vittara_fin_os/ui/widgets/command_bar.dart';
 import 'package:vittara_fin_os/ui/whats_new_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart' as sp;
 
@@ -1336,6 +1337,18 @@ class DashboardScreen extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Semantics(
+                        label: 'Command bar',
+                        child: BouncyButton(
+                          onPressed: () => CommandBar.show(context),
+                          child: Icon(
+                            CupertinoIcons.square_grid_2x2,
+                            size: IconSizes.navIcon,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: Spacing.xl),
+                      Semantics(
                         label: 'Search',
                         child: BouncyButton(
                           onPressed: () => showGlobalSearch(context),
@@ -1757,6 +1770,7 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildMorphFAB(BuildContext context) {
     return _MorphFAB(
       onPressed: () => showDashboardActionSheet(context),
+      onLongPress: () => CommandBar.show(context),
     );
   }
 
@@ -3383,7 +3397,8 @@ class _LockDialog extends StatelessWidget {
 
 class _MorphFAB extends StatefulWidget {
   final VoidCallback onPressed;
-  const _MorphFAB({required this.onPressed});
+  final VoidCallback? onLongPress;
+  const _MorphFAB({required this.onPressed, this.onLongPress});
 
   @override
   State<_MorphFAB> createState() => _MorphFABState();
@@ -3463,7 +3478,9 @@ class _MorphFABState extends State<_MorphFAB>
         ? Listenable.merge([_ctrl, _pulseCtrl!])
         : _ctrl;
 
-    return BouncyButton(
+    return GestureDetector(
+      onLongPress: widget.onLongPress,
+      child: BouncyButton(
       onPressed: widget.onPressed,
       scaleFactor: 0.92,
       child: AnimatedBuilder(
@@ -3524,7 +3541,7 @@ class _MorphFABState extends State<_MorphFAB>
           );
         },
       ),
-    );
+    ));
   }
 }
 
