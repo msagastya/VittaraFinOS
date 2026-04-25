@@ -2009,6 +2009,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
     double totalInvested = 0;
     double totalCurrent = 0;
 
+    bool anyUnpriced = false;
     for (var inv in investmentsController.investments) {
       final type = inv.type.toString().split('.').last;
       if (!investmentsByType.containsKey(type)) {
@@ -2017,6 +2018,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       investmentsByType[type]!.add(inv);
       totalInvested += inv.amount;
       totalCurrent += _currentValueForInvestment(inv);
+      if (!inv.hasPricedValue) anyUnpriced = true;
     }
 
     // Sort by total amount
@@ -2090,7 +2092,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       ),
                     ),
                     Text(
-                      'Invested ₹${totalInvested.toStringAsFixed(0)}',
+                      anyUnpriced
+                          ? 'Invested ₹${totalInvested.toStringAsFixed(0)} (last known)'
+                          : 'Invested ₹${totalInvested.toStringAsFixed(0)}',
                       style: TextStyle(
                         fontSize: TypeScale.caption,
                         color: AppStyles.getSecondaryTextColor(context),

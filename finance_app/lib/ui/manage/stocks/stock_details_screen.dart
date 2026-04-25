@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/finance/xirr_calculator.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/services/stock_api_service.dart';
@@ -49,6 +50,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
   double get _gainLossPercent =>
       _investedAmount > 0 ? (_gainLoss / _investedAmount) * 100 : 0;
   bool get _isGain => _gainLoss >= 0;
+  double? get _xirrAnnualised =>
+      (_investment.metadata?['xirrAnnualised'] as num?)?.toDouble();
 
   String get _symbol => _investment.metadata?['symbol'] ?? _investment.name;
   String get _stockName => _investment.metadata?['name'] ?? 'Stock';
@@ -289,6 +292,40 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                                   : AppStyles.loss(context),
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+                    // T-124: ROI · XIRR row
+                    const SizedBox(height: Spacing.sm),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: Spacing.md, vertical: Spacing.sm),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(Radii.md),
+                        border: Border.all(
+                            color: AppStyles.getDividerColor(context)),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            'ROI: ${_gainLossPercent.toStringAsFixed(1)}% total',
+                            style: TextStyle(
+                              fontSize: TypeScale.footnote,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                          if (_xirrAnnualised != null) ...[
+                            Text(
+                              '  ·  XIRR: ${XirrCalculator.format(_xirrAnnualised)}',
+                              style: TextStyle(
+                                fontSize: TypeScale.footnote,
+                                color: AppStyles.getSecondaryTextColor(context),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const JargonTooltip.xirr(),
+                          ],
                         ],
                       ),
                     ),

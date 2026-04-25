@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/finance/xirr_calculator.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/services/database_service.dart';
 import 'package:vittara_fin_os/services/investment_value_service.dart';
@@ -269,7 +271,86 @@ class InvestmentsController with ChangeNotifier, SafeStorageMixin {
     }
     notifyListeners();
 
+    // T-123: Recompute XIRR for all investments after prices refresh
+    if (updated) computeAllXirr().ignore();
+
     return updated;
+  }
+
+  // ── T-123: XIRR computation ───────────────────────────────────────────────
+
+  /// Compute XIRR for each investment that has a known purchase date and
+  /// current value. Stores result in `metadata['xirrAnnualised']`.
+  /// Runs in a Flutter `compute` isolate to avoid blocking the UI thread.
+  Future<void> computeAllXirr() async {
+    bool anyUpdated = false;
+    final updated = <Investment>[];
+
+    for (final inv in _investments) {
+      final xirr = await _computeXirrForInvestment(inv);
+      if (xirr != null) {
+        final metadata = Map<String, dynamic>.from(inv.metadata ?? {});
+        metadata['xirrAnnualised'] = xirr;
+        updated.add(inv.copyWith(metadata: metadata));
+        anyUpdated = true;
+      } else {
+        updated.add(inv);
+      }
+    }
+
+    if (anyUpdated) {
+      _investments = updated;
+      _invalidateCache();
+      await _saveInvestments();
+      notifyListeners();
+    }
+  }
+
+  /// Build cashflows for an investment from its activity log and compute XIRR.
+  Future<double?> _computeXirrForInvestment(Investment inv) async {
+    final metadata = inv.metadata ?? {};
+    final log = _readActivityLog(metadata);
+    if (log.isEmpty) return null;
+
+    final cashflows = <(DateTime, double)>[];
+    for (final entry in log) {
+      final dateStr = entry['date'] as String?;
+      final amount = _asDouble(entry['amount']) ??
+          _asDouble(entry['investedAmount']);
+      if (dateStr == null || amount == null) continue;
+      final date = DateTime.tryParse(dateStr);
+      if (date == null) continue;
+      // Outflows are negative (buy/invest), inflows positive (sell/redeem)
+      final type = _normalizedEventType(entry['type'] as String? ?? '');
+      final cf = (type == 'sell' || type == 'redeem' || type == 'withdraw')
+          ? amount.abs()
+          : -amount.abs();
+      cashflows.add((date, cf));
+    }
+
+    // Add current value as final inflow at today
+    final currentValue = inv.currentValue;
+    if (currentValue > 0 && cashflows.isNotEmpty) {
+      cashflows.add((DateTime.now(), currentValue));
+    }
+
+    if (cashflows.length < 2) return null;
+
+    return compute(
+      _xirrIsolate,
+      cashflows.map((c) => [c.$1.millisecondsSinceEpoch, c.$2]).toList(),
+    );
+  }
+
+  /// Top-level function for isolate: XirrCalculator.compute over serializable data.
+  static double? _xirrIsolate(List<List<double>> data) {
+    final cfs = data
+        .map((d) => (
+              DateTime.fromMillisecondsSinceEpoch(d[0].toInt()),
+              d[1],
+            ))
+        .toList();
+    return XirrCalculator.compute(cfs);
   }
 
   double? _asDouble(dynamic value) {

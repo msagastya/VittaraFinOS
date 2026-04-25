@@ -269,6 +269,13 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   ],
                 ),
               ),
+              // T-128: Maturity action section (< 30 days to maturity)
+              if (widget.fd.status == FDStatus.active &&
+                  widget.fd.daysUntilMaturity >= 0 &&
+                  widget.fd.daysUntilMaturity < 30) ...[
+                const SizedBox(height: Spacing.lg),
+                _buildMaturityActionSection(context),
+              ],
               // Action Buttons
               _buildActionButtons(context),
               const SizedBox(height: 30),
@@ -369,6 +376,84 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               color: AppStyles.getTextColor(context),
               fontWeight: isHighlight ? FontWeight.bold : FontWeight.w600,
               fontSize: isHighlight ? 14 : 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // T-128: Maturity action section
+  Widget _buildMaturityActionSection(BuildContext context) {
+    final daysLeft = widget.fd.daysUntilMaturity;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.solarGold.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(color: AppStyles.solarGold.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(CupertinoIcons.exclamationmark_circle_fill,
+                  size: 14, color: AppStyles.solarGold),
+              const SizedBox(width: 6),
+              Text(
+                daysLeft == 0
+                    ? 'Matures Today — What will you do?'
+                    : 'Matures in $daysLeft day${daysLeft == 1 ? '' : 's'} — What will you do?',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.solarGold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.md),
+          _MaturityActionTile(
+            icon: CupertinoIcons.arrow_2_circlepath,
+            label: 'Auto-renew',
+            subtitle: 'Roll over at same or current rate',
+            onTap: () {
+              showCupertinoDialog<void>(
+                context: context,
+                builder: (_) => CupertinoAlertDialog(
+                  title: const Text('Auto-renew scheduled'),
+                  content: const Text(
+                      'Your FD will be renewed automatically at maturity. '
+                      'You can change this in Edit Details.'),
+                  actions: [
+                    CupertinoDialogAction(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: Spacing.sm),
+          _MaturityActionTile(
+            icon: CupertinoIcons.arrow_down_circle,
+            label: 'Withdraw to account',
+            subtitle: 'Transfer proceeds to your bank account',
+            onTap: () => _showPrematureWithdrawalModal(context),
+          ),
+          const SizedBox(height: Spacing.sm),
+          _MaturityActionTile(
+            icon: CupertinoIcons.chart_bar_fill,
+            label: 'Invest elsewhere',
+            subtitle: 'Redirect to a new investment type',
+            onTap: () => Navigator.of(context).push(
+              FadeScalePageRoute(
+                  page: const InvestmentTypeSelectionModal(
+                onTypeSelected: (_) {},
+              )),
             ),
           ),
         ],
@@ -2187,4 +2272,61 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
   }
 
   String _formatDate(DateTime date) => DateFormatter.format(date);
+}
+
+// T-128 helper widget
+class _MaturityActionTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _MaturityActionTile({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.md, vertical: Spacing.sm),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(Radii.md),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 16, color: AppStyles.solarGold),
+            const SizedBox(width: Spacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: TextStyle(
+                        fontSize: TypeScale.callout,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getTextColor(context),
+                      )),
+                  Text(subtitle,
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      )),
+                ],
+              ),
+            ),
+            Icon(CupertinoIcons.chevron_right,
+                size: 12,
+                color: AppStyles.getSecondaryTextColor(context)),
+          ],
+        ),
+      ),
+    );
+  }
 }

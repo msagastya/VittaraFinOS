@@ -1380,6 +1380,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           _buildCompactSummary(context, investments),
                           // Asset Allocation Donut Chart
                           _buildAllocationChart(context, investments),
+                          // T-125/T-126: Portfolio timeline chart
+                          _PortfolioTimelineChart(investments: investments),
                           _buildCategoryTabs(context, investments, categories),
                           const SizedBox(height: Spacing.xs),
                           // Search bar
@@ -3892,4 +3894,282 @@ class _DonutChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(_DonutChartPainter oldDelegate) =>
       oldDelegate.slices != slices || oldDelegate.holeColor != holeColor;
+}
+
+// ── T-125/T-126: Portfolio timeline chart ─────────────────────────────────────
+
+class _PortfolioTimelineChart extends StatefulWidget {
+  final List<Investment> investments;
+  const _PortfolioTimelineChart({required this.investments});
+
+  @override
+  State<_PortfolioTimelineChart> createState() =>
+      _PortfolioTimelineChartState();
+}
+
+class _PortfolioTimelineChartState extends State<_PortfolioTimelineChart> {
+  bool _collapsed = true;
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.investments.isEmpty) return const SizedBox.shrink();
+    final points = _buildMonthlyPoints(widget.investments);
+    if (points.length < 2) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () => setState(() => _collapsed = !_collapsed),
+            child: Row(
+              children: [
+                Text(
+                  'Portfolio Timeline',
+                  style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w700,
+                    color: AppStyles.getSecondaryTextColor(context),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  _collapsed
+                      ? CupertinoIcons.chevron_down
+                      : CupertinoIcons.chevron_up,
+                  size: 11,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+              ],
+            ),
+          ),
+          if (!_collapsed) ...[
+            const SizedBox(height: Spacing.sm),
+            Container(
+              height: 110,
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(Radii.lg),
+              ),
+              child: CustomPaint(
+                painter: _TimelinePainter(
+                  points: points,
+                  tealColor: AppStyles.aetherTeal,
+                  gridColor: AppStyles.getDividerColor(context),
+                  isDark: AppStyles.isDarkMode(context),
+                ),
+              ),
+            ),
+            const SizedBox(height: Spacing.xs),
+            Row(
+              children: [
+                _TimelineLegend(color: AppStyles.getSecondaryTextColor(context)
+                    .withValues(alpha: 0.5), label: 'Invested'),
+                const SizedBox(width: Spacing.md),
+                _TimelineLegend(color: AppStyles.aetherTeal, label: 'Current'),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Reconstruct monthly portfolio values from activity logs.
+  List<({DateTime month, double invested, double current})> _buildMonthlyPoints(
+      List<Investment> investments) {
+    // Find date range
+    DateTime? earliest;
+    for (final inv in investments) {
+      final log = inv.metadata?['activityLog'];
+      if (log is! List) continue;
+      for (final entry in log) {
+        final ds = entry['date'] as String?;
+        if (ds == null) continue;
+        final d = DateTime.tryParse(ds);
+        if (d != null && (earliest == null || d.isBefore(earliest))) {
+          earliest = d;
+        }
+      }
+    }
+    if (earliest == null) return [];
+
+    final now = DateTime.now();
+    final months = <({DateTime month, double invested, double current})>[];
+
+    DateTime cursor = DateTime(earliest.year, earliest.month, 1);
+    while (!cursor.isAfter(DateTime(now.year, now.month, 1))) {
+      double invested = 0;
+      double current = 0;
+      for (final inv in investments) {
+        final log = inv.metadata?['activityLog'];
+        if (log is! List) continue;
+        // Sum invested up to end of cursor month
+        final monthEnd = DateTime(cursor.year, cursor.month + 1, 0);
+        for (final entry in log) {
+          final ds = entry['date'] as String?;
+          if (ds == null) continue;
+          final d = DateTime.tryParse(ds);
+          if (d == null || d.isAfter(monthEnd)) continue;
+          final amt = (entry['amount'] as num?)?.toDouble() ??
+              (entry['investedAmount'] as num?)?.toDouble() ?? 0;
+          final type = (entry['type'] as String? ?? '').toLowerCase();
+          if (type == 'sell' || type == 'redeem' || type == 'withdraw') {
+            invested -= amt.abs();
+          } else {
+            invested += amt.abs();
+          }
+        }
+        // For current month, use live value; otherwise use invested as proxy
+        if (cursor.year == now.year && cursor.month == now.month) {
+          current += inv.currentValue;
+        } else {
+          current += invested; // historical proxy
+        }
+      }
+      if (invested > 0) {
+        months.add((month: cursor, invested: invested, current: current));
+      }
+      cursor = DateTime(cursor.year, cursor.month + 1, 1);
+    }
+    return months;
+  }
+}
+
+class _TimelineLegend extends StatelessWidget {
+  final Color color;
+  final String label;
+  const _TimelineLegend({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 24,
+          height: 2,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(1),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TimelinePainter extends CustomPainter {
+  final List<({DateTime month, double invested, double current})> points;
+  final Color tealColor;
+  final Color gridColor;
+  final bool isDark;
+
+  const _TimelinePainter({
+    required this.points,
+    required this.tealColor,
+    required this.gridColor,
+    required this.isDark,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.isEmpty) return;
+
+    const padL = 8.0, padR = 8.0, padT = 12.0, padB = 12.0;
+    final w = size.width - padL - padR;
+    final h = size.height - padT - padB;
+
+    final maxVal = points.map((p) => p.current > p.invested ? p.current : p.invested)
+        .reduce((a, b) => a > b ? a : b);
+    if (maxVal <= 0) return;
+
+    double xOf(int i) => padL + (i / (points.length - 1)) * w;
+    double yOf(double v) => padT + h * (1 - v / maxVal);
+
+    // Draw grid lines (3 horizontal)
+    final gridPaint = Paint()
+      ..color = gridColor
+      ..strokeWidth = 0.5;
+    for (int g = 1; g <= 3; g++) {
+      final y = padT + h * g / 4;
+      canvas.drawLine(Offset(padL, y), Offset(padL + w, y), gridPaint);
+    }
+
+    // Draw P&L fill between invested and current lines
+    final fillPath = Path();
+    fillPath.moveTo(xOf(0), yOf(points[0].invested));
+    for (int i = 1; i < points.length; i++) {
+      fillPath.lineTo(xOf(i), yOf(points[i].invested));
+    }
+    for (int i = points.length - 1; i >= 0; i--) {
+      fillPath.lineTo(xOf(i), yOf(points[i].current));
+    }
+    fillPath.close();
+
+    final lastInv = points.last.invested;
+    final lastCur = points.last.current;
+    final isGain = lastCur >= lastInv;
+    final fillColor = isGain
+        ? tealColor.withAlpha(40)
+        : const Color(0xFFFF6B6B).withAlpha(30);
+    canvas.drawPath(fillPath, Paint()..color = fillColor..style = PaintingStyle.fill);
+
+    // Draw invested line (dashed, muted)
+    final invPaint = Paint()
+      ..color = gridColor.withAlpha(180)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    final invPath = Path();
+    for (int i = 0; i < points.length; i++) {
+      i == 0
+          ? invPath.moveTo(xOf(i), yOf(points[i].invested))
+          : invPath.lineTo(xOf(i), yOf(points[i].invested));
+    }
+    // Draw dashed
+    final invMetrics = invPath.computeMetrics();
+    for (final m in invMetrics) {
+      double d = 0;
+      while (d < m.length) {
+        canvas.drawPath(m.extractPath(d, d + 4), invPaint);
+        d += 7;
+      }
+    }
+
+    // Draw current value line (solid teal)
+    final curPaint = Paint()
+      ..color = tealColor
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    final curPath = Path();
+    for (int i = 0; i < points.length; i++) {
+      i == 0
+          ? curPath.moveTo(xOf(i), yOf(points[i].current))
+          : curPath.lineTo(xOf(i), yOf(points[i].current));
+    }
+    canvas.drawPath(curPath, curPaint);
+
+    // End-point dot on current line
+    canvas.drawCircle(
+      Offset(xOf(points.length - 1), yOf(points.last.current)),
+      3,
+      Paint()..color = tealColor,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_TimelinePainter old) =>
+      old.points != points || old.isDark != isDark;
 }

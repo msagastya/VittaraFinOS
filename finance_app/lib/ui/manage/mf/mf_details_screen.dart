@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/finance/xirr_calculator.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/models/mutual_fund_model.dart';
@@ -291,6 +292,42 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                   ],
                 ),
               ),
+              // T-124: ROI · XIRR row
+              const SizedBox(height: Spacing.sm),
+              Builder(builder: (ctx) {
+                final xirrRaw = (investment.metadata?['xirrAnnualised'] as num?)?.toDouble();
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.md, vertical: Spacing.sm),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(ctx),
+                    borderRadius: BorderRadius.circular(Radii.md),
+                    border: Border.all(color: AppStyles.getDividerColor(ctx)),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        'ROI: ${gainPercent >= 0 ? '+' : ''}${gainPercent.toStringAsFixed(1)}% total',
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          color: AppStyles.getSecondaryTextColor(ctx),
+                        ),
+                      ),
+                      if (xirrRaw != null) ...[
+                        Text(
+                          '  ·  XIRR: ${XirrCalculator.format(xirrRaw)}',
+                          style: TextStyle(
+                            fontSize: TypeScale.footnote,
+                            color: AppStyles.getSecondaryTextColor(ctx),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const JargonTooltip.xirr(),
+                      ],
+                    ],
+                  ),
+                );
+              }),
               const SizedBox(height: Spacing.xl),
 
               // NAV History Sparkline
