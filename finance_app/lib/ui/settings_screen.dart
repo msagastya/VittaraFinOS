@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/pin_recovery_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/services/integrity_check_service.dart';
+import 'package:vittara_fin_os/services/security/device_security_service.dart';
 import 'package:vittara_fin_os/ui/backup_restore_screen.dart';
 import 'package:vittara_fin_os/ui/recovery_code_save_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -43,6 +44,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           const SizedBox(height: Spacing.lg),
           _buildHeader('Privacy & Security'),
+          // T-139: Security Status row
+          _buildSecurityStatusCard(context, settings),
+          const SizedBox(height: Spacing.sm),
           _buildModernSection(context, [
             _buildToggleRow(
               context,
@@ -101,6 +105,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () => _showRecoveryCode(context, settings),
                 ),
               ],
+              // T-137: master toggle for sensitive-screen biometric gate
+              _buildDivider(context),
+              _buildToggleRow(
+                context,
+                icon: CupertinoIcons.lock_rotation,
+                title: 'Require biometric for sensitive screens',
+                subtitle: 'Archive, backup export, recovery code',
+                value: settings.requireBiometricForSensitiveScreens,
+                color: SemanticColors.categories,
+                onChanged: settings.toggleRequireBiometricForSensitiveScreens,
+              ),
             ],
           ]),
           _buildHeader('Display'),
@@ -351,6 +366,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
               await settings.resetToDefaults();
             },
             child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // T-139: Security Status card
+  Widget _buildSecurityStatusCard(
+      BuildContext context, SettingsController settings) {
+    final dss = DeviceSecurityService.instance;
+    final items = <(bool ok, String label)>[
+      (true, 'Encrypted database'),
+      (settings.isBiometricEnabled, 'Biometric enabled'),
+      (settings.lockOnMinimize, 'Screenshot protection'),
+      if (dss.isCompromised) (false, 'Rooted device detected'),
+    ];
+    final teal = AppStyles.gain(context);
+    final amber = CupertinoColors.systemYellow.resolveFrom(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: AppStyles.cardDecoration(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Security Status',
+            style: AppStyles.titleStyle(context)
+                .copyWith(fontSize: TypeScale.footnote, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 16,
+            runSpacing: 6,
+            children: items.map((item) {
+              final color = item.$1 ? teal : amber;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    item.$1
+                        ? CupertinoIcons.checkmark_circle_fill
+                        : CupertinoIcons.exclamationmark_triangle_fill,
+                    size: 14,
+                    color: color,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    item.$2,
+                    style: TextStyle(
+                        fontSize: TypeScale.caption, color: color),
+                  ),
+                ],
+              );
+            }).toList(),
           ),
         ],
       ),

@@ -23,6 +23,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
+import 'package:vittara_fin_os/logic/settings_controller.dart' show SettingsController;
 
 class BackupRestoreScreen extends StatefulWidget {
   const BackupRestoreScreen({super.key});
@@ -37,10 +38,23 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
   Map<String, dynamic>? _lastSummary;
   List<File> _localBackups = const [];
 
+  // T-129: Encrypt backup toggle + password fields
+  bool _encryptExport = false;
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _showPassword = false;
+
   @override
   void initState() {
     super.initState();
     _refreshLocalBackups();
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshLocalBackups() async {
@@ -67,8 +81,40 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
   }
 
   Future<void> _exportBackup() async {
+    // T-135: biometric gate before generating backup
+    final settings = context.read<SettingsController>();
+    final ok = await settings.authenticateSensitiveScreen(
+      reason: 'Authenticate to export your backup',
+    );
+    if (!mounted || !ok) return;
+
+    // T-129: if encryption enabled, validate passwords first
+    if (_encryptExport) {
+      final pw = _passwordController.text.trim();
+      final confirm = _confirmPasswordController.text.trim();
+      if (pw.isEmpty) {
+        toast.showError('Please enter a password for encryption.');
+        return;
+      }
+      if (pw.length < 8) {
+        toast.showError('Password must be at least 8 characters.');
+        return;
+      }
+      if (pw != confirm) {
+        toast.showError('Passwords do not match.');
+        return;
+      }
+    }
+
     setState(() => _busy = true);
-    final result = await BackupRestoreService.buildAndExportBackupFile();
+    final BackupOperationResult result;
+    if (_encryptExport) {
+      result = await BackupRestoreService.buildAndExportPasswordEncryptedFile(
+        _passwordController.text.trim(),
+      );
+    } else {
+      result = await BackupRestoreService.buildAndExportBackupFile();
+    }
     if (!mounted) return;
     setState(() {
       _busy = false;
@@ -90,7 +136,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
     try {
       picked = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json'],
+        allowedExtensions: ['json', 'vittara_enc', 'vittara_backup'],
         withData: true,
       );
     } catch (_) {}
@@ -98,16 +144,30 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
     if (picked == null || picked.files.isEmpty) return;
 
     final file = picked.files.first;
-    String? rawJson;
+    String? rawContent;
     if (file.bytes != null) {
-      rawJson = String.fromCharCodes(file.bytes!);
+      rawContent = String.fromCharCodes(file.bytes!);
     } else if (file.path != null) {
-      rawJson = await File(file.path!).readAsString();
+      rawContent = await File(file.path!).readAsString();
     }
     if (!mounted) return;
-    if (rawJson == null || rawJson.trim().isEmpty) {
+    if (rawContent == null || rawContent.trim().isEmpty) {
       toast.showError('Could not read the selected file.');
       return;
+    }
+
+    // T-130: detect .vittara_enc extension → prompt for password
+    final fileName = file.name.toLowerCase();
+    String rawJson = rawContent;
+    if (fileName.endsWith('.vittara_enc')) {
+      final password = await _promptRestorePassword();
+      if (!mounted || password == null) return;
+      try {
+        rawJson = BackupRestoreService.decryptJsonWithPassword(rawContent, password);
+      } catch (e) {
+        toast.showError(e.toString().replaceFirst('FormatException: ', ''));
+        return;
+      }
     }
 
     final inspect = await BackupRestoreService.inspectBackupJson(rawJson);
@@ -129,9 +189,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
 
     setState(() => _busy = true);
     final result = await BackupRestoreService.restoreFromJson(rawJson);
-    if (result.success) {
-      await _reloadAllControllers();
-    }
+    if (result.success) await _reloadAllControllers();
     if (!mounted) return;
     setState(() {
       _busy = false;
@@ -143,6 +201,50 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
     } else {
       toast.showError(result.message);
     }
+  }
+
+  /// Shows a dialog asking for the decryption password.
+  Future<String?> _promptRestorePassword() async {
+    final controller = TextEditingController();
+    bool obscure = true;
+    return showCupertinoDialog<String>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => CupertinoAlertDialog(
+          title: const Text('Enter backup password'),
+          content: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: CupertinoTextField(
+              controller: controller,
+              placeholder: 'Password',
+              obscureText: obscure,
+              autofocus: true,
+              suffix: GestureDetector(
+                onTap: () => setState(() => obscure = !obscure),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(
+                    obscure ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
+                    size: 18,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(ctx, controller.text),
+              child: const Text('Decrypt'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _showLocalBackupPicker() async {
@@ -291,14 +393,25 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
 
             // ── Backup ──────────────────────────────────────────────────
             _buildSectionHeader(context, 'Backup'),
+
+            // T-129: Encrypt backup toggle
+            _buildEncryptToggleCard(context),
+            const SizedBox(height: 10),
+
             _buildActionCard(
               context,
               title: 'Export & Share',
-              subtitle: 'Send to Google Drive, WhatsApp, Files, or any app. Survives reinstall.',
+              subtitle: _encryptExport
+                  ? 'Password-protected backup. Share securely.'
+                  : 'Send to Google Drive, WhatsApp, Files, or any app. Survives reinstall.',
               icon: CupertinoIcons.share_solid,
               color: CupertinoColors.systemGreen,
               onTap: _busy ? null : _exportBackup,
             ),
+
+            // T-131: Warning text
+            _buildExportWarning(context),
+            const SizedBox(height: 4),
             _buildActionCard(
               context,
               title: 'Save Local Backup',
@@ -352,6 +465,107 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  // T-129: Encrypt toggle + password fields card
+  Widget _buildEncryptToggleCard(BuildContext context) {
+    final secondary = AppStyles.getSecondaryTextColor(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: AppStyles.cardDecoration(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Encrypt backup',
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: TypeScale.callout),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Protect with a password (AES-256)',
+                      style: TextStyle(
+                          color: secondary, fontSize: TypeScale.footnote),
+                    ),
+                  ],
+                ),
+              ),
+              CupertinoSwitch(
+                value: _encryptExport,
+                onChanged: (v) => setState(() {
+                  _encryptExport = v;
+                  if (!v) {
+                    _passwordController.clear();
+                    _confirmPasswordController.clear();
+                  }
+                }),
+              ),
+            ],
+          ),
+          if (_encryptExport) ...[
+            const SizedBox(height: 10),
+            CupertinoTextField(
+              controller: _passwordController,
+              placeholder: 'Password (min 8 characters)',
+              obscureText: !_showPassword,
+              suffix: GestureDetector(
+                onTap: () => setState(() => _showPassword = !_showPassword),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(
+                    _showPassword
+                        ? CupertinoIcons.eye_slash
+                        : CupertinoIcons.eye,
+                    size: 18,
+                    color: secondary,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            CupertinoTextField(
+              controller: _confirmPasswordController,
+              placeholder: 'Confirm password',
+              obscureText: !_showPassword,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // T-131: Warning text below export option
+  Widget _buildExportWarning(BuildContext context) {
+    final amber = CupertinoColors.systemYellow.resolveFrom(context);
+    final msg = _encryptExport
+        ? 'Password-protected. Keep your password safe — we cannot recover it.'
+        : 'This file contains all your financial data. Store it securely.';
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(CupertinoIcons.exclamationmark_circle,
+              size: 13, color: amber),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              msg,
+              style: TextStyle(
+                fontSize: TypeScale.caption,
+                color: amber,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

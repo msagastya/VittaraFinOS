@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_account_adjuster.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
@@ -28,6 +29,27 @@ class TransactionsArchiveScreen extends StatefulWidget {
 
 class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
   TransactionType? _filterType;
+  bool _authenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _gateWithBiometric());
+  }
+
+  Future<void> _gateWithBiometric() async {
+    final settings = context.read<SettingsController>();
+    final ok = await settings.authenticateSensitiveScreen(
+      reason: 'Authenticate to view archived transactions',
+    );
+    if (!mounted) return;
+    if (!ok) {
+      toast_lib.toast.showError('Authentication required');
+      Navigator.of(context).pop();
+      return;
+    }
+    setState(() => _authenticated = true);
+  }
 
   void _showFilterSheet() {
     showCupertinoModalPopup<void>(
@@ -69,6 +91,12 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_authenticated) {
+      return CupertinoPageScaffold(
+        backgroundColor: AppStyles.getBackground(context),
+        child: const Center(child: CupertinoActivityIndicator()),
+      );
+    }
     final isLandscape = AppStyles.isLandscape(context);
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),

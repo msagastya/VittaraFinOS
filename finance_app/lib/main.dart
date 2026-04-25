@@ -812,11 +812,17 @@ class _SplashScreenState extends State<SplashScreen> {
       }
   }
 
-  /// Show a one-time warning if the device is rooted or an emulator.
+  /// T-138: Show a one-time warning if the device is rooted or an emulator.
+  /// Stores `security_warning_shown` in SharedPreferences so it is shown
+  /// only once, not on every launch.
   void _showDeviceSecurityWarningIfNeeded() {
     final warning = DeviceSecurityService.instance.warningMessage;
     if (warning == null) return;
-    Future.delayed(const Duration(milliseconds: 1200), () {
+    Future.delayed(const Duration(milliseconds: 1200), () async {
+      if (!mounted) return;
+      final prefs = await sp.SharedPreferences.getInstance();
+      if (prefs.getBool('security_warning_shown') == true) return;
+      await prefs.setBool('security_warning_shown', true);
       if (!mounted) return;
       showCupertinoDialog<void>(
         context: context,

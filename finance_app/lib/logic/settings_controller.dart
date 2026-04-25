@@ -40,6 +40,7 @@ class SettingsController with ChangeNotifier {
   String? _pinSalt; // Per-user random salt (base64, v2+). Null for legacy users.
   bool _showPinFallback = false; // set to true after biometric fails
   bool _isAuthenticating = false; // guard against concurrent auth calls
+  bool _requireBiometricForSensitiveScreens = true; // T-137
 
   ThemeMode get themeMode => _themeMode;
   bool get isBiometricEnabled => _isBiometricEnabled;
@@ -54,6 +55,8 @@ class SettingsController with ChangeNotifier {
   String? get defaultPaymentAppName => _defaultPaymentAppName;
   bool get isPinEnabled => _pinHash != null && _pinHash!.isNotEmpty;
   bool get showPinFallback => _showPinFallback;
+  bool get requireBiometricForSensitiveScreens =>
+      _requireBiometricForSensitiveScreens;
 
   void setAppLoaded() {
     _appLoaded = true;
@@ -80,6 +83,8 @@ class SettingsController with ChangeNotifier {
     _isArchivedTransactionsEnabled =
         _prefs.getBool('showArchivedTransactions') ?? false;
     _isSmsEnabled = _prefs.getBool('isSmsEnabled') ?? false;
+    _requireBiometricForSensitiveScreens =
+        _prefs.getBool('requireBiometricForSensitiveScreens') ?? true;
     _defaultAccountId = _prefs.getString('quickEntryDefaultAccountId');
     _defaultPaymentAppName = _prefs.getString('quickEntryDefaultPaymentApp');
 
@@ -181,6 +186,26 @@ class SettingsController with ChangeNotifier {
       await _prefs.setString('quickEntryDefaultPaymentApp', name);
     }
     notifyListeners();
+  }
+
+  /// T-137: toggles whether archive / backup export / recovery code require
+  /// biometric on top of the app lock.
+  Future<void> toggleRequireBiometricForSensitiveScreens(bool value) async {
+    _requireBiometricForSensitiveScreens = value;
+    await _prefs.setBool('requireBiometricForSensitiveScreens', value);
+    notifyListeners();
+  }
+
+  /// T-134 / T-135: gate for archive and backup export screens.
+  /// Returns true immediately if master toggle is off or biometric unavailable.
+  Future<bool> authenticateSensitiveScreen(
+      {String reason = 'Authenticate to continue'}) async {
+    if (!_requireBiometricForSensitiveScreens ||
+        !_isBiometricEnabled ||
+        kIsWeb) {
+      return true;
+    }
+    return await _authenticate(reason: reason);
   }
 
   Future<bool> authenticateArchivedAccess(

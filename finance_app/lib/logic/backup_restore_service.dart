@@ -4,7 +4,9 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:encrypt/encrypt.dart' as aes_enc;
 import 'package:flutter/foundation.dart';
+import 'package:pointycastle/export.dart' show PBKDF2KeyDerivator, HMac, SHA256Digest, Pbkdf2Parameters;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -60,6 +62,15 @@ Map<String, dynamic> _decryptAndParseInIsolate(Map<String, dynamic> args) {
 
   // JSON parse — the decoded payload may contain 10K+ rows of MF data
   return jsonDecode(utf8.decode(plain)) as Map<String, dynamic>;
+}
+
+/// Top-level isolate helper for password-based AES-256-CBC encryption.
+/// Must be top-level so [compute()] can transfer it to a background isolate.
+String _encryptInIsolate(Map<String, dynamic> args) {
+  return BackupRestoreService.encryptJsonWithPassword(
+    args['json'] as String,
+    args['password'] as String,
+  );
 }
 
 class BackupOperationResult {
@@ -1861,6 +1872,112 @@ class BackupRestoreService {
       diff |= a[i] ^ b[i];
     }
     return diff == 0;
+  }
+
+  // ── Password-based AES-256-CBC encryption (T-129 / T-130) ────────────────────
+
+  static const String _encFileFormat = 'vittara_enc_v1';
+  static const String encryptedExtension = '.vittara_enc';
+  static const String plainExtension = '.vittara_backup';
+
+  /// Derives a 32-byte AES key from [password] + [salt] using PBKDF2-SHA256
+  /// with 100 000 iterations.
+  static Uint8List _pbkdf2Key(String password, Uint8List salt) {
+    final pbkdf2 = PBKDF2KeyDerivator(HMac(SHA256Digest(), 64));
+    pbkdf2.init(Pbkdf2Parameters(salt, 100000, 32));
+    return pbkdf2.process(Uint8List.fromList(utf8.encode(password)));
+  }
+
+  /// Encrypts [plainJson] with AES-256-CBC using a PBKDF2-derived key.
+  /// Returns a JSON string that can be written to a `.vittara_enc` file.
+  static String encryptJsonWithPassword(String plainJson, String password) {
+    final salt = _randomBytes(16);
+    final ivBytes = _randomBytes(16);
+    final keyBytes = _pbkdf2Key(password, salt);
+    final key = aes_enc.Key(keyBytes);
+    final iv = aes_enc.IV(ivBytes);
+    final encrypter = aes_enc.Encrypter(
+      aes_enc.AES(key, mode: aes_enc.AESMode.cbc),
+    );
+    final encrypted = encrypter.encrypt(plainJson, iv: iv);
+    final envelope = {
+      'format': _encFileFormat,
+      'salt': base64Encode(salt),
+      'iv': base64Encode(ivBytes),
+      'ciphertext': encrypted.base64,
+    };
+    return const JsonEncoder.withIndent('  ').convert(envelope);
+  }
+
+  /// Decrypts a `.vittara_enc` file contents [encJson] with [password].
+  /// Returns the inner backup JSON string, or throws on wrong password / bad format.
+  static String decryptJsonWithPassword(String encJson, String password) {
+    final Map<String, dynamic> envelope;
+    try {
+      envelope = jsonDecode(encJson) as Map<String, dynamic>;
+    } catch (_) {
+      throw const FormatException('Not a valid Vittara encrypted backup file.');
+    }
+    if (envelope['format'] != _encFileFormat) {
+      throw const FormatException('Unknown encrypted backup format.');
+    }
+    final salt = base64Decode(envelope['salt'] as String);
+    final ivBytes = base64Decode(envelope['iv'] as String);
+    final ciphertextBase64 = envelope['ciphertext'] as String;
+    final keyBytes = _pbkdf2Key(password, salt);
+    final key = aes_enc.Key(keyBytes);
+    final iv = aes_enc.IV(ivBytes);
+    final encrypter = aes_enc.Encrypter(
+      aes_enc.AES(key, mode: aes_enc.AESMode.cbc),
+    );
+    try {
+      return encrypter.decrypt64(ciphertextBase64, iv: iv);
+    } catch (_) {
+      throw const FormatException(
+        'Decryption failed. Incorrect password or corrupted file.',
+      );
+    }
+  }
+
+  /// Builds a backup JSON, encrypts it with [password], and writes a
+  /// `.vittara_enc` file to the temp directory ready to share.
+  static Future<BackupOperationResult> buildAndExportPasswordEncryptedFile(
+    String password,
+  ) async {
+    if (kIsWeb) {
+      return const BackupOperationResult(
+        success: false,
+        message: 'File export is not available on web.',
+      );
+    }
+    final bundleResult = await buildBackupJson();
+    if (!bundleResult.success || bundleResult.backupJson == null) {
+      return bundleResult;
+    }
+    try {
+      final encJson = await compute(
+        _encryptInIsolate,
+        {'json': bundleResult.backupJson!, 'password': password},
+      );
+      final tmpDir = await getTemporaryDirectory();
+      final timestamp =
+          DateTime.now().toIso8601String().replaceAll(RegExp(r'[:.]'), '-');
+      final filePath =
+          '${tmpDir.path}/${backupFilePrefix}_$timestamp$encryptedExtension';
+      await File(filePath).writeAsString(encJson, flush: true);
+      final details = Map<String, dynamic>.from(bundleResult.details ?? {});
+      return BackupOperationResult(
+        success: true,
+        message: 'Encrypted backup file ready.',
+        filePath: filePath,
+        details: details,
+      );
+    } catch (error) {
+      return BackupOperationResult(
+        success: false,
+        message: 'Failed to encrypt backup: $error',
+      );
+    }
   }
 }
 
