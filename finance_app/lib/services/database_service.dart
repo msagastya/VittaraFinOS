@@ -30,7 +30,7 @@ class DatabaseService {
 
   bool get isOpen => _db != null;
 
-  static const int _kSchemaVersion = 1;
+  static const int _kSchemaVersion = 2;
   static const String _kDbKeyStorageKey = 'vittara_db_key';
 
   // Android Keystore-backed secure storage — key never leaves the secure enclave
@@ -167,8 +167,17 @@ class DatabaseService {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Future schema migrations go here as version-cased blocks:
-    // if (oldVersion < 2) { ... }
+    // T-165/T-166: compound indexes for account+date and type+date queries
+    if (oldVersion < 2) {
+      try {
+        await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_tx_acc_dt ON transactions(source_account_id, date_time DESC)');
+        await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_tx_type_dt ON transactions(type, date_time DESC)');
+      } catch (_) {
+        // Ignore if index already exists on fresh installs
+      }
+    }
   }
 
   // ── Migration from SharedPreferences ─────────────────────────────────────

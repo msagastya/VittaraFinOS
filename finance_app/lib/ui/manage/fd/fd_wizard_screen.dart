@@ -89,6 +89,31 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
   Future<void> _submitFD() async {
     if (_isSubmitting) return;
 
+    // T-170: warn if maturity date is in the past (historical FD entry)
+    final maturity = _controller.maturityDate;
+    if (maturity.isBefore(DateTime.now())) {
+      final proceed = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+          title: const Text('FD already matured'),
+          content: const Text(
+              'This FD has already matured. Consider adding the maturity proceeds as income instead. Continue anyway?'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(_, false),
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: const Text('Continue'),
+              onPressed: () => Navigator.pop(_, true),
+            ),
+          ],
+        ),
+      );
+      if (proceed != true) return;
+    }
+
     setState(() => _isSubmitting = true);
 
     try {

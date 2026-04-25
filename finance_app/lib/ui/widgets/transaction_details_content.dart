@@ -140,7 +140,10 @@ class TransactionDetailsContent extends StatelessWidget {
                     _BalanceSnapshotCard(
                       accountName: transaction.sourceAccountName ??
                           (meta['accountName'] as String?) ??
-                          'Account',
+                          // T-167: gracefully show deleted account name
+                          (meta['accountDeleted'] == true
+                              ? (meta['deletedAccountName'] as String? ?? 'Deleted account')
+                              : 'Account'),
                       label: transaction.type == TransactionType.transfer
                           ? 'Source Account'
                           : 'Account',

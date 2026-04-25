@@ -451,7 +451,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             subtitle: 'Redirect to a new investment type',
             onTap: () => Navigator.of(context).push(
               FadeScalePageRoute(
-                  page: const InvestmentTypeSelectionModal(
+                  page: InvestmentTypeSelectionModal(
                 onTypeSelected: (_) {},
               )),
             ),

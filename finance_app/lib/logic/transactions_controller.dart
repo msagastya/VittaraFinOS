@@ -21,6 +21,28 @@ class TransactionsController with ChangeNotifier, SafeStorageMixin {
 
   List<Transaction> get transactions => _transactions;
 
+  // T-153: Pagination state
+  static const int defaultPageSize = 50;
+  int _currentPage = 0;
+  bool _hasMore = true;
+
+  int get currentPage => _currentPage;
+  bool get hasMore => _hasMore;
+
+  /// Returns a page of transactions without mutating [_transactions].
+  /// [page] is 0-indexed. Does not trigger [notifyListeners].
+  List<Transaction> loadPage(int page, {int pageSize = defaultPageSize}) {
+    _currentPage = page;
+    final offset = page * pageSize;
+    if (offset >= _transactions.length) {
+      _hasMore = false;
+      return [];
+    }
+    final end = (offset + pageSize).clamp(0, _transactions.length);
+    _hasMore = end < _transactions.length;
+    return _transactions.sublist(offset, end);
+  }
+
   TransactionsController() {
     _transactions = [];
   }

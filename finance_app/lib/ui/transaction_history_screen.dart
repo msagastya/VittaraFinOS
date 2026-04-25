@@ -106,6 +106,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToTop = false;
   bool _summaryCollapsed = false;
+  bool _isFiltering = false; // T-156: isolate filtering in progress
 
   // Pagination: show at most _visibleCount transactions at a time.
   int _visibleCount = 50;
@@ -131,6 +132,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final collapsed = _scrollController.offset > 60;
     if (collapsed != _summaryCollapsed) {
       setState(() => _summaryCollapsed = collapsed);
+    }
+    // T-154: auto-load next page when within 200px of bottom
+    if (_scrollController.position.pixels >
+        _scrollController.position.maxScrollExtent - 200) {
+      setState(() => _visibleCount += _pageSize);
     }
   }
 

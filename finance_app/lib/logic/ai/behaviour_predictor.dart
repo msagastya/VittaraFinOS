@@ -24,7 +24,8 @@ class BehaviourPredictor {
     final candidates = <String, List<Transaction>>{};
     for (final tx in recentTransactions) {
       if (tx.type != TransactionType.expense) continue;
-      final key = '${_hourBucket(tx.dateTime.hour)}_${tx.dateTime.weekday}';
+      final bkt = _hourBucket(tx.dateTime.hour);
+      final key = '${bkt}_${tx.dateTime.weekday}';
       (candidates[key] ??= []).add(tx);
     }
 
@@ -36,8 +37,8 @@ class BehaviourPredictor {
     final pairCounts = <String, int>{};
     final pairData = <String, (String?, String?)>{};
     for (final tx in group) {
-      final cat = tx.categoryId ?? '';
-      final merchant = tx.merchant?.trim() ?? '';
+      final cat = (tx.metadata?['categoryId'] as String?) ?? '';
+      final merchant = ((tx.metadata?['merchant'] as String?) ?? '').trim();
       final pKey = '$cat|$merchant';
       pairCounts[pKey] = (pairCounts[pKey] ?? 0) + 1;
       pairData[pKey] = (cat.isEmpty ? null : cat, merchant.isEmpty ? null : merchant);
@@ -57,8 +58,9 @@ class BehaviourPredictor {
     // Median amount for this pair
     final amounts = group
         .where((t) {
-          final k = '${t.categoryId ?? ''}|${t.merchant?.trim() ?? ''}';
-          return k == topKey;
+          final c = (t.metadata?['categoryId'] as String?) ?? '';
+          final m = ((t.metadata?['merchant'] as String?) ?? '').trim();
+          return '$c|$m' == topKey;
         })
         .map((t) => t.amount.abs())
         .toList()

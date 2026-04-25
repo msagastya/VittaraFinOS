@@ -338,7 +338,9 @@ class InvestmentsController with ChangeNotifier, SafeStorageMixin {
 
     return compute(
       _xirrIsolate,
-      cashflows.map((c) => [c.$1.millisecondsSinceEpoch, c.$2]).toList(),
+      cashflows
+          .map((c) => [c.$1.millisecondsSinceEpoch.toDouble(), c.$2])
+          .toList(),
     );
   }
 

@@ -30,12 +30,21 @@ class DashboardController with ChangeNotifier {
     notifyListeners();
   }
 
+  static const int _currentConfigVersion = 9;
+
   Future<void> _loadConfig() async {
     final configJson = _prefs.getString('dashboard_config');
     if (configJson != null) {
       try {
         final map = jsonDecode(configJson) as Map<String, dynamic>;
         _config = DashboardConfig.fromMap(map);
+
+        // T-158: skip all migrations if already at latest version — cuts cold-start cost
+        if (_config.configVersion >= _currentConfigVersion) {
+          final changed = _ensureOptionalWidgetsExist();
+          if (changed) await saveConfig();
+          return;
+        }
 
         bool changed = _ensureOptionalWidgetsExist();
 

@@ -762,7 +762,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // Wait for minimum splash duration AND DashboardController to be ready.
     // Cap the wait at 5s to avoid hanging indefinitely on slow devices.
     final dashCtrl = Provider.of<DashboardController>(context, listen: false);
-    const minWait = Duration(milliseconds: 1200);
+    const minWait = Duration(milliseconds: 800); // T-159: reduced from 1200ms
     const maxWait = Duration(seconds: 5);
 
     await Future.any([

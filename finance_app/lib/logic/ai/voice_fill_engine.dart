@@ -60,6 +60,7 @@ class VoiceFillEngine {
 
   EntityExtractor? _extractor;
   bool _extractorReady = false;
+  bool _inFlight = false; // T-172: guard against concurrent processAsync calls
 
   VoiceFillEngine({
     required this.accountNames,
@@ -93,6 +94,19 @@ class VoiceFillEngine {
   /// Process the initial utterance. Returns a FillStep immediately via the
   /// rule-based layer; ML Kit result is applied asynchronously if available.
   Future<FillStep> processAsync(String utterance) async {
+    // T-172: cancel the previous in-flight call (rapid double-tap on mic)
+    if (_inFlight) {
+      reset(); // discard previous partial state
+    }
+    _inFlight = true;
+    try {
+      return await _processAsyncInternal(utterance);
+    } finally {
+      _inFlight = false;
+    }
+  }
+
+  Future<FillStep> _processAsyncInternal(String utterance) async {
     reset();
     // Normalize synonyms before anything else
     final normalized = _normalizeSynonyms(utterance);

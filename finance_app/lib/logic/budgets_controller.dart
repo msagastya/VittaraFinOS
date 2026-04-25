@@ -103,6 +103,32 @@ class BudgetsController with ChangeNotifier, SafeStorageMixin {
     final budgetRows = await DatabaseService.instance.getAllData('budgets');
     _budgets = budgetRows.map((m) => Budget.fromMap(m)).toList();
 
+    // T-169: multi-period rollover — loop until the budget is in the current period
+    final now = DateTime.now();
+    bool anyRolled = false;
+    for (var i = 0; i < _budgets.length; i++) {
+      var b = _budgets[i];
+      if (!b.isActive) continue;
+      // Roll forward as many periods as needed (app may not have been opened in a while)
+      while (b.endDate.isBefore(now)) {
+        final nextStart = b.getNextPeriodStart();
+        final periodLength = b.endDate.difference(b.startDate);
+        final nextEnd = nextStart.add(periodLength);
+        final carryOver = b.rollover ? (b.limitAmount - b.spentAmount).clamp(0, double.infinity) : 0.0;
+        b = b.copyWith(
+          startDate: nextStart,
+          endDate: nextEnd,
+          spentAmount: 0,
+          limitAmount: b.limitAmount + carryOver,
+        );
+        anyRolled = true;
+      }
+      if (anyRolled) {
+        _budgets[i] = b;
+        await _upsertBudget(b);
+      }
+    }
+
     final plannerRows =
         await DatabaseService.instance.getAllData('savings_planners');
     _planners = plannerRows.map((m) => SavingsPlanner.fromMap(m)).toList();

@@ -729,11 +729,16 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         ),
                         const SizedBox(width: Spacing.xxs),
                         Text(
-                          '${daysRemaining}d',
-                          style: const TextStyle(
+                          // T-168: show "Overdue by Xd" for negative daysRemaining
+                          isOverdue
+                              ? 'Overdue by ${daysRemaining.abs()}d'
+                              : '${daysRemaining}d',
+                          style: TextStyle(
                             fontSize: TypeScale.caption,
                             fontWeight: FontWeight.w700,
-                            color: SemanticColors.warning,
+                            color: isOverdue
+                                ? CupertinoColors.systemYellow
+                                : SemanticColors.warning,
                           ),
                         ),
                       ],

@@ -222,6 +222,33 @@ class _LoanWizardState extends State<LoanWizard> {
 
   void _finishWizard() {
     if (_isSaving) return;
+
+    // T-171: validate EMI × tenure ≥ principal
+    final emi = double.tryParse(_emiController.text) ?? 0;
+    final tenure = int.tryParse(_tenureController.text) ?? 0;
+    final principal = double.tryParse(_principalController.text) ?? 0;
+    if (emi > 0 && tenure > 0 && principal > 0 && emi * tenure < principal) {
+      showCupertinoDialog<void>(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+          title: const Text('Invalid EMI'),
+          content: Text(
+              'EMI ₹${emi.toStringAsFixed(0)} × $tenure months = '
+              '₹${(emi * tenure).toStringAsFixed(0)}, which is less than '
+              'the principal ₹${principal.toStringAsFixed(0)}. '
+              'Please check your EMI and tenure values.'),
+          actions: [
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: const Text('OK'),
+              onPressed: () => Navigator.of(_, rootNavigator: true).pop(),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
 
     final loan = Loan(

@@ -6,6 +6,9 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
+import 'package:vittara_fin_os/logic/ai/merchant_normalizer.dart';
 import 'package:vittara_fin_os/services/sms_service.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/sms/sms_review_screen.dart';
@@ -14,6 +17,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const _seenKey = 'sms_seen_fingerprints_v1';
+const _processedHashesKey = 'sms_processed_hashes'; // T-161
 const _channelId = 'sms_transactions';
 const _channelName = 'SMS Transaction Alerts';
 const _summaryNotifId = 9000;
@@ -159,22 +163,42 @@ class SmsAutoScanService {
 
     if (results.isEmpty) return;
 
-    // Filter already-seen and auto-skip 80%+ duplicates
+    // T-161: SMS body hash check — skip SMS we've already processed
+    final processedHashes = await _loadProcessedHashes();
+
+    // Filter already-seen and auto-skip duplicates
     final seen = await _loadSeen();
     final txns = txCtrl.transactions;
 
     final fresh = results.where((r) {
       if (seen.contains(_fingerprint(r))) return false;
+
+      // T-161: skip by SMS body hash
+      final bodyHash = _smsBodyHash(r);
+      if (bodyHash != null && processedHashes.contains(bodyHash)) return false;
+
       final p = r.parsed;
       final matchedId = r.matchedAccount?.id;
+      // T-160: tighter duplicate window — exact amount + normalised merchant +
+      // account match + ±6 hour window
       for (final t in txns) {
-        if ((t.amount - p.amount).abs() > 1.0) continue; // unified with UI threshold
-        if (t.dateTime.difference(p.date).inDays.abs() > 1) continue;
+        if (t.amount != p.amount) continue;
+        if (t.dateTime.difference(p.date).inHours.abs() > 6) continue;
+        final tMerchant = (t.metadata ?? {})['merchant'] as String?;
+        final pMerchant = p.merchant;
+        final merchantMatch = (tMerchant != null && pMerchant != null)
+            ? MerchantNormalizer.normalize(tMerchant) ==
+                MerchantNormalizer.normalize(pMerchant)
+            : true; // no merchant to compare — match on amount+time+account
+        if (!merchantMatch) continue;
         final tId = (t.metadata ?? {})['accountId'] as String?;
-        if (matchedId != null && tId == matchedId) return false; // 80% match
+        if (matchedId == null || tId == null || tId == matchedId) return false;
       }
       return true;
     }).toList();
+
+    // T-161: persist body hashes of processed results (max 1000, evict oldest)
+    await _saveProcessedHashes(processedHashes, results);
 
     if (fresh.isEmpty) return;
 
@@ -331,5 +355,41 @@ class SmsAutoScanService {
   Future<Set<String>> _loadSeen() async {
     final prefs = await SharedPreferences.getInstance();
     return Set<String>.from(prefs.getStringList(_seenKey) ?? []);
+  }
+
+  // T-161: SMS "body" hash — use a combination of parsed fields as a stable hash
+  // (SmsParseResult doesn't expose raw body, so we hash the parsed key fields)
+  String? _smsBodyHash(SmsParseResult r) {
+    try {
+      final p = r.parsed;
+      final key = '${p.amount}_${p.date.millisecondsSinceEpoch}'
+          '_${p.merchant ?? ''}_${p.accountLast4 ?? ''}'
+          '_${p.bankId ?? ''}_${p.type}';
+      return sha256.convert(utf8.encode(key)).toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Set<String>> _loadProcessedHashes() async {
+    final prefs = await SharedPreferences.getInstance();
+    return Set<String>.from(prefs.getStringList(_processedHashesKey) ?? []);
+  }
+
+  Future<void> _saveProcessedHashes(
+      Set<String> existing, List<SmsParseResult> results) async {
+    final hashes = {...existing};
+    for (final r in results) {
+      final h = _smsBodyHash(r);
+      if (h != null) hashes.add(h);
+    }
+    // Evict oldest if over 1000 — remove from the beginning
+    final list = hashes.toList();
+    const maxHashes = 1000;
+    final trimmed = list.length > maxHashes
+        ? list.sublist(list.length - maxHashes)
+        : list;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_processedHashesKey, trimmed);
   }
 }
