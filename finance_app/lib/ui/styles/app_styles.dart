@@ -87,8 +87,16 @@ class AppStyles {
       ? Colors.white.withValues(alpha: 0.20)
       : Colors.black.withValues(alpha: 0.18);
 
-  static Color getPrimaryColor(BuildContext context) =>
-      isDarkMode(context) ? aetherTeal : const Color(0xFF0077CC);
+  // T-149/T-150: Override accent colour — set by SettingsController on load/change.
+  static Color? _accentOverride;
+  static void setAccentOverride(Color? color) {
+    _accentOverride = color;
+  }
+
+  static Color getPrimaryColor(BuildContext context) {
+    if (_accentOverride != null) return _accentOverride!;
+    return isDarkMode(context) ? aetherTeal : const Color(0xFF0077CC);
+  }
 
   static Color getDividerColor(BuildContext context) => isDarkMode(context)
       ? darkL4Divider // hairline — slightly lighter than L3

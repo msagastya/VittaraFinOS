@@ -43,6 +43,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: Spacing.lg),
+          // T-147: Display Name field
+          _buildHeader('Profile'),
+          _buildDisplayNameCard(context, settings),
+          const SizedBox(height: Spacing.sm),
           _buildHeader('Privacy & Security'),
           // T-139: Security Status row
           _buildSecurityStatusCard(context, settings),
@@ -128,6 +132,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _getThemeString(settings.themeMode),
               color: AppStyles.getPrimaryColor(context),
               onTap: () => _showThemeOptions(context, settings),
+            ),
+            _buildDivider(context),
+            // T-151: Number format toggle
+            _buildToggleRow(
+              context,
+              icon: CupertinoIcons.textformat_123,
+              title: 'Indian Number Format',
+              subtitle: '1,00,000 vs 100,000',
+              value: settings.numberFormatIndian,
+              color: AppStyles.getSecondaryTextColor(context),
+              onChanged: settings.setNumberFormatIndian,
+            ),
+            _buildDivider(context),
+            // T-149: Accent Colour picker
+            _buildNavRow(
+              context,
+              icon: CupertinoIcons.paintbrush_fill,
+              title: 'Accent Colour',
+              subtitle: '6 presets',
+              value: _accentName(settings.accentColorValue),
+              color: settings.accentColorValue != null
+                  ? Color(settings.accentColorValue!)
+                  : AppStyles.aetherTeal,
+              onTap: () => _showAccentPicker(context, settings),
             ),
           ]),
           _buildHeader('Data & Backup'),
@@ -366,6 +394,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
               await settings.resetToDefaults();
             },
             child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // T-147: Display Name card
+  Widget _buildDisplayNameCard(
+      BuildContext context, SettingsController settings) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: AppStyles.cardDecoration(context),
+      child: Row(
+        children: [
+          const Icon(CupertinoIcons.person_crop_circle, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: CupertinoTextField(
+              placeholder: 'Your name (shown in greeting)',
+              controller: TextEditingController(text: settings.displayName),
+              onChanged: (v) => settings.setDisplayName(v),
+              style: TextStyle(
+                  color: AppStyles.getTextColor(context),
+                  fontSize: TypeScale.body),
+              placeholderStyle: TextStyle(
+                  color: AppStyles.getSecondaryTextColor(context),
+                  fontSize: TypeScale.body),
+              padding: EdgeInsets.zero,
+              decoration: const BoxDecoration(),
+            ),
           ),
         ],
       ),
@@ -641,6 +699,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (seconds == 60) return '1 min';
     if (seconds == 300) return '5 min';
     return '$seconds s';
+  }
+
+  // T-149: Accent colour helpers
+  static const _accentPresets = <(String, Color)>[
+    ('Aether Teal', Color(0xFF00D4AA)),
+    ('Nova Purple', Color(0xFF9B59B6)),
+    ('Solar Gold', Color(0xFFF39C12)),
+    ('Coral Red', Color(0xFFE74C3C)),
+    ('Sky Blue', Color(0xFF3498DB)),
+    ('Mint Green', Color(0xFF2ECC71)),
+  ];
+
+  String _accentName(int? colorValue) {
+    if (colorValue == null) return 'Aether Teal';
+    for (final (name, color) in _accentPresets) {
+      if (color.value == colorValue) return name;
+    }
+    return 'Custom';
+  }
+
+  void _showAccentPicker(BuildContext context, SettingsController settings) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
+          title: const Text('Accent Colour'),
+          actions: _accentPresets.map((preset) {
+            final (name, color) = preset;
+            final isSelected = settings.accentColorValue == color.value ||
+                (settings.accentColorValue == null && name == 'Aether Teal');
+            return CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(ctx);
+                settings.setAccentColor(
+                    name == 'Aether Teal' ? null : color);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(name),
+                  if (isSelected) ...[
+                    const SizedBox(width: 8),
+                    const Icon(CupertinoIcons.checkmark, size: 14),
+                  ],
+                ],
+              ),
+            );
+          }).toList(),
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+        ),
+      ),
+    );
   }
 
   String _getThemeString(ThemeMode mode) {

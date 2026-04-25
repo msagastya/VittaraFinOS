@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class SettingsController with ChangeNotifier {
@@ -41,6 +42,9 @@ class SettingsController with ChangeNotifier {
   bool _showPinFallback = false; // set to true after biometric fails
   bool _isAuthenticating = false; // guard against concurrent auth calls
   bool _requireBiometricForSensitiveScreens = true; // T-137
+  String _displayName = ''; // T-147
+  int? _accentColorValue; // T-149/T-150 — null = default Aether Teal
+  bool _numberFormatIndian = true; // T-151
 
   ThemeMode get themeMode => _themeMode;
   bool get isBiometricEnabled => _isBiometricEnabled;
@@ -57,6 +61,10 @@ class SettingsController with ChangeNotifier {
   bool get showPinFallback => _showPinFallback;
   bool get requireBiometricForSensitiveScreens =>
       _requireBiometricForSensitiveScreens;
+  String get displayName => _displayName;
+  int? get accentColorValue => _accentColorValue;
+  bool get numberFormatIndian => _numberFormatIndian;
+  String get greetingName => _displayName.trim().isEmpty ? 'there' : _displayName.trim();
 
   void setAppLoaded() {
     _appLoaded = true;
@@ -85,6 +93,12 @@ class SettingsController with ChangeNotifier {
     _isSmsEnabled = _prefs.getBool('isSmsEnabled') ?? false;
     _requireBiometricForSensitiveScreens =
         _prefs.getBool('requireBiometricForSensitiveScreens') ?? true;
+    _displayName = _prefs.getString('displayName') ?? '';
+    _accentColorValue = _prefs.getInt('accentColorValue');
+    _numberFormatIndian = _prefs.getBool('number_format_indian') ?? true;
+    // Apply accent override on load
+    AppStyles.setAccentOverride(
+        _accentColorValue != null ? Color(_accentColorValue!) : null);
     _defaultAccountId = _prefs.getString('quickEntryDefaultAccountId');
     _defaultPaymentAppName = _prefs.getString('quickEntryDefaultPaymentApp');
 
@@ -185,6 +199,32 @@ class SettingsController with ChangeNotifier {
     } else {
       await _prefs.setString('quickEntryDefaultPaymentApp', name);
     }
+    notifyListeners();
+  }
+
+  /// T-151: toggle number format (Indian vs International).
+  Future<void> setNumberFormatIndian(bool value) async {
+    _numberFormatIndian = value;
+    await _prefs.setBool('number_format_indian', value);
+    notifyListeners();
+  }
+
+  /// T-149/T-150: set accent colour. null = default Aether Teal.
+  Future<void> setAccentColor(Color? color) async {
+    _accentColorValue = color?.value;
+    AppStyles.setAccentOverride(color);
+    if (color != null) {
+      await _prefs.setInt('accentColorValue', color.value);
+    } else {
+      await _prefs.remove('accentColorValue');
+    }
+    notifyListeners();
+  }
+
+  /// T-147: update display name shown in dashboard greeting.
+  Future<void> setDisplayName(String name) async {
+    _displayName = name.trim();
+    await _prefs.setString('displayName', _displayName);
     notifyListeners();
   }
 

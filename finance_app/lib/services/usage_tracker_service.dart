@@ -72,4 +72,42 @@ class UsageTrackerService {
               MapEntry(k.substring(_keyPrefix.length), prefs.getInt(k) ?? 0)),
     );
   }
+
+  // ── T-140: Dashboard widget tap tracking ────────────────────────────────
+
+  static const _widgetTapPrefix = 'usage_widget_tap_';
+  static const _optimisePromptShownKey = 'usage_optimise_prompt_shown';
+
+  /// Records a tap on dashboard widget [widgetId].
+  Future<void> recordWidgetTap(String widgetId) async {
+    final prefs = await _getPrefs();
+    final key = '$_widgetTapPrefix$widgetId';
+    await prefs.setInt(key, (prefs.getInt(key) ?? 0) + 1);
+  }
+
+  /// Returns widget tap counts keyed by widget ID.
+  Future<Map<String, int>> widgetTapCounts() async {
+    final prefs = await _getPrefs();
+    return Map.fromEntries(
+      prefs
+          .getKeys()
+          .where((k) => k.startsWith(_widgetTapPrefix))
+          .map((k) => MapEntry(
+              k.substring(_widgetTapPrefix.length), prefs.getInt(k) ?? 0)),
+    );
+  }
+
+  /// Returns true if the app has been used for 14+ days AND the "optimise
+  /// dashboard" prompt has not yet been shown.
+  Future<bool> shouldShowOptimisePrompt() async {
+    final prefs = await _getPrefs();
+    if (prefs.getBool(_optimisePromptShownKey) == true) return false;
+    return (await daysSinceFirstUse()) >= 14;
+  }
+
+  /// Mark the optimise prompt as shown so it never appears again.
+  Future<void> markOptimisePromptShown() async {
+    final prefs = await _getPrefs();
+    await prefs.setBool(_optimisePromptShownKey, true);
+  }
 }

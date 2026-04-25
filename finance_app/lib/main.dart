@@ -46,6 +46,7 @@ import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/logic/recurring_template_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/services/usage_tracker_service.dart';
+import 'package:vittara_fin_os/services/usage_timing_service.dart';
 import 'package:vittara_fin_os/ui/onboarding/onboarding_activation_screen.dart';
 import 'package:vittara_fin_os/services/tooltip_service.dart';
 import 'package:vittara_fin_os/ui/widgets/coach_mark.dart';
@@ -792,9 +793,11 @@ class _SplashScreenState extends State<SplashScreen> {
         _triggerSmsStartupScan();
         _checkAndShowWhatsNew();
         _showDeviceSecurityWarningIfNeeded();
+        _checkOptimiseDashboardPrompt();
         BackupRestoreService.runAutoBackupIfNeeded();
         DeviceIntelligenceTier.detect();
         MerchantNormalizer.init();
+        UsageTimingService.instance.recordAppOpen(); // T-145/T-146
       }
 
       if (v1Done || v2Done) {
@@ -838,6 +841,42 @@ class _SplashScreenState extends State<SplashScreen> {
           ],
         ),
       );
+    });
+  }
+
+  /// T-140: After 14 days of usage, offer one-time "Optimise my dashboard" prompt.
+  void _checkOptimiseDashboardPrompt() {
+    Future.delayed(const Duration(seconds: 3), () async {
+      if (!mounted) return;
+      final should = await UsageTrackerService.instance.shouldShowOptimisePrompt();
+      if (!should || !mounted) return;
+      await UsageTrackerService.instance.markOptimisePromptShown();
+      if (!mounted) return;
+      final dashCtrl = context.read<DashboardController>();
+      final ok = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+          title: const Text('Optimise your dashboard?'),
+          content: const Text(
+              'Based on how you use the app, we can reorder your dashboard widgets to show the most-used cards first.'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('Not now'),
+              onPressed: () => Navigator.pop(_, false),
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: const Text('Optimise'),
+              onPressed: () => Navigator.pop(_, true),
+            ),
+          ],
+        ),
+      );
+      if (ok == true) {
+        final tapCounts =
+            await UsageTrackerService.instance.widgetTapCounts();
+        await dashCtrl.reorderByUsage(tapCounts);
+      }
     });
   }
 
@@ -1947,13 +1986,15 @@ class _DashboardScreenContent extends StatelessWidget {
     final isDark = AppStyles.isDarkMode(context);
     final now = DateTime.now();
     final h = now.hour;
-    final greeting = h >= 5 && h < 12
+    final baseGreet = h >= 5 && h < 12
         ? 'Good Morning'
         : h < 17
             ? 'Good Afternoon'
             : h < 21
                 ? 'Good Evening'
                 : 'Good Night';
+    final landscapeName = context.read<SettingsController>().greetingName;
+    final greeting = '$baseGreet, $landscapeName';
     final dateStr = _formatHeaderDate(now);
 
     return SizedBox(
@@ -2402,7 +2443,10 @@ class _DashboardScreenContent extends StatelessWidget {
             : hour < 21
                 ? 'Good Evening'
                 : 'Good Night';
-    final greeting = baseGreeting;
+    // T-148: personalise greeting with display name
+    final name =
+        context.read<SettingsController>().greetingName;
+    final greeting = '$baseGreeting, $name';
 
     final dateFormatter = _formatHeaderDate(now);
 
@@ -3507,6 +3551,8 @@ class _DashboardScreenContent extends StatelessWidget {
 
   void _handleWidgetTap(
       BuildContext context, DashboardWidgetConfig widgetConfig) {
+    // T-140: record widget tap for usage-based reorder
+    UsageTrackerService.instance.recordWidgetTap(widgetConfig.id);
     switch (widgetConfig.type) {
       case DashboardWidgetType.transactionHistory:
         Navigator.of(context).push(

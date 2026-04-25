@@ -306,6 +306,28 @@ class DashboardController with ChangeNotifier {
     notifyListeners();
   }
 
+  /// T-141: Reorders visible widgets by tap frequency from [tapCounts].
+  /// Preserves each widget's columnSpan. Saves via the existing migration system.
+  Future<void> reorderByUsage(Map<String, int> tapCounts) async {
+    final sorted = [..._config.widgets];
+    sorted.sort((a, b) {
+      final ca = tapCounts[a.id] ?? 0;
+      final cb = tapCounts[b.id] ?? 0;
+      return cb.compareTo(ca); // descending
+    });
+    for (var i = 0; i < sorted.length; i++) {
+      final idx = _config.widgets.indexWhere((w) => w.id == sorted[i].id);
+      if (idx >= 0) {
+        final updated = [..._config.widgets];
+        updated[idx] = updated[idx].copyWith(gridRow: i + 1);
+        _config = _config.copyWith(widgets: updated);
+      }
+    }
+    _cachedVisibleWidgets = null;
+    await saveConfig();
+    notifyListeners();
+  }
+
   /// Reorders visible widgets according to [orderedIds].
   /// Assigns sequential gridRow values (1, 2, 3…) to match the new order.
   Future<void> reorderWidgets(List<String> orderedIds) async {

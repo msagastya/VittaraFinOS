@@ -27,6 +27,7 @@ import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:intl/intl.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/logic/ai/voice_controller.dart';
+import 'package:vittara_fin_os/logic/ai/behaviour_predictor.dart';
 import 'package:vittara_fin_os/main.dart' show dashboardSavedSignal;
 import 'package:vittara_fin_os/ui/voice/voice_overlay_widget.dart';
 
@@ -111,6 +112,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
 
   // Dirty tracking — true once the user has entered any data
   bool _isDirty = false;
+
+  // T-142/T-144: Behavioural pre-fill prediction
+  PredictedContext? _prediction;
 
   // Progressive disclosure — tier 2 expand/collapse
   bool _tier2Expanded = false;
@@ -242,6 +246,27 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
       }
       if (_selectedPaymentApp == null && paymentApps.enabledApps.isNotEmpty) {
         _selectedPaymentApp = paymentApps.enabledApps.first['name'] as String?;
+      }
+
+      // T-142: Behavioural pre-fill (only for brand-new expense entries)
+      if (widget.existingTransaction == null &&
+          widget.initialAmount == null &&
+          widget.initialMerchant == null) {
+        final txs = context.read<TransactionsController>().transactions;
+        final cutoff = DateTime.now().subtract(const Duration(days: 90));
+        final recent = txs.where((t) => t.dateTime.isAfter(cutoff)).toList();
+        _prediction = BehaviourPredictor.predictContext(DateTime.now(), recent);
+        if (_prediction != null) {
+          // Apply suggestions as placeholder hints — not forced values
+          if (_prediction!.categoryId != null && _selectedCategory == null) {
+            _selectedCategory =
+                categories.getCategoryById(_prediction!.categoryId!);
+          }
+          if (_prediction!.merchant != null && _merchantCtrl.text.isEmpty) {
+            _showMerchantField = true;
+            // Placeholder is set at build time via hint text — see _buildMerchantField
+          }
+        }
       }
 
       // ── OCR / Voice pre-fill override ────────────────────────────────────────
@@ -1764,18 +1789,50 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
               ],
             );
           }),
-          CupertinoTextField(
-            controller: _merchantCtrl,
-            placeholder: 'Or type a merchant name',
-            style: TextStyle(color: primaryText, fontSize: 14),
-            placeholderStyle: TextStyle(color: secondaryText.withValues(alpha: 0.6), fontSize: 14),
-            padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0D1829) : const Color(0xFFF2F6FF),
-              borderRadius: BorderRadius.circular(Radii.md),
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
+          // T-144: show predicted merchant as placeholder hint with tooltip
+          Builder(builder: (context) {
+            final predictedMerchant = _prediction?.merchant;
+            final placeholder = predictedMerchant != null &&
+                    _merchantCtrl.text.isEmpty
+                ? predictedMerchant
+                : 'Or type a merchant name';
+            final isPredicted =
+                predictedMerchant != null && _merchantCtrl.text.isEmpty;
+            return Row(
+              children: [
+                Expanded(
+                  child: CupertinoTextField(
+                    controller: _merchantCtrl,
+                    placeholder: placeholder,
+                    style: TextStyle(color: primaryText, fontSize: 14),
+                    placeholderStyle: TextStyle(
+                        color: isPredicted
+                            ? secondaryText.withValues(alpha: 0.45)
+                            : secondaryText.withValues(alpha: 0.6),
+                        fontSize: 14,
+                        fontStyle: isPredicted ? FontStyle.italic : FontStyle.normal),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.md, vertical: Spacing.sm),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF0D1829)
+                          : const Color(0xFFF2F6FF),
+                      borderRadius: BorderRadius.circular(Radii.md),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                if (isPredicted) ...[
+                  const SizedBox(width: 6),
+                  Tooltip(
+                    message: 'Based on your habits',
+                    child: Icon(CupertinoIcons.info_circle,
+                        size: 16, color: secondaryText.withValues(alpha: 0.5)),
+                  ),
+                ],
+              ],
+            );
+          }),
         ],
         const SizedBox(height: Spacing.sm),
       ],
