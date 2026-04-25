@@ -1,4 +1,8 @@
+import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/services/gold_price_service.dart';
 import 'package:vittara_fin_os/services/nav_service.dart';
@@ -143,6 +147,108 @@ class InvestmentValueService {
       candidates.add(digitsOnly);
     }
     return candidates;
+  }
+
+  // ── T-114: Static MF NAV fetch with 24-hour cache ─────────────────────────
+
+  /// Fetch current NAV for a scheme code. Returns null on error/offline.
+  /// Cache key: `nav_cache_{schemeCode}`, TTL 24 hours.
+  static Future<double?> fetchMfNav(String schemeCode) async {
+    const ttl = Duration(hours: 24);
+    final cacheKey = 'nav_cache_$schemeCode';
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString(cacheKey);
+      if (cached != null) {
+        final m = jsonDecode(cached) as Map<String, dynamic>;
+        final ts = DateTime.parse(m['ts'] as String);
+        if (DateTime.now().difference(ts) < ttl) {
+          return (m['nav'] as num).toDouble();
+        }
+      }
+      final uri = Uri.parse('https://api.mfapi.in/mf/$schemeCode');
+      final resp = await http.get(uri).timeout(const Duration(seconds: 8));
+      if (resp.statusCode == 200) {
+        final body = jsonDecode(resp.body) as Map<String, dynamic>;
+        final data = (body['data'] as List?)?.firstOrNull as Map?;
+        final navStr = data?['nav'] as String?;
+        final nav = navStr != null ? double.tryParse(navStr) : null;
+        if (nav != null) {
+          await prefs.setString(cacheKey,
+              jsonEncode({'nav': nav, 'ts': DateTime.now().toIso8601String()}));
+          return nav;
+        }
+      }
+    } catch (e) {
+      debugPrint('[InvestmentValueService] fetchMfNav error: $e');
+    }
+    return null;
+  }
+
+  // ── T-115: Static stock price fetch with 15-minute cache ──────────────────
+
+  /// Fetch current stock price for NSE symbol. Returns null if unavailable.
+  /// Cache key: `stock_price_{symbol}`, TTL 15 minutes.
+  static final _stockSvc = StockApiService();
+  static Future<double?> fetchStockPrice(String symbol) async {
+    const ttl = Duration(minutes: 15);
+    final cacheKey = 'stock_price_${symbol.toUpperCase()}';
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString(cacheKey);
+      if (cached != null) {
+        final m = jsonDecode(cached) as Map<String, dynamic>;
+        final ts = DateTime.parse(m['ts'] as String);
+        if (DateTime.now().difference(ts) < ttl) {
+          return (m['price'] as num).toDouble();
+        }
+      }
+      final price = await _stockSvc.getStockPrice(symbol);
+      if (price != null) {
+        await prefs.setString(cacheKey, jsonEncode(
+            {'price': price, 'ts': DateTime.now().toIso8601String()}));
+        return price;
+      }
+    } catch (e) {
+      debugPrint('[InvestmentValueService] fetchStockPrice error: $e');
+    }
+    return null;
+  }
+
+  // ── T-116: Static crypto price fetch with 15-minute cache ─────────────────
+
+  /// Fetch INR price for a CoinGecko coin ID (e.g. "bitcoin").
+  /// Cache key: `crypto_price_{coinId}`, TTL 15 minutes.
+  static Future<double?> fetchCryptoPrice(String coinId) async {
+    const ttl = Duration(minutes: 15);
+    final cacheKey = 'crypto_price_$coinId';
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString(cacheKey);
+      if (cached != null) {
+        final m = jsonDecode(cached) as Map<String, dynamic>;
+        final ts = DateTime.parse(m['ts'] as String);
+        if (DateTime.now().difference(ts) < ttl) {
+          return (m['price'] as num).toDouble();
+        }
+      }
+      final uri = Uri.parse(
+          'https://api.coingecko.com/api/v3/simple/price'
+          '?ids=$coinId&vs_currencies=inr');
+      final resp = await http.get(uri).timeout(const Duration(seconds: 8));
+      if (resp.statusCode == 200) {
+        final body = jsonDecode(resp.body) as Map<String, dynamic>;
+        final price = (body[coinId]?['inr'] as num?)?.toDouble();
+        if (price != null) {
+          await prefs.setString(cacheKey, jsonEncode(
+              {'price': price, 'ts': DateTime.now().toIso8601String()}));
+          return price;
+        }
+      }
+    } catch (e) {
+      debugPrint('[InvestmentValueService] fetchCryptoPrice error: $e');
+    }
+    return null;
   }
 
   double _calculateFallbackCurrentValue(Investment investment) {

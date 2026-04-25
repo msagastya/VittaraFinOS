@@ -15,8 +15,10 @@ import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
+import 'package:vittara_fin_os/logic/ai/anomaly_detector.dart';
 import 'package:vittara_fin_os/logic/ai/opportunity_spotter.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Full-screen Spending Intelligence Screen
@@ -285,6 +287,39 @@ class _SpendIntelBody extends StatelessWidget {
                   },
                 ),
               ),
+            ],
+          ),
+        );
+      }),
+      // T-113: Anomaly alerts section
+      Builder(builder: (ctx) {
+        final ai = ctx.watch<AIIntelligenceController>();
+        final anomalies = ai.recentAnomalies;
+        if (anomalies.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: Spacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'ANOMALIES',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.getSecondaryTextColor(ctx),
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: Spacing.sm),
+              ...anomalies.map((a) => _AnomalyCard(
+                    anomaly: a,
+                    onMarkExpected: () => ai.dismissAnomaly(a.id),
+                    onViewTransaction: () {
+                      Navigator.of(ctx).push(CupertinoPageRoute(
+                        builder: (_) => const TransactionHistoryScreen(),
+                      ));
+                    },
+                  )),
             ],
           ),
         );
@@ -2271,6 +2306,115 @@ class _OpportunityChip extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─── T-113: Anomaly card ──────────────────────────────────────────────────────
+
+class _AnomalyCard extends StatelessWidget {
+  final AnomalyAlert anomaly;
+  final VoidCallback onMarkExpected;
+  final VoidCallback onViewTransaction;
+
+  const _AnomalyCard({
+    required this.anomaly,
+    required this.onMarkExpected,
+    required this.onViewTransaction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFFFF6B6B);
+    return Container(
+      margin: const EdgeInsets.only(bottom: Spacing.sm),
+      padding: const EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: accent.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(CupertinoIcons.exclamationmark_triangle_fill,
+                  size: 14, color: accent),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  anomaly.title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: accent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            anomaly.explanation,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppStyles.getTextColor(context),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: onMarkExpected,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 7),
+                    decoration: BoxDecoration(
+                      color: AppStyles.getCardColor(context),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                          color: AppStyles.getDividerColor(context)),
+                    ),
+                    child: Text(
+                      'Mark as expected',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: Spacing.sm),
+              Expanded(
+                child: GestureDetector(
+                  onTap: onViewTransaction,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 7),
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'View transaction',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: accent,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

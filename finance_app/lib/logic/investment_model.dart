@@ -122,6 +122,27 @@ class Investment {
     );
   }
 
+  // ── T-118: Derived P&L getters ────────────────────────────────────────────
+
+  /// Live current value from metadata (set by refreshCurrentValues), or `amount`.
+  double get currentValue {
+    final v = metadata?['currentValue'];
+    if (v is num) return v.toDouble();
+    return amount;
+  }
+
+  /// True if a live price was fetched (metadata has 'lastRefreshedAt').
+  bool get hasPricedValue =>
+      metadata?.containsKey('lastRefreshedAt') == true &&
+      metadata?['currentValue'] != null;
+
+  /// Unrealised P&L = currentValue − amount (invested).
+  double get unrealisedPnL => currentValue - amount;
+
+  /// P&L as a percentage of invested amount. Returns 0 if amount is 0.
+  double get pnlPercent =>
+      amount > 0 ? (unrealisedPnL / amount) * 100 : 0;
+
   Investment copyWith({
     String? id,
     String? name,

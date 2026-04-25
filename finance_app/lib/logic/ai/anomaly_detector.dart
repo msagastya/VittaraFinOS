@@ -120,14 +120,15 @@ class AnomalyDetector {
 
       if (zScore > 2.5 && tx.amount > mean * 2) {
         final severity = math.min(1.0, zScore / 5.0);
+        final multiplier = (tx.amount / mean).toStringAsFixed(1);
         return AnomalyAlert(
           id: 'anomaly_amt_${tx.id}',
           transactionId: tx.id,
           type: AnomalyType.amountSpike,
           title: 'Unusual amount at $merchant',
           explanation:
-              'You usually spend around ₹${mean.toInt()} at $merchant. '
-              'This transaction of ₹${tx.amount.toInt()} is ${(tx.amount / mean).toStringAsFixed(1)}x your typical amount.',
+              'This ₹${tx.amount.toInt()} $merchant transaction is ${multiplier}x '
+              'your average $merchant spend (₹${mean.toInt()}).',
           severity: severity,
           detectedAt: now,
         );

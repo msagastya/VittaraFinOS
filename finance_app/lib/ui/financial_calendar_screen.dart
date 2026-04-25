@@ -16,7 +16,9 @@ import 'package:vittara_fin_os/logic/loan_controller.dart';
 import 'package:vittara_fin_os/logic/loan_model.dart';
 import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
 import 'package:vittara_fin_os/logic/recurring_template_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
+import 'package:vittara_fin_os/logic/ai/predicted_calendar.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -169,6 +171,10 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
   bool _calendarCollapsed = false;
   final ScrollController _eventsScrollCtrl = ScrollController();
 
+  // T-111: Show/hide predicted ghost events (default on)
+  bool _showPredicted = true;
+  static const _showPredictedKey = 'cal_show_predicted';
+
   @override
   void initState() {
     super.initState();
@@ -176,6 +182,20 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
     _focusedMonth = DateTime(now.year, now.month, 1);
     _selectedDay = DateTime(now.year, now.month, now.day);
     _eventsScrollCtrl.addListener(_onEventsScroll);
+    _loadPredictedPref();
+  }
+
+  Future<void> _loadPredictedPref() async {
+    final prefs = await SharedPreferences.getInstance();
+    final v = prefs.getBool(_showPredictedKey);
+    if (v != null && mounted) setState(() => _showPredicted = v);
+  }
+
+  Future<void> _toggleShowPredicted() async {
+    final next = !_showPredicted;
+    setState(() => _showPredicted = next);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_showPredictedKey, next);
   }
 
   @override
@@ -278,9 +298,10 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
       eventsMap.putIfAbsent(k, () => []).add(e);
     }
 
-    // Add AI-predicted ghost events (upcoming 90 days)
+    // Add AI-predicted ghost events — only high/medium confidence, when toggle is on
     final ai = context.read<AIIntelligenceController>();
-    for (final p in ai.predictedCalendar) {
+    if (_showPredicted) for (final p in ai.predictedCalendar
+        .where((p) => p.confidence != PredictionConfidence.low)) {
       final k = _dateKey(p.expectedDate);
       final ghost = CalendarEvent(
         id: 'pred_${p.id}',
@@ -893,6 +914,16 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                   }),
                 ),
               )),
+          // T-111: Predicted toggle
+          Padding(
+            padding: const EdgeInsets.only(left: Spacing.sm),
+            child: _FilterChip(
+              label: 'Predicted',
+              color: AppStyles.aetherTeal,
+              isSelected: _showPredicted,
+              onTap: _toggleShowPredicted,
+            ),
+          ),
         ],
       ),
     );
@@ -1679,6 +1710,46 @@ class _EventTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final built = _buildTile(context);
+    if (event.isPredicted) {
+      return GestureDetector(
+        onTap: () => _showPredictedSheet(context),
+        child: built,
+      );
+    }
+    return built;
+  }
+
+  void _showPredictedSheet(BuildContext context) {
+    // Parse frequency hint from subtitle, e.g. "≈₹1200 due"
+    final freq = event.subtitle.isNotEmpty ? event.subtitle : 'regularly';
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (_) => CupertinoActionSheet(
+        title: Text(event.title.replaceAll(' (predicted)', '')),
+        message: Text(
+          'This is a predicted event based on your transaction history.\n'
+          'It appears $freq.',
+        ),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              // Predicted-only: no action needed — user just knows it's a forecast
+            },
+            child: const Text('Got it'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          isDestructiveAction: false,
+          child: const Text('Dismiss'),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTile(BuildContext context) {
     final isDark = AppStyles.isDarkMode(context);
     final color = event.type.colorFor(isDark);
     final icon = event.type.icon;
@@ -1706,9 +1777,7 @@ class _EventTile extends StatelessWidget {
     }
 
     final isPredicted = event.isPredicted;
-    return Opacity(
-      opacity: isPredicted ? 0.6 : 1.0,
-      child: Container(
+    final card = Container(
       margin: const EdgeInsets.only(bottom: Spacing.sm),
       decoration: BoxDecoration(
         color: isPredicted
@@ -1717,13 +1786,11 @@ class _EventTile extends StatelessWidget {
                 ? Colors.white.withValues(alpha: 0.04)
                 : Colors.white),
         borderRadius: BorderRadius.circular(Radii.lg),
-        border: Border.all(
-          color: isPredicted
-              ? AppStyles.aetherTeal.withValues(alpha: 0.3)
-              : color.withValues(alpha: isDark ? 0.2 : 0.15),
-          width: isPredicted ? 1 : 1,
-          style: isPredicted ? BorderStyle.solid : BorderStyle.solid,
-        ),
+        border: isPredicted
+            ? null // dashed border drawn by CustomPaint overlay
+            : Border.all(
+                color: color.withValues(alpha: isDark ? 0.2 : 0.15),
+              ),
         boxShadow: isDark ? Shadows.cardDark : Shadows.cardLight,
       ),
       child: IntrinsicHeight(
@@ -1803,11 +1870,13 @@ class _EventTile extends StatelessWidget {
                                 BorderRadius.circular(Radii.full),
                           ),
                           child: Text(
-                            event.type.label,
+                            isPredicted ? 'Predicted' : event.type.label,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: color,
+                              color: isPredicted
+                                  ? AppStyles.aetherTeal
+                                  : color,
                               letterSpacing: 0.2,
                             ),
                           ),
@@ -1851,9 +1920,72 @@ class _EventTile extends StatelessWidget {
           ],
         ),
       ),
-    ),   // Container
-    );   // Opacity
+    );   // Container
+    if (!isPredicted) return card;
+    // Wrap predicted events in dashed-border overlay
+    return Opacity(
+      opacity: 0.65,
+      child: CustomPaint(
+        painter: _DashedBorderPainter(
+          color: AppStyles.aetherTeal.withValues(alpha: 0.5),
+          radius: Radii.lg,
+          dashWidth: 6,
+          dashSpace: 4,
+          strokeWidth: 1.2,
+        ),
+        child: card,
+      ),
+    );
   }
 
   String _formatDate(DateTime date) => DateFormatter.format(date);
+}
+
+// ─── Dashed border painter ────────────────────────────────────────────────────
+
+class _DashedBorderPainter extends CustomPainter {
+  final Color color;
+  final double radius;
+  final double dashWidth;
+  final double dashSpace;
+  final double strokeWidth;
+
+  const _DashedBorderPainter({
+    required this.color,
+    required this.radius,
+    required this.dashWidth,
+    required this.dashSpace,
+    required this.strokeWidth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(radius),
+    );
+
+    final path = Path()..addRRect(rrect);
+    final metrics = path.computeMetrics();
+    for (final metric in metrics) {
+      double distance = 0;
+      while (distance < metric.length) {
+        canvas.drawPath(
+          metric.extractPath(distance, distance + dashWidth),
+          paint,
+        );
+        distance += dashWidth + dashSpace;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorderPainter old) =>
+      old.color != color || old.radius != radius;
 }
