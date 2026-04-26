@@ -92,6 +92,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
   final TextEditingController _cashbackCtrl = TextEditingController();
   final TextEditingController _paymentAppAmountCtrl = TextEditingController();
   final TextEditingController _newTagCtrl = TextEditingController();
+  final TextEditingController _splitPeopleCtrl =
+      TextEditingController(text: '2');
 
   Category? _selectedCategory;
   List<String> _selectedTags = [];
@@ -106,6 +108,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
   bool _showCashbackField = false;
   bool _showTagPicker = false;
   bool _showNewTagInput = false;
+  bool _splitExpenseEnabled = false;
   // true when the current _selectedCategory was set by ML auto-suggestion
   // (not by the user tapping). Lets us override it on the next merchant change.
   bool _categoryAutoSuggested = false;
@@ -214,14 +217,19 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
       final defaultAccountId = settings.defaultAccountId;
       if (defaultAccountId != null) {
         final acc = accounts.getAccountById(defaultAccountId);
-        if (acc != null && !acc.isHidden && acc.type != AccountType.investment) {
+        if (acc != null &&
+            !acc.isHidden &&
+            acc.type != AccountType.investment) {
           _selectedAccountId = acc.id;
           _selectedAccountName = acc.name;
         }
       }
       if (_selectedAccountId == null) {
         final nonCash = accounts.accounts
-            .where((a) => !a.isHidden && a.type != AccountType.investment && a.type != AccountType.cash)
+            .where((a) =>
+                !a.isHidden &&
+                a.type != AccountType.investment &&
+                a.type != AccountType.cash)
             .toList();
         if (nonCash.isNotEmpty) {
           _selectedAccountId = nonCash.first.id;
@@ -241,7 +249,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
       // Resolve default payment app
       final defaultApp = settings.defaultPaymentAppName;
       if (defaultApp != null) {
-        final found = paymentApps.enabledApps.where((a) => a['name'] == defaultApp).isNotEmpty;
+        final found = paymentApps.enabledApps
+            .where((a) => a['name'] == defaultApp)
+            .isNotEmpty;
         if (found) _selectedPaymentApp = defaultApp;
       }
       if (_selectedPaymentApp == null && paymentApps.enabledApps.isNotEmpty) {
@@ -274,12 +284,14 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         _amountCtrl.text = widget.initialAmount!.toStringAsFixed(2);
         _isDirty = true;
       }
-      if (widget.initialMerchant != null && widget.initialMerchant!.isNotEmpty) {
+      if (widget.initialMerchant != null &&
+          widget.initialMerchant!.isNotEmpty) {
         _merchantCtrl.text = widget.initialMerchant!;
         _showMerchantField = true;
         _isDirty = true;
       }
-      if (widget.initialDescription != null && widget.initialDescription!.isNotEmpty) {
+      if (widget.initialDescription != null &&
+          widget.initialDescription!.isNotEmpty) {
         _descCtrl.text = widget.initialDescription!;
         _isDirty = true;
       }
@@ -349,6 +361,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     _amountCtrl.addListener(_markDirty);
     _merchantCtrl.addListener(_markDirty);
     _descCtrl.addListener(_markDirty);
+    _splitPeopleCtrl.addListener(_markDirty);
 
     // Load tier-2 expansion preference
     SharedPreferences.getInstance().then((prefs) {
@@ -366,7 +379,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     final txs = context.read<TransactionsController>().transactions;
     final cats = context.read<CategoriesController>().categories;
     final suggestion = TransactionSuggestionEngine.suggestCategoryForMerchant(
-      txs, _merchantCtrl.text, cats,
+      txs,
+      _merchantCtrl.text,
+      cats,
     );
     if (suggestion != null) {
       setState(() {
@@ -392,15 +407,15 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     _cashbackCtrl.dispose();
     _paymentAppAmountCtrl.dispose();
     _newTagCtrl.dispose();
+    _splitPeopleCtrl.dispose();
     super.dispose();
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
-  Color get _branchColor =>
-      _branch == TransactionWizardBranch.expense
-          ? const Color(0xFFFF3B30)
-          : const Color(0xFF34C759);
+  Color get _branchColor => _branch == TransactionWizardBranch.expense
+      ? const Color(0xFFFF3B30)
+      : const Color(0xFF34C759);
 
   bool get _canSave =>
       _amountCtrl.text.trim().isNotEmpty &&
@@ -445,13 +460,20 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
 
   String _accountTypeLabel(AccountType type) {
     switch (type) {
-      case AccountType.savings: return 'Savings';
-      case AccountType.current: return 'Current';
-      case AccountType.credit: return 'Credit Card';
-      case AccountType.payLater: return 'Pay Later';
-      case AccountType.wallet: return 'Wallet';
-      case AccountType.cash: return 'Cash';
-      case AccountType.investment: return 'Investment';
+      case AccountType.savings:
+        return 'Savings';
+      case AccountType.current:
+        return 'Current';
+      case AccountType.credit:
+        return 'Credit Card';
+      case AccountType.payLater:
+        return 'Pay Later';
+      case AccountType.wallet:
+        return 'Wallet';
+      case AccountType.cash:
+        return 'Cash';
+      case AccountType.investment:
+        return 'Investment';
     }
   }
 
@@ -468,6 +490,26 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         context.read<TransactionsController>().transactions,
       );
 
+  bool get _shouldSuggestSplitExpense {
+    if (_branch != TransactionWizardBranch.expense) return false;
+    final amount = double.tryParse(_amountCtrl.text.trim()) ?? 0;
+    final desc = _descCtrl.text.toLowerCase();
+    final hasSplitLanguage =
+        const ['split', 'divided', 'each', 'share'].any(desc.contains);
+    final unusualDenomination = amount > 0 && (amount % 50) != 0;
+    return hasSplitLanguage || unusualDenomination;
+  }
+
+  int get _splitPeople {
+    final parsed = int.tryParse(_splitPeopleCtrl.text.trim()) ?? 2;
+    return parsed.clamp(2, 50).toInt();
+  }
+
+  double get _splitShare {
+    final amount = double.tryParse(_amountCtrl.text.trim()) ?? 0;
+    return _splitPeople > 0 ? amount / _splitPeople : 0;
+  }
+
   // ── Save transaction ─────────────────────────────────────────────────────────
 
   Future<void> _save() async {
@@ -476,135 +518,146 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     if (amount <= 0 || _selectedCategory == null) return;
     setState(() => _isSaving = true);
     try {
-    final accountsCtrl = context.read<AccountsController>();
-    final paymentAppsCtrl = context.read<PaymentAppsController>();
-    final transactionsCtrl = context.read<TransactionsController>();
+      final accountsCtrl = context.read<AccountsController>();
+      final paymentAppsCtrl = context.read<PaymentAppsController>();
+      final transactionsCtrl = context.read<TransactionsController>();
 
-    final appWalletUsedRaw =
-        double.tryParse(_paymentAppAmountCtrl.text.trim()) ?? 0.0;
-    final appWalletUsed = appWalletUsedRaw.clamp(0.0, amount).toDouble();
-    final cashbackAmount = double.tryParse(_cashbackCtrl.text.trim()) ?? 0.0;
+      final appWalletUsedRaw =
+          double.tryParse(_paymentAppAmountCtrl.text.trim()) ?? 0.0;
+      final appWalletUsed = appWalletUsedRaw.clamp(0.0, amount).toDouble();
+      final cashbackAmount = double.tryParse(_cashbackCtrl.text.trim()) ?? 0.0;
 
-    // For expense: account pays (amount - appWalletUsed). For income: full amount credited.
-    final accountPortion =
-        (_branch == TransactionWizardBranch.expense && _selectedPaymentApp != null)
-            ? (amount - appWalletUsed).clamp(0.0, amount).toDouble()
-            : amount;
-
-    // ── Build metadata identical to full wizard ───────────────────────────────
-    final meta = <String, dynamic>{
-      'categoryId': _selectedCategory!.id,
-      'categoryName': _selectedCategory!.name,
-      'merchant': _merchantCtrl.text.trim(),
-      'description': _descCtrl.text.trim(),
-      'tags': _selectedTags,
-      'accountId': _selectedAccountId,
-      'accountName': _selectedAccountName,
-      'paymentApp': _selectedPaymentApp,
-      'cashbackAmount': cashbackAmount,
-      'cashbackFlow': _cashbackToApp ? 'paymentApp' : 'bank',
-      'appWalletAmount': appWalletUsed,
-    };
-
-    Account? account;
-    if (_selectedAccountId != null) {
-      account = accountsCtrl.getAccountById(_selectedAccountId!);
-    }
-
-    if (account != null) {
-      final snapped = accountsCtrl.getAccountById(account.id) ?? account;
-      // Snapshot must reflect balance AFTER this transaction is applied
-      final balanceDelta = _branch == TransactionWizardBranch.expense
-          ? -accountPortion
+      // For expense: account pays (amount - appWalletUsed). For income: full amount credited.
+      final accountPortion = (_branch == TransactionWizardBranch.expense &&
+              _selectedPaymentApp != null)
+          ? (amount - appWalletUsed).clamp(0.0, amount).toDouble()
           : amount;
-      meta['sourceBalanceAfter'] = snapped.balance + balanceDelta;
-      if (snapped.creditLimit != null) {
-        meta['sourceCreditLimit'] = snapped.creditLimit;
-      }
-    }
 
-    final tx = Transaction(
-      id: widget.existingTransaction?.id ?? IdGenerator.next(),
-      type: _branch == TransactionWizardBranch.expense
-          ? TransactionType.expense
-          : TransactionType.income,
-      description: _descCtrl.text.trim().isEmpty
-          ? (_selectedCategory?.name ?? 'Transaction')
-          : _descCtrl.text.trim(),
-      dateTime: _selectedDate,
-      amount: amount,
-      sourceAccountId: _selectedAccountId,
-      sourceAccountName: _selectedAccountName,
-      paymentAppName: _selectedPaymentApp,
-      appWalletAmount: appWalletUsed > 0 ? appWalletUsed : null,
-      cashbackAmount: cashbackAmount > 0 ? cashbackAmount : null,
-      cashbackAccountId: (cashbackAmount > 0 && !_cashbackToApp && account != null)
-          ? account.id
-          : null,
-      cashbackAccountName: (cashbackAmount > 0 && !_cashbackToApp && account != null)
-          ? account.name
-          : null,
-      metadata: meta,
-    );
+      // ── Build metadata identical to full wizard ───────────────────────────────
+      final meta = <String, dynamic>{
+        'categoryId': _selectedCategory!.id,
+        'categoryName': _selectedCategory!.name,
+        'merchant': _merchantCtrl.text.trim(),
+        'description': _descCtrl.text.trim(),
+        'tags': _selectedTags,
+        'accountId': _selectedAccountId,
+        'accountName': _selectedAccountName,
+        'paymentApp': _selectedPaymentApp,
+        'cashbackAmount': cashbackAmount,
+        'cashbackFlow': _cashbackToApp ? 'paymentApp' : 'bank',
+        'appWalletAmount': appWalletUsed,
+        if (_splitExpenseEnabled) ...{
+          'splitExpense': true,
+          'splitPeople': _splitPeople,
+          'splitShareAmount': _splitShare,
+          'splitNote':
+              'Split between $_splitPeople people, approx ₹${_splitShare.toStringAsFixed(2)} each',
+        },
+      };
 
-    // Handle edit vs new transaction
-    if (widget.existingTransaction != null) {
-      // Edit mode: use cascade-aware editTransaction
-      final editSuccess = await transactionsCtrl.editTransaction(
-        tx,
-        accountsCtrl,
-        paymentAppsCtrl,
-      );
-      if (!editSuccess) {
-        toast_lib.toast.showError('Edit window expired (24h limit)');
-        return;
+      Account? account;
+      if (_selectedAccountId != null) {
+        account = accountsCtrl.getAccountById(_selectedAccountId!);
       }
-      Haptics.success();
-      if (mounted) {
-        await _triggerSaveFlash();
-        if (mounted) Navigator.pop(context);
-      }
-      toast_lib.toast.showSuccess('Transaction updated');
-    } else {
-      // New transaction mode: manual balance updates
-      // ── Update account balance ────────────────────────────────────────────────
+
       if (account != null) {
-        final balanceDelta =
-            _branch == TransactionWizardBranch.expense ? -accountPortion : amount;
-        await accountsCtrl
-            .updateAccount(account.copyWith(balance: account.balance + balanceDelta));
-      }
-
-      // ── Deduct from payment app wallet ───────────────────────────────────────
-      if (_branch == TransactionWizardBranch.expense &&
-          appWalletUsed > 0 &&
-          _selectedPaymentApp != null) {
-        await paymentAppsCtrl.adjustWalletBalanceByName(
-            _selectedPaymentApp!, -appWalletUsed);
-      }
-
-      // ── Apply cashback ────────────────────────────────────────────────────────
-      if (cashbackAmount > 0) {
-        if (_cashbackToApp && _selectedPaymentApp != null) {
-          await paymentAppsCtrl.adjustWalletBalanceByName(
-              _selectedPaymentApp!, cashbackAmount);
-        } else if (account != null) {
-          // Re-fetch after previous update
-          final refreshed = accountsCtrl.getAccountById(account.id) ?? account;
-          await accountsCtrl.updateAccount(
-              refreshed.copyWith(balance: refreshed.balance + cashbackAmount));
+        final snapped = accountsCtrl.getAccountById(account.id) ?? account;
+        // Snapshot must reflect balance AFTER this transaction is applied
+        final balanceDelta = _branch == TransactionWizardBranch.expense
+            ? -accountPortion
+            : amount;
+        meta['sourceBalanceAfter'] = snapped.balance + balanceDelta;
+        if (snapped.creditLimit != null) {
+          meta['sourceCreditLimit'] = snapped.creditLimit;
         }
       }
 
-      await transactionsCtrl.addTransaction(tx);
-      Haptics.success();
-      dashboardSavedSignal.value++; // triggers FAB checkmark morph
-      if (mounted) {
-        await _triggerSaveFlash();
-        if (mounted) Navigator.pop(context);
+      final tx = Transaction(
+        id: widget.existingTransaction?.id ?? IdGenerator.next(),
+        type: _branch == TransactionWizardBranch.expense
+            ? TransactionType.expense
+            : TransactionType.income,
+        description: _descCtrl.text.trim().isEmpty
+            ? (_selectedCategory?.name ?? 'Transaction')
+            : _descCtrl.text.trim(),
+        dateTime: _selectedDate,
+        amount: amount,
+        sourceAccountId: _selectedAccountId,
+        sourceAccountName: _selectedAccountName,
+        paymentAppName: _selectedPaymentApp,
+        appWalletAmount: appWalletUsed > 0 ? appWalletUsed : null,
+        cashbackAmount: cashbackAmount > 0 ? cashbackAmount : null,
+        cashbackAccountId:
+            (cashbackAmount > 0 && !_cashbackToApp && account != null)
+                ? account.id
+                : null,
+        cashbackAccountName:
+            (cashbackAmount > 0 && !_cashbackToApp && account != null)
+                ? account.name
+                : null,
+        metadata: meta,
+      );
+
+      // Handle edit vs new transaction
+      if (widget.existingTransaction != null) {
+        // Edit mode: use cascade-aware editTransaction
+        final editSuccess = await transactionsCtrl.editTransaction(
+          tx,
+          accountsCtrl,
+          paymentAppsCtrl,
+        );
+        if (!editSuccess) {
+          toast_lib.toast.showError('Edit window expired (24h limit)');
+          return;
+        }
+        Haptics.success();
+        if (mounted) {
+          await _triggerSaveFlash();
+          if (mounted) Navigator.pop(context);
+        }
+        toast_lib.toast.showSuccess('Transaction updated');
+      } else {
+        // New transaction mode: manual balance updates
+        // ── Update account balance ────────────────────────────────────────────────
+        if (account != null) {
+          final balanceDelta = _branch == TransactionWizardBranch.expense
+              ? -accountPortion
+              : amount;
+          await accountsCtrl.updateAccount(
+              account.copyWith(balance: account.balance + balanceDelta));
+        }
+
+        // ── Deduct from payment app wallet ───────────────────────────────────────
+        if (_branch == TransactionWizardBranch.expense &&
+            appWalletUsed > 0 &&
+            _selectedPaymentApp != null) {
+          await paymentAppsCtrl.adjustWalletBalanceByName(
+              _selectedPaymentApp!, -appWalletUsed);
+        }
+
+        // ── Apply cashback ────────────────────────────────────────────────────────
+        if (cashbackAmount > 0) {
+          if (_cashbackToApp && _selectedPaymentApp != null) {
+            await paymentAppsCtrl.adjustWalletBalanceByName(
+                _selectedPaymentApp!, cashbackAmount);
+          } else if (account != null) {
+            // Re-fetch after previous update
+            final refreshed =
+                accountsCtrl.getAccountById(account.id) ?? account;
+            await accountsCtrl.updateAccount(refreshed.copyWith(
+                balance: refreshed.balance + cashbackAmount));
+          }
+        }
+
+        await transactionsCtrl.addTransaction(tx);
+        Haptics.success();
+        dashboardSavedSignal.value++; // triggers FAB checkmark morph
+        if (mounted) {
+          await _triggerSaveFlash();
+          if (mounted) Navigator.pop(context);
+        }
+        toast_lib.toast.showSuccess('Transaction saved');
       }
-      toast_lib.toast.showSuccess('Transaction saved');
-    }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -628,7 +681,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
   // ── Account picker ───────────────────────────────────────────────────────────
 
   void _pickAccount() {
-    final accounts = context.read<AccountsController>().accounts
+    final accounts = context
+        .read<AccountsController>()
+        .accounts
         .where((a) => !a.isHidden && a.type != AccountType.investment)
         .toList();
     final settings = context.read<SettingsController>();
@@ -637,227 +692,250 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
       context: context,
       builder: (ctx) {
         final isDark = AppStyles.isDarkMode(ctx);
-        final bgColor = isDark ? const Color(0xFF0D0D0D) : CupertinoColors.systemBackground.resolveFrom(ctx);
-        final cardColor = isDark ? const Color(0xFF141414) : const Color(0xFFF7F7F7);
+        final bgColor = isDark
+            ? const Color(0xFF0D0D0D)
+            : CupertinoColors.systemBackground.resolveFrom(ctx);
+        final cardColor =
+            isDark ? const Color(0xFF141414) : const Color(0xFFF7F7F7);
         final secondaryText = AppStyles.getSecondaryTextColor(ctx);
         final primaryText = AppStyles.getTextColor(ctx);
 
         return RLayout.tabletConstrain(
           ctx,
           Container(
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.only(bottom: 32),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const ModalHandle(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Select Account',
-                        style: TextStyle(
-                          fontFamily: 'SpaceGrotesk',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
-                          color: primaryText,
-                        ),
-                      ),
-                      const Spacer(),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () => Navigator.pop(ctx),
-                        child: Icon(CupertinoIcons.xmark_circle_fill,
-                            color: secondaryText.withValues(alpha: 0.3), size: 26),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(ctx).size.height * 0.5,
-                  ),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: accounts.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (_, i) {
-                      final acc = accounts[i];
-                      final isSelected = acc.id == _selectedAccountId;
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedAccountId = acc.id;
-                            _selectedAccountName = acc.name;
-                          });
-                          Navigator.pop(ctx);
-                        },
-                        child: AnimatedContainer(
-                          duration: AppDurations.fast,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? acc.color.withValues(alpha: 0.12)
-                                : cardColor,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: isSelected
-                                  ? acc.color.withValues(alpha: 0.6)
-                                  : (isDark ? const Color(0xFF1E1E1E) : const Color(0xFFE0E0E0)),
-                              width: isSelected ? 1.5 : 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: acc.color.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: acc.color,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      acc.name,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: primaryText,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${acc.bankName} · ${_accountTypeLabel(acc.type)}',
-                                      style: AppTypography.caption(color: secondaryText),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    CurrencyFormatter.compact(acc.balance),
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: acc.balance >= 0
-                                          ? const Color(0xFF34C759)
-                                          : const Color(0xFFFF3B30),
-                                    ),
-                                  ),
-                                  if (acc.id == settings.defaultAccountId) ...[
-                                    const SizedBox(height: 2),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                      decoration: BoxDecoration(
-                                        color: AppStyles.accentBlue.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        'Default',
-                                        style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppStyles.accentBlue,
-                                        ),
-                                      ),
-                                    ),
-                                  ] else if (isSelected) ...[
-                                    const SizedBox(height: 2),
-                                    Icon(CupertinoIcons.checkmark_circle_fill,
-                                        size: 14, color: acc.color),
-                                  ],
-                                ],
-                              ),
-                            ],
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            padding: const EdgeInsets.only(bottom: 32),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const ModalHandle(),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Select Account',
+                          style: TextStyle(
+                            fontFamily: 'SpaceGrotesk',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 17,
+                            color: primaryText,
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => Navigator.pop(ctx),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEEEEEE),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Center(
-                              child: Text('Cancel',
-                                  style: AppTypography.body(color: secondaryText)),
-                            ),
-                          ),
+                        const Spacer(),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () => Navigator.pop(ctx),
+                          child: Icon(CupertinoIcons.xmark_circle_fill,
+                              color: secondaryText.withValues(alpha: 0.3),
+                              size: 26),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: GestureDetector(
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+                    ),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: accounts.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (_, i) {
+                        final acc = accounts[i];
+                        final isSelected = acc.id == _selectedAccountId;
+                        return GestureDetector(
                           onTap: () {
-                            if (_selectedAccountId != null) {
-                              settings.setDefaultAccountId(_selectedAccountId);
-                              toast_lib.toast.showSuccess('Default account saved');
-                            }
+                            setState(() {
+                              _selectedAccountId = acc.id;
+                              _selectedAccountName = acc.name;
+                            });
                             Navigator.pop(ctx);
                           },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: AnimatedContainer(
+                            duration: AppDurations.fast,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 12),
                             decoration: BoxDecoration(
-                              color: AppStyles.accentBlue.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppStyles.accentBlue.withValues(alpha: 0.3)),
+                              color: isSelected
+                                  ? acc.color.withValues(alpha: 0.12)
+                                  : cardColor,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isSelected
+                                    ? acc.color.withValues(alpha: 0.6)
+                                    : (isDark
+                                        ? const Color(0xFF1E1E1E)
+                                        : const Color(0xFFE0E0E0)),
+                                width: isSelected ? 1.5 : 1,
+                              ),
                             ),
-                            child: Center(
-                              child: Text(
-                                'Set as default',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppStyles.accentBlue,
-                                  fontWeight: FontWeight.w600,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: acc.color.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Center(
+                                    child: Container(
+                                      width: 12,
+                                      height: 12,
+                                      decoration: BoxDecoration(
+                                        color: acc.color,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        acc.name,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: primaryText,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${acc.bankName} · ${_accountTypeLabel(acc.type)}',
+                                        style: AppTypography.caption(
+                                            color: secondaryText),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      CurrencyFormatter.compact(acc.balance),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: acc.balance >= 0
+                                            ? const Color(0xFF34C759)
+                                            : const Color(0xFFFF3B30),
+                                      ),
+                                    ),
+                                    if (acc.id ==
+                                        settings.defaultAccountId) ...[
+                                      const SizedBox(height: 2),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 5, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: AppStyles.accentBlue
+                                              .withValues(alpha: 0.15),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'Default',
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppStyles.accentBlue,
+                                          ),
+                                        ),
+                                      ),
+                                    ] else if (isSelected) ...[
+                                      const SizedBox(height: 2),
+                                      Icon(CupertinoIcons.checkmark_circle_fill,
+                                          size: 14, color: acc.color),
+                                    ],
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => Navigator.pop(ctx),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1A1A1A)
+                                    : const Color(0xFFEEEEEE),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Text('Cancel',
+                                    style: AppTypography.body(
+                                        color: secondaryText)),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              if (_selectedAccountId != null) {
+                                settings
+                                    .setDefaultAccountId(_selectedAccountId);
+                                toast_lib.toast
+                                    .showSuccess('Default account saved');
+                              }
+                              Navigator.pop(ctx);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppStyles.accentBlue
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: AppStyles.accentBlue
+                                        .withValues(alpha: 0.3)),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Set as default',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppStyles.accentBlue,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
         );
       },
     );
@@ -873,8 +951,11 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
       context: context,
       builder: (ctx) {
         final isDark = AppStyles.isDarkMode(ctx);
-        final bgColor = isDark ? const Color(0xFF0D0D0D) : CupertinoColors.systemBackground.resolveFrom(ctx);
-        final cardColor = isDark ? const Color(0xFF141414) : const Color(0xFFF7F7F7);
+        final bgColor = isDark
+            ? const Color(0xFF0D0D0D)
+            : CupertinoColors.systemBackground.resolveFrom(ctx);
+        final cardColor =
+            isDark ? const Color(0xFF141414) : const Color(0xFFF7F7F7);
         final secondaryText = AppStyles.getSecondaryTextColor(ctx);
         final primaryText = AppStyles.getTextColor(ctx);
 
@@ -884,229 +965,257 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         return RLayout.tabletConstrain(
           ctx,
           Container(
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.only(bottom: 32),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const ModalHandle(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Pay via',
-                        style: TextStyle(
-                          fontFamily: 'SpaceGrotesk',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
-                          color: primaryText,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            padding: const EdgeInsets.only(bottom: 32),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const ModalHandle(),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Pay via',
+                          style: TextStyle(
+                            fontFamily: 'SpaceGrotesk',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 17,
+                            color: primaryText,
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () => Navigator.pop(ctx),
-                        child: Icon(CupertinoIcons.xmark_circle_fill,
-                            color: secondaryText.withValues(alpha: 0.3), size: 26),
-                      ),
-                    ],
+                        const Spacer(),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () => Navigator.pop(ctx),
+                          child: Icon(CupertinoIcons.xmark_circle_fill,
+                              color: secondaryText.withValues(alpha: 0.3),
+                              size: 26),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(ctx).size.height * 0.5,
-                  ),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: allItems.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (_, i) {
-                      final app = allItems[i];
-                      final appName = app?['name'] as String?;
-                      final appColor = (app?['color'] as Color?) ?? secondaryText;
-                      final hasWallet = (app?['hasWallet'] as bool?) ?? false;
-                      final walletBal = (app?['walletBalance'] as double?) ?? 0.0;
-                      final isSelected = appName == _selectedPaymentApp ||
-                          (appName == null && _selectedPaymentApp == null);
+                  const SizedBox(height: 4),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+                    ),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: allItems.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (_, i) {
+                        final app = allItems[i];
+                        final appName = app?['name'] as String?;
+                        final appColor =
+                            (app?['color'] as Color?) ?? secondaryText;
+                        final hasWallet = (app?['hasWallet'] as bool?) ?? false;
+                        final walletBal =
+                            (app?['walletBalance'] as double?) ?? 0.0;
+                        final isSelected = appName == _selectedPaymentApp ||
+                            (appName == null && _selectedPaymentApp == null);
 
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedPaymentApp = appName;
-                            if (appName == null || !hasWallet) {
-                              _paymentAppAmountCtrl.clear();
-                            }
-                          });
-                          Navigator.pop(ctx);
-                        },
-                        child: AnimatedContainer(
-                          duration: AppDurations.fast,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? appColor.withValues(alpha: 0.12)
-                                : cardColor,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: isSelected
-                                  ? appColor.withValues(alpha: 0.6)
-                                  : (isDark ? const Color(0xFF1E1E1E) : const Color(0xFFE0E0E0)),
-                              width: isSelected ? 1.5 : 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: appColor.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: appName == null
-                                      ? Icon(CupertinoIcons.xmark, size: 16, color: secondaryText)
-                                      : Text(
-                                          appName[0],
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: appColor,
-                                          ),
-                                        ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      appName ?? 'None',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: appName == null ? secondaryText : primaryText,
-                                      ),
-                                    ),
-                                    if (hasWallet && walletBal > 0) ...[
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'Wallet: ${CurrencyFormatter.compact(walletBal)}',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: const Color(0xFF34C759),
-                                        ),
-                                      ),
-                                    ] else if (hasWallet) ...[
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'Wallet enabled',
-                                        style: AppTypography.caption(color: secondaryText),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (appName != null && appName == settings.defaultPaymentAppName) ...[
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                      decoration: BoxDecoration(
-                                        color: AppStyles.accentBlue.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        'Default',
-                                        style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppStyles.accentBlue,
-                                        ),
-                                      ),
-                                    ),
-                                    if (isSelected) const SizedBox(height: 4),
-                                  ],
-                                  if (isSelected)
-                                    Icon(CupertinoIcons.checkmark_circle_fill,
-                                        size: 18,
-                                        color: appName == null ? secondaryText : appColor),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => Navigator.pop(ctx),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEEEEEE),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Center(
-                              child: Text('Cancel',
-                                  style: AppTypography.body(color: secondaryText)),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: GestureDetector(
+                        return GestureDetector(
                           onTap: () {
-                            settings.setDefaultPaymentApp(_selectedPaymentApp);
-                            toast_lib.toast.showSuccess('Default payment app saved');
+                            setState(() {
+                              _selectedPaymentApp = appName;
+                              if (appName == null || !hasWallet) {
+                                _paymentAppAmountCtrl.clear();
+                              }
+                            });
                             Navigator.pop(ctx);
                           },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: AnimatedContainer(
+                            duration: AppDurations.fast,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 12),
                             decoration: BoxDecoration(
-                              color: AppStyles.accentBlue.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppStyles.accentBlue.withValues(alpha: 0.3)),
+                              color: isSelected
+                                  ? appColor.withValues(alpha: 0.12)
+                                  : cardColor,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isSelected
+                                    ? appColor.withValues(alpha: 0.6)
+                                    : (isDark
+                                        ? const Color(0xFF1E1E1E)
+                                        : const Color(0xFFE0E0E0)),
+                                width: isSelected ? 1.5 : 1,
+                              ),
                             ),
-                            child: Center(
-                              child: Text(
-                                'Set as default',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppStyles.accentBlue,
-                                  fontWeight: FontWeight.w600,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: appColor.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Center(
+                                    child: appName == null
+                                        ? Icon(CupertinoIcons.xmark,
+                                            size: 16, color: secondaryText)
+                                        : Text(
+                                            appName[0],
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: appColor,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        appName ?? 'None',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: appName == null
+                                              ? secondaryText
+                                              : primaryText,
+                                        ),
+                                      ),
+                                      if (hasWallet && walletBal > 0) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Wallet: ${CurrencyFormatter.compact(walletBal)}',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: const Color(0xFF34C759),
+                                          ),
+                                        ),
+                                      ] else if (hasWallet) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Wallet enabled',
+                                          style: AppTypography.caption(
+                                              color: secondaryText),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (appName != null &&
+                                        appName ==
+                                            settings.defaultPaymentAppName) ...[
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 5, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: AppStyles.accentBlue
+                                              .withValues(alpha: 0.15),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'Default',
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppStyles.accentBlue,
+                                          ),
+                                        ),
+                                      ),
+                                      if (isSelected) const SizedBox(height: 4),
+                                    ],
+                                    if (isSelected)
+                                      Icon(CupertinoIcons.checkmark_circle_fill,
+                                          size: 18,
+                                          color: appName == null
+                                              ? secondaryText
+                                              : appColor),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => Navigator.pop(ctx),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1A1A1A)
+                                    : const Color(0xFFEEEEEE),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Text('Cancel',
+                                    style: AppTypography.body(
+                                        color: secondaryText)),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              settings
+                                  .setDefaultPaymentApp(_selectedPaymentApp);
+                              toast_lib.toast
+                                  .showSuccess('Default payment app saved');
+                              Navigator.pop(ctx);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppStyles.accentBlue
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: AppStyles.accentBlue
+                                        .withValues(alpha: 0.3)),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Set as default',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppStyles.accentBlue,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
         );
       },
     );
@@ -1120,10 +1229,11 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     final isDark = AppStyles.isDarkMode(context);
     final categories = context.watch<CategoriesController>().categories;
     final tags = context.watch<TagsController>().tags;
-    final bgBase = isDark ? const Color(0xFF080F1C) : CupertinoColors.systemBackground.resolveFrom(context);
-    final bgColor = _saveFlash
-        ? Color.lerp(bgBase, SemanticColors.success, 0.12)!
-        : bgBase;
+    final bgBase = isDark
+        ? const Color(0xFF080F1C)
+        : CupertinoColors.systemBackground.resolveFrom(context);
+    final bgColor =
+        _saveFlash ? Color.lerp(bgBase, SemanticColors.success, 0.12)! : bgBase;
     final secondaryText = AppStyles.getSecondaryTextColor(context);
     final primaryText = AppStyles.getTextColor(context);
 
@@ -1136,289 +1246,329 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         }
       },
       child: AnimatedPadding(
-      padding: EdgeInsets.only(bottom: kb),
-      duration: const Duration(milliseconds: 120),
-      curve: Curves.easeOut,
-      child: Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: Radii.modalRadius,
-        ),
-        child: SafeArea(
-          top: false,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: AppStyles.sheetMaxHeight(context),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle
-                const ModalHandle(),
+        padding: EdgeInsets.only(bottom: kb),
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: Radii.modalRadius,
+          ),
+          child: SafeArea(
+            top: false,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: AppStyles.sheetMaxHeight(context),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Handle
+                  const ModalHandle(),
 
-                // Header
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Quick Entry',
-                        style: TextStyle(
-                          fontFamily: 'SpaceGrotesk',
-                          fontWeight: FontWeight.bold,
-                          fontSize: RT.title2(context),
-                          color: primaryText,
-                        ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Mic button — opens voice overlay and pre-fills if result received
-                          CupertinoButton(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            onPressed: () async {
-                              final result = await VoiceOverlayWidget.show(context);
-                              if (result != null && context.mounted) {
-                                final amount = result.fields['amount'];
-                                final merchant = result.fields['merchant'] as String?;
-                                if (amount != null) {
-                                  _amountCtrl.text = (amount as num).toStringAsFixed(2);
-                                  _isDirty = true;
-                                }
-                                if (merchant != null && merchant.isNotEmpty) {
-                                  _merchantCtrl.text = merchant;
-                                  _showMerchantField = true;
-                                  _isDirty = true;
-                                }
-                                setState(() {});
-                              }
-                            },
-                            child: Icon(
-                              CupertinoIcons.mic_fill,
-                              color: AppStyles.aetherTeal,
-                              size: 22,
-                            ),
-                          ),
-                          CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: () async {
-                              if (await _confirmDiscard() && context.mounted) {
-                                Navigator.pop(context);
-                              }
-                            },
-                            child: Icon(
-                              CupertinoIcons.xmark_circle_fill,
-                              color: secondaryText.withValues(alpha: 0.4),
-                              size: 28,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: Spacing.sm),
-
-                // ── No-account warning banner ──────────────────────────────────
-                Builder(builder: (ctx) {
-                  final allAccounts = ctx.watch<AccountsController>().accounts
-                      .where((a) => !a.isHidden && a.type != AccountType.investment)
-                      .toList();
-                  if (allAccounts.isNotEmpty) return const SizedBox.shrink();
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                      showCupertinoModalPopup<void>(
-                        context: context,
-                        builder: (_) => AccountWizard(),
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.sm),
-                      padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF9500).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(Radii.md),
-                        border: Border.all(color: const Color(0xFFFF9500).withValues(alpha: 0.4)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(CupertinoIcons.exclamationmark_triangle_fill,
-                              color: Color(0xFFFF9500), size: 16),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'No account set up yet. Tap to add one first.',
-                              style: TextStyle(
-                                fontSize: TypeScale.footnote,
-                                color: AppStyles.getTextColor(context),
-                              ),
-                            ),
-                          ),
-                          const Icon(CupertinoIcons.chevron_right,
-                              color: Color(0xFFFF9500), size: 13),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-
-                // Scrollable content
-                Flexible(
-                  child: SingleChildScrollView(
+                  // Header
+                  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // ── TIER 1: always-visible ──────────────────────────────
-
-                        // Type toggle — stagger in (Phase 5A)
-                        AnimatedBuilder(
-                          animation: _openCtrl,
-                          builder: (context, child) => Opacity(
-                            opacity: _pill0Opacity.value,
-                            child: child,
-                          ),
-                          child: _buildTypeToggle(isDark),
-                        ),
-                        const SizedBox(height: Spacing.lg),
-
-                        // Amount — scale in + waiting pulse (Phase 5A/5C)
-                        ShakeAnimation(
-                          key: _amountShakeKey,
-                          child: AnimatedBuilder(
-                            animation: Listenable.merge([_openCtrl, _pulseCtrl]),
-                            builder: (context, child) {
-                              final isEmpty = _amountCtrl.text.isEmpty;
-                              return Transform.scale(
-                                scale: _amountScale.value,
-                                child: Opacity(
-                                  opacity: isEmpty ? _pulseOpacity.value : 1.0,
-                                  child: child,
-                                ),
-                              );
-                            },
-                            child: _buildAmountField(isDark, primaryText),
+                        Text(
+                          'Quick Entry',
+                          style: TextStyle(
+                            fontFamily: 'SpaceGrotesk',
+                            fontWeight: FontWeight.bold,
+                            fontSize: RT.title2(context),
+                            color: primaryText,
                           ),
                         ),
-                        const SizedBox(height: Spacing.lg),
-
-                        // Description
-                        _buildDescriptionField(isDark, secondaryText),
-                        const SizedBox(height: Spacing.md),
-
-                        // ── Tier 2 summary (collapsed, has selections) ──────────
-                        if (!_tier2Expanded) _buildTier2Summary(isDark, secondaryText),
-
-                        // ── Expand / collapse chevron ───────────────────────────
-                        _buildExpandChevron(isDark, secondaryText),
-                        const SizedBox(height: Spacing.sm),
-
-                        // ── TIER 2: optional details (collapsible) ──────────────
-                        AnimatedCrossFade(
-                          duration: const Duration(milliseconds: 320),
-                          sizeCurve: Curves.easeOutCubic,
-                          crossFadeState: _tier2Expanded
-                              ? CrossFadeState.showFirst
-                              : CrossFadeState.showSecond,
-                          firstChild: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Category
-                              _buildCategorySection(categories, isDark, secondaryText, primaryText),
-                              const SizedBox(height: Spacing.lg),
-
-                              // Details divider
-                              _buildDetailsDivider(isDark, secondaryText),
-                              const SizedBox(height: Spacing.md),
-
-                              // Defaults (account selector)
-                              _buildDefaultsRow(isDark, secondaryText, primaryText),
-                              const SizedBox(height: Spacing.md),
-
-                              // Optional detail rows
-                              _buildMerchantRow(isDark, secondaryText, primaryText),
-                              _buildCashbackRow(isDark, secondaryText, primaryText),
-                              _buildTagsRow(tags, isDark, secondaryText, primaryText),
-                              const SizedBox(height: Spacing.sm),
-
-                              // Date (tappable)
-                              _buildDateRow(isDark, secondaryText, primaryText),
-                              const SizedBox(height: Spacing.lg),
-                            ],
-                          ),
-                          secondChild: const SizedBox(width: double.infinity),
-                        ),
-
-                        // ── Save button ───────────────────────────────────────────
-                        _buildSaveButton(),
-                        const SizedBox(height: Spacing.sm),
-
-                        // ── Open full wizard ──────────────────────────────────────
-                        Center(
-                          child: CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: () {
-                              // Build a prefill stub so the wizard auto-populates
-                              final amount = double.tryParse(_amountCtrl.text.trim()) ?? 0;
-                              final meta = <String, dynamic>{
-                                if (_selectedCategory != null) 'categoryId': _selectedCategory!.id,
-                                if (_selectedCategory != null) 'categoryName': _selectedCategory!.name,
-                                'merchant': _merchantCtrl.text.trim(),
-                                'description': _descCtrl.text.trim(),
-                                'tags': _selectedTags,
-                                if (_selectedAccountId != null) 'accountId': _selectedAccountId,
-                                if (_selectedAccountName != null) 'accountName': _selectedAccountName,
-                                if (_selectedPaymentApp != null) 'paymentApp': _selectedPaymentApp,
-                              };
-                              final stub = Transaction(
-                                id: IdGenerator.next(),
-                                type: _branch == TransactionWizardBranch.expense
-                                    ? TransactionType.expense
-                                    : TransactionType.income,
-                                description: _descCtrl.text.trim().isEmpty
-                                    ? (_selectedCategory?.name ?? '')
-                                    : _descCtrl.text.trim(),
-                                dateTime: _selectedDate,
-                                amount: amount > 0 ? amount : 0.01,
-                                sourceAccountId: _selectedAccountId,
-                                sourceAccountName: _selectedAccountName,
-                                paymentAppName: _selectedPaymentApp,
-                                metadata: meta,
-                              );
-                              Navigator.pop(context);
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (context.mounted) {
-                                  Navigator.push(
-                                    context,
-                                    FadeScalePageRoute(
-                                      page: TransactionWizard(cloneFrom: stub),
-                                    ),
-                                  );
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Mic button — opens voice overlay and pre-fills if result received
+                            CupertinoButton(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 6),
+                              onPressed: () async {
+                                final result =
+                                    await VoiceOverlayWidget.show(context);
+                                if (result != null && context.mounted) {
+                                  final amount = result.fields['amount'];
+                                  final merchant =
+                                      result.fields['merchant'] as String?;
+                                  if (amount != null) {
+                                    _amountCtrl.text =
+                                        (amount as num).toStringAsFixed(2);
+                                    _isDirty = true;
+                                  }
+                                  if (merchant != null && merchant.isNotEmpty) {
+                                    _merchantCtrl.text = merchant;
+                                    _showMerchantField = true;
+                                    _isDirty = true;
+                                  }
+                                  setState(() {});
                                 }
-                              });
-                            },
-                            child: const Text(
-                              'More options →',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppStyles.accentBlue,
+                              },
+                              child: Icon(
+                                CupertinoIcons.mic_fill,
+                                color: AppStyles.aetherTeal,
+                                size: 22,
                               ),
                             ),
-                          ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () async {
+                                if (await _confirmDiscard() &&
+                                    context.mounted) {
+                                  Navigator.pop(context);
+                                }
+                              },
+                              child: Icon(
+                                CupertinoIcons.xmark_circle_fill,
+                                color: secondaryText.withValues(alpha: 0.4),
+                                size: 28,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: Spacing.md),
                       ],
                     ),
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: Spacing.sm),
+
+                  // ── No-account warning banner ──────────────────────────────────
+                  Builder(builder: (ctx) {
+                    final allAccounts = ctx
+                        .watch<AccountsController>()
+                        .accounts
+                        .where((a) =>
+                            !a.isHidden && a.type != AccountType.investment)
+                        .toList();
+                    if (allAccounts.isNotEmpty) return const SizedBox.shrink();
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        showCupertinoModalPopup<void>(
+                          context: context,
+                          builder: (_) => AccountWizard(),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(
+                            Spacing.lg, 0, Spacing.lg, Spacing.sm),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: Spacing.md, vertical: 10),
+                        decoration: BoxDecoration(
+                          color:
+                              const Color(0xFFFF9500).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(Radii.md),
+                          border: Border.all(
+                              color: const Color(0xFFFF9500)
+                                  .withValues(alpha: 0.4)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                                CupertinoIcons.exclamationmark_triangle_fill,
+                                color: Color(0xFFFF9500),
+                                size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'No account set up yet. Tap to add one first.',
+                                style: TextStyle(
+                                  fontSize: TypeScale.footnote,
+                                  color: AppStyles.getTextColor(context),
+                                ),
+                              ),
+                            ),
+                            const Icon(CupertinoIcons.chevron_right,
+                                color: Color(0xFFFF9500), size: 13),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+
+                  // Scrollable content
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: Spacing.lg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ── TIER 1: always-visible ──────────────────────────────
+
+                          // Type toggle — stagger in (Phase 5A)
+                          AnimatedBuilder(
+                            animation: _openCtrl,
+                            builder: (context, child) => Opacity(
+                              opacity: _pill0Opacity.value,
+                              child: child,
+                            ),
+                            child: _buildTypeToggle(isDark),
+                          ),
+                          const SizedBox(height: Spacing.lg),
+
+                          // Amount — scale in + waiting pulse (Phase 5A/5C)
+                          ShakeAnimation(
+                            key: _amountShakeKey,
+                            child: AnimatedBuilder(
+                              animation:
+                                  Listenable.merge([_openCtrl, _pulseCtrl]),
+                              builder: (context, child) {
+                                final isEmpty = _amountCtrl.text.isEmpty;
+                                return Transform.scale(
+                                  scale: _amountScale.value,
+                                  child: Opacity(
+                                    opacity:
+                                        isEmpty ? _pulseOpacity.value : 1.0,
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: _buildAmountField(isDark, primaryText),
+                            ),
+                          ),
+                          const SizedBox(height: Spacing.lg),
+
+                          // Description
+                          _buildDescriptionField(isDark, secondaryText),
+                          const SizedBox(height: Spacing.md),
+
+                          if (_shouldSuggestSplitExpense) ...[
+                            _buildSplitSuggestionCard(isDark, secondaryText),
+                            const SizedBox(height: Spacing.md),
+                          ],
+
+                          // ── Tier 2 summary (collapsed, has selections) ──────────
+                          if (!_tier2Expanded)
+                            _buildTier2Summary(isDark, secondaryText),
+
+                          // ── Expand / collapse chevron ───────────────────────────
+                          _buildExpandChevron(isDark, secondaryText),
+                          const SizedBox(height: Spacing.sm),
+
+                          // ── TIER 2: optional details (collapsible) ──────────────
+                          AnimatedCrossFade(
+                            duration: const Duration(milliseconds: 320),
+                            sizeCurve: Curves.easeOutCubic,
+                            crossFadeState: _tier2Expanded
+                                ? CrossFadeState.showFirst
+                                : CrossFadeState.showSecond,
+                            firstChild: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Category
+                                _buildCategorySection(categories, isDark,
+                                    secondaryText, primaryText),
+                                const SizedBox(height: Spacing.lg),
+
+                                // Details divider
+                                _buildDetailsDivider(isDark, secondaryText),
+                                const SizedBox(height: Spacing.md),
+
+                                // Defaults (account selector)
+                                _buildDefaultsRow(
+                                    isDark, secondaryText, primaryText),
+                                const SizedBox(height: Spacing.md),
+
+                                // Optional detail rows
+                                _buildMerchantRow(
+                                    isDark, secondaryText, primaryText),
+                                _buildCashbackRow(
+                                    isDark, secondaryText, primaryText),
+                                _buildTagsRow(
+                                    tags, isDark, secondaryText, primaryText),
+                                const SizedBox(height: Spacing.sm),
+
+                                // Date (tappable)
+                                _buildDateRow(
+                                    isDark, secondaryText, primaryText),
+                                const SizedBox(height: Spacing.lg),
+                              ],
+                            ),
+                            secondChild: const SizedBox(width: double.infinity),
+                          ),
+
+                          // ── Save button ───────────────────────────────────────────
+                          _buildSaveButton(),
+                          const SizedBox(height: Spacing.sm),
+
+                          // ── Open full wizard ──────────────────────────────────────
+                          Center(
+                            child: CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                // Build a prefill stub so the wizard auto-populates
+                                final amount =
+                                    double.tryParse(_amountCtrl.text.trim()) ??
+                                        0;
+                                final meta = <String, dynamic>{
+                                  if (_selectedCategory != null)
+                                    'categoryId': _selectedCategory!.id,
+                                  if (_selectedCategory != null)
+                                    'categoryName': _selectedCategory!.name,
+                                  'merchant': _merchantCtrl.text.trim(),
+                                  'description': _descCtrl.text.trim(),
+                                  'tags': _selectedTags,
+                                  if (_selectedAccountId != null)
+                                    'accountId': _selectedAccountId,
+                                  if (_selectedAccountName != null)
+                                    'accountName': _selectedAccountName,
+                                  if (_selectedPaymentApp != null)
+                                    'paymentApp': _selectedPaymentApp,
+                                };
+                                final stub = Transaction(
+                                  id: IdGenerator.next(),
+                                  type:
+                                      _branch == TransactionWizardBranch.expense
+                                          ? TransactionType.expense
+                                          : TransactionType.income,
+                                  description: _descCtrl.text.trim().isEmpty
+                                      ? (_selectedCategory?.name ?? '')
+                                      : _descCtrl.text.trim(),
+                                  dateTime: _selectedDate,
+                                  amount: amount > 0 ? amount : 0.01,
+                                  sourceAccountId: _selectedAccountId,
+                                  sourceAccountName: _selectedAccountName,
+                                  paymentAppName: _selectedPaymentApp,
+                                  metadata: meta,
+                                );
+                                Navigator.pop(context);
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (context.mounted) {
+                                    Navigator.push(
+                                      context,
+                                      FadeScalePageRoute(
+                                        page:
+                                            TransactionWizard(cloneFrom: stub),
+                                      ),
+                                    );
+                                  }
+                                });
+                              },
+                              child: const Text(
+                                'More options →',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppStyles.accentBlue,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: Spacing.md),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ), // SafeArea/Container chain
-      ), // Container (closes AnimatedPadding's child:)
+          ), // SafeArea/Container chain
+        ), // Container (closes AnimatedPadding's child:)
       ), // AnimatedPadding (closes PopScope's child:)
     ); // PopScope
   }
@@ -1489,9 +1639,13 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
   Widget _buildTypeToggle(bool isDark) {
     return Row(
       children: [
-        Expanded(child: _typeChip(TransactionWizardBranch.expense, '↑ Expense', isDark)),
+        Expanded(
+            child: _typeChip(
+                TransactionWizardBranch.expense, '↑ Expense', isDark)),
         const SizedBox(width: Spacing.sm),
-        Expanded(child: _typeChip(TransactionWizardBranch.income, '↓ Income', isDark)),
+        Expanded(
+            child:
+                _typeChip(TransactionWizardBranch.income, '↓ Income', isDark)),
       ],
     );
   }
@@ -1513,7 +1667,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
           color: isActive ? color.withValues(alpha: 0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(Radii.md),
           border: Border.all(
-            color: isActive ? color : (isDark ? const Color(0xFF2A2A3A) : const Color(0xFFCCDDEE)),
+            color: isActive
+                ? color
+                : (isDark ? const Color(0xFF2A2A3A) : const Color(0xFFCCDDEE)),
             width: isActive ? 1.5 : 1,
           ),
         ),
@@ -1524,7 +1680,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
               fontFamily: 'SpaceGrotesk',
               fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
               fontSize: 14,
-              color: isActive ? color : AppStyles.getSecondaryTextColor(context),
+              color:
+                  isActive ? color : AppStyles.getSecondaryTextColor(context),
             ),
           ),
         ),
@@ -1547,25 +1704,29 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
           ),
         ),
         const SizedBox(width: Spacing.xs),
-        SizedBox(
-          width: 200,
-          child: CupertinoTextField(
-            controller: _amountCtrl,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            placeholder: '0',
-            style: TextStyle(
-              fontSize: RT.displayLarge(context),
-              fontWeight: FontWeight.bold,
-              color: primaryText,
+        Flexible(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 240, minWidth: 120),
+            child: CupertinoTextField(
+              controller: _amountCtrl,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              placeholder: '0',
+              style: TextStyle(
+                fontSize: RT.displayLarge(context),
+                fontWeight: FontWeight.bold,
+                color: primaryText,
+              ),
+              placeholderStyle: TextStyle(
+                fontSize: RT.displayLarge(context),
+                fontWeight: FontWeight.bold,
+                color: AppStyles.getSecondaryTextColor(context)
+                    .withValues(alpha: 0.4),
+              ),
+              decoration: const BoxDecoration(),
+              textAlign: TextAlign.center,
+              onChanged: (_) => setState(() {}),
             ),
-            placeholderStyle: TextStyle(
-              fontSize: RT.displayLarge(context),
-              fontWeight: FontWeight.bold,
-              color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.4),
-            ),
-            decoration: const BoxDecoration(),
-            textAlign: TextAlign.center,
-            onChanged: (_) => setState(() {}),
           ),
         ),
       ],
@@ -1604,12 +1765,19 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                 }),
                 child: AnimatedContainer(
                   duration: AppDurations.fast,
-                  padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.md, vertical: Spacing.sm),
                   decoration: BoxDecoration(
-                    color: isSelected ? cat.color.withValues(alpha: 0.15) : Colors.transparent,
+                    color: isSelected
+                        ? cat.color.withValues(alpha: 0.15)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(Radii.full),
                     border: Border.all(
-                      color: isSelected ? cat.color : (isDark ? const Color(0xFF2A2A3A) : const Color(0xFFCCDDEE)),
+                      color: isSelected
+                          ? cat.color
+                          : (isDark
+                              ? const Color(0xFF2A2A3A)
+                              : const Color(0xFFCCDDEE)),
                       width: isSelected ? 1.5 : 1,
                     ),
                   ),
@@ -1630,15 +1798,19 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                         cat.name,
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                          color: isSelected ? cat.color : AppStyles.getTextColor(context),
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                          color: isSelected
+                              ? cat.color
+                              : AppStyles.getTextColor(context),
                         ),
                       ),
                       // ML auto-suggestion badge
                       if (isSelected && _categoryAutoSuggested) ...[
                         const SizedBox(width: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 1),
                           decoration: BoxDecoration(
                             color: cat.color.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(4),
@@ -1679,15 +1851,122 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         CupertinoTextField(
           controller: _descCtrl,
           placeholder: 'What was this for? (optional)',
-          style: TextStyle(color: AppStyles.getTextColor(context), fontSize: 14),
-          placeholderStyle: TextStyle(color: secondaryText.withValues(alpha: 0.6), fontSize: 14),
-          padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+          style:
+              TextStyle(color: AppStyles.getTextColor(context), fontSize: 14),
+          placeholderStyle: TextStyle(
+              color: secondaryText.withValues(alpha: 0.6), fontSize: 14),
+          padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.md, vertical: Spacing.sm),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF0D1829) : const Color(0xFFF2F6FF),
             borderRadius: BorderRadius.circular(Radii.md),
           ),
+          onChanged: (_) => setState(() {}),
         ),
       ],
+    );
+  }
+
+  Widget _buildSplitSuggestionCard(bool isDark, Color secondaryText) {
+    final shareText = _splitShare > 0
+        ? 'Approx ₹${_splitShare.toStringAsFixed(2)} per person'
+        : 'Enter amount to calculate each share';
+    return Semantics(
+      label: 'Split expense suggestion. $shareText',
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(Spacing.md),
+        decoration: BoxDecoration(
+          color: isDark
+              ? AppStyles.accentBlue.withValues(alpha: 0.12)
+              : AppStyles.accentBlue.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(Radii.lg),
+          border: Border.all(
+            color: AppStyles.accentBlue.withValues(alpha: 0.28),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  CupertinoIcons.person_2_fill,
+                  size: 18,
+                  color: AppStyles.accentBlue,
+                ),
+                const SizedBox(width: Spacing.sm),
+                Expanded(
+                  child: Text(
+                    'Split expense?',
+                    style: TextStyle(
+                      fontSize: RT.body(context),
+                      fontWeight: FontWeight.w700,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                ),
+                CupertinoSwitch(
+                  value: _splitExpenseEnabled,
+                  activeTrackColor: AppStyles.accentBlue,
+                  onChanged: (value) =>
+                      setState(() => _splitExpenseEnabled = value),
+                ),
+              ],
+            ),
+            const SizedBox(height: Spacing.xs),
+            Text(
+              'We will save the split count and per-person share in this transaction note.',
+              style: AppTypography.caption(color: secondaryText),
+            ),
+            if (_splitExpenseEnabled) ...[
+              const SizedBox(height: Spacing.md),
+              Row(
+                children: [
+                  Flexible(
+                    child: CupertinoTextField(
+                      controller: _splitPeopleCtrl,
+                      keyboardType: TextInputType.number,
+                      placeholder: 'People',
+                      prefix: Padding(
+                        padding: const EdgeInsets.only(left: Spacing.sm),
+                        child: Text(
+                          'People',
+                          style: AppTypography.caption(color: secondaryText),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.sm,
+                        vertical: Spacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(Radii.md),
+                      ),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                  const SizedBox(width: Spacing.md),
+                  Flexible(
+                    child: FittedBox(
+                      alignment: Alignment.centerLeft,
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        shareText,
+                        style: TextStyle(
+                          fontSize: RT.body(context),
+                          fontWeight: FontWeight.w700,
+                          color: AppStyles.accentBlue,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -1721,7 +2000,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
 
   // ── Merchant row ─────────────────────────────────────────────────────────────
 
-  Widget _buildMerchantRow(bool isDark, Color secondaryText, Color primaryText) {
+  Widget _buildMerchantRow(
+      bool isDark, Color secondaryText, Color primaryText) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1757,7 +2037,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: recent.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: Spacing.xs),
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(width: Spacing.xs),
                     itemBuilder: (_, i) {
                       final m = recent[i];
                       final isSelected = _merchantCtrl.text == m;
@@ -1767,19 +2048,26 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                         }),
                         child: AnimatedContainer(
                           duration: AppDurations.fast,
-                          padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: Spacing.md, vertical: 6),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? Colors.grey.withValues(alpha: 0.2)
-                                : (isDark ? const Color(0xFF0D1829) : const Color(0xFFF2F6FF)),
+                                : (isDark
+                                    ? const Color(0xFF0D1829)
+                                    : const Color(0xFFF2F6FF)),
                             borderRadius: BorderRadius.circular(Radii.full),
                             border: Border.all(
                               color: isSelected
                                   ? Colors.grey
-                                  : (isDark ? const Color(0xFF2A3A55) : const Color(0xFFBBCCEE)),
+                                  : (isDark
+                                      ? const Color(0xFF2A3A55)
+                                      : const Color(0xFFBBCCEE)),
                             ),
                           ),
-                          child: Text(m, style: AppTypography.footnote(color: primaryText)),
+                          child: Text(m,
+                              style:
+                                  AppTypography.footnote(color: primaryText)),
                         ),
                       );
                     },
@@ -1792,10 +2080,10 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
           // T-144: show predicted merchant as placeholder hint with tooltip
           Builder(builder: (context) {
             final predictedMerchant = _prediction?.merchant;
-            final placeholder = predictedMerchant != null &&
-                    _merchantCtrl.text.isEmpty
-                ? predictedMerchant
-                : 'Or type a merchant name';
+            final placeholder =
+                predictedMerchant != null && _merchantCtrl.text.isEmpty
+                    ? predictedMerchant
+                    : 'Or type a merchant name';
             final isPredicted =
                 predictedMerchant != null && _merchantCtrl.text.isEmpty;
             return Row(
@@ -1810,7 +2098,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                             ? secondaryText.withValues(alpha: 0.45)
                             : secondaryText.withValues(alpha: 0.6),
                         fontSize: 14,
-                        fontStyle: isPredicted ? FontStyle.italic : FontStyle.normal),
+                        fontStyle:
+                            isPredicted ? FontStyle.italic : FontStyle.normal),
                     padding: const EdgeInsets.symmetric(
                         horizontal: Spacing.md, vertical: Spacing.sm),
                     decoration: BoxDecoration(
@@ -1841,11 +2130,14 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
 
   // ── Cashback row ─────────────────────────────────────────────────────────────
 
-  Widget _buildCashbackRow(bool isDark, Color secondaryText, Color primaryText) {
+  Widget _buildCashbackRow(
+      bool isDark, Color secondaryText, Color primaryText) {
     final hasCashback = _cashbackCtrl.text.isNotEmpty;
     final cbDest = (_cashbackToApp && _selectedPaymentApp != null)
         ? '→ $_selectedPaymentApp wallet'
-        : (_selectedAccountName != null ? '→ $_selectedAccountName' : '→ Account');
+        : (_selectedAccountName != null
+            ? '→ $_selectedAccountName'
+            : '→ Account');
     final valueStr = hasCashback ? '₹${_cashbackCtrl.text} $cbDest' : '—';
 
     return Column(
@@ -1869,8 +2161,10 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
             placeholder: 'Cashback amount (₹)',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             style: TextStyle(color: primaryText, fontSize: 14),
-            placeholderStyle: TextStyle(color: secondaryText.withValues(alpha: 0.6), fontSize: 14),
-            padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+            placeholderStyle: TextStyle(
+                color: secondaryText.withValues(alpha: 0.6), fontSize: 14),
+            padding: const EdgeInsets.symmetric(
+                horizontal: Spacing.md, vertical: Spacing.sm),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF0D1829) : const Color(0xFFF2F6FF),
               borderRadius: BorderRadius.circular(Radii.md),
@@ -1882,7 +2176,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
             const SizedBox(height: Spacing.xs),
             Row(
               children: [
-                Text('Goes to:', style: AppTypography.footnote(color: secondaryText)),
+                Text('Goes to:',
+                    style: AppTypography.footnote(color: secondaryText)),
                 const SizedBox(width: Spacing.sm),
                 _cashbackDestChip(
                   label: _selectedAccountName ?? 'Account',
@@ -1919,12 +2214,15 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
       onTap: onTap,
       child: AnimatedContainer(
         duration: AppDurations.fast,
-        padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 5),
+        padding:
+            const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 5),
         decoration: BoxDecoration(
           color: active ? color.withValues(alpha: 0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(Radii.full),
           border: Border.all(
-            color: active ? color : (isDark ? const Color(0xFF2A3A55) : const Color(0xFFBBCCEE)),
+            color: active
+                ? color
+                : (isDark ? const Color(0xFF2A3A55) : const Color(0xFFBBCCEE)),
           ),
         ),
         child: Text(
@@ -1978,14 +2276,16 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                   return GestureDetector(
                     onTap: () => setState(() {
                       if (isSelected) {
-                        _selectedTags = List.from(_selectedTags)..remove(tag.name);
+                        _selectedTags = List.from(_selectedTags)
+                          ..remove(tag.name);
                       } else {
                         _selectedTags = List.from(_selectedTags)..add(tag.name);
                       }
                     }),
                     child: AnimatedContainer(
                       duration: AppDurations.fast,
-                      padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.xs),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: Spacing.md, vertical: Spacing.xs),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? tag.color.withValues(alpha: 0.2)
@@ -1994,7 +2294,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                         border: Border.all(
                           color: isSelected
                               ? tag.color
-                              : (isDark ? const Color(0xFF2A2A3A) : const Color(0xFFCCDDEE)),
+                              : (isDark
+                                  ? const Color(0xFF2A2A3A)
+                                  : const Color(0xFFCCDDEE)),
                         ),
                       ),
                       child: Text(
@@ -2002,7 +2304,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                         style: TextStyle(
                           fontSize: 12,
                           color: isSelected ? tag.color : secondaryText,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),
                     ),
@@ -2014,7 +2317,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                 GestureDetector(
                   onTap: () => setState(() => _showNewTagInput = true),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.xs),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.md, vertical: Spacing.xs),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(Radii.full),
                       border: Border.all(
@@ -2025,11 +2329,13 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(CupertinoIcons.plus, size: 11, color: AppStyles.accentPurple),
+                        Icon(CupertinoIcons.plus,
+                            size: 11, color: AppStyles.accentPurple),
                         const SizedBox(width: 4),
                         Text(
                           'New tag',
-                          style: AppTypography.footnote(color: AppStyles.accentPurple),
+                          style: AppTypography.footnote(
+                              color: AppStyles.accentPurple),
                         ),
                       ],
                     ),
@@ -2049,10 +2355,15 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                     placeholder: 'Tag name',
                     autofocus: true,
                     style: TextStyle(color: primaryText, fontSize: 13),
-                    placeholderStyle: TextStyle(color: secondaryText.withValues(alpha: 0.6), fontSize: 13),
-                    padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                    placeholderStyle: TextStyle(
+                        color: secondaryText.withValues(alpha: 0.6),
+                        fontSize: 13),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.md, vertical: Spacing.sm),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0D1829) : const Color(0xFFF2F6FF),
+                      color: isDark
+                          ? const Color(0xFF0D1829)
+                          : const Color(0xFFF2F6FF),
                       borderRadius: BorderRadius.circular(Radii.md),
                     ),
                     onChanged: (_) => setState(() {}),
@@ -2098,14 +2409,16 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.md, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppStyles.accentPurple.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(Radii.md),
                     ),
                     child: Text(
                       'Add',
-                      style: AppTypography.subhead(color: AppStyles.accentPurple),
+                      style:
+                          AppTypography.subhead(color: AppStyles.accentPurple),
                     ),
                   ),
                 ),
@@ -2145,7 +2458,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
             ),
           ),
           const SizedBox(width: Spacing.xs),
-          Icon(CupertinoIcons.chevron_down, size: 12, color: secondaryText.withValues(alpha: 0.5)),
+          Icon(CupertinoIcons.chevron_down,
+              size: 12, color: secondaryText.withValues(alpha: 0.5)),
         ],
       ),
     );
@@ -2153,7 +2467,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
 
   // ── Defaults row ─────────────────────────────────────────────────────────────
 
-  Widget _buildDefaultsRow(bool isDark, Color secondaryText, Color primaryText) {
+  Widget _buildDefaultsRow(
+      bool isDark, Color secondaryText, Color primaryText) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2162,7 +2477,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
           children: [
             SizedBox(
               width: 72,
-              child: Text('Account:', style: AppTypography.footnote(color: secondaryText)),
+              child: Text('Account:',
+                  style: AppTypography.footnote(color: secondaryText)),
             ),
             Expanded(
               child: GestureDetector(
@@ -2170,7 +2486,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                 child: _editableChip(
                   label: _selectedAccountName ?? 'Tap to select',
                   isDark: isDark,
-                  primaryText: _selectedAccountName != null ? primaryText : secondaryText,
+                  primaryText: _selectedAccountName != null
+                      ? primaryText
+                      : secondaryText,
                   isSelected: _selectedAccountName != null,
                 ),
               ),
@@ -2183,7 +2501,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
           children: [
             SizedBox(
               width: 72,
-              child: Text('Pay via:', style: AppTypography.footnote(color: secondaryText)),
+              child: Text('Pay via:',
+                  style: AppTypography.footnote(color: secondaryText)),
             ),
             Expanded(
               child: GestureDetector(
@@ -2207,13 +2526,20 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
               Expanded(
                 child: CupertinoTextField(
                   controller: _paymentAppAmountCtrl,
-                  placeholder: 'Amount paid via $_selectedPaymentApp wallet (optional)',
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  placeholder:
+                      'Amount paid via $_selectedPaymentApp wallet (optional)',
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   style: TextStyle(color: primaryText, fontSize: 12),
-                  placeholderStyle: TextStyle(color: secondaryText.withValues(alpha: 0.5), fontSize: 12),
-                  padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 6),
+                  placeholderStyle: TextStyle(
+                      color: secondaryText.withValues(alpha: 0.5),
+                      fontSize: 12),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.md, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0D1829) : const Color(0xFFF2F6FF),
+                    color: isDark
+                        ? const Color(0xFF0D1829)
+                        : const Color(0xFFF2F6FF),
                     borderRadius: BorderRadius.circular(Radii.md),
                   ),
                   onChanged: (_) => setState(() {}),
@@ -2229,7 +2555,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
   Widget _buildDateRow(bool isDark, Color secondaryText, Color primaryText) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final selected = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    final selected =
+        DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
     final isToday = selected == today;
     final isYesterday = selected == today.subtract(const Duration(days: 1));
 
@@ -2249,34 +2576,38 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
           builder: (ctx) => RLayout.tabletConstrain(
             ctx,
             Container(
-            height: 280,
-            color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.systemBackground.resolveFrom(ctx),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CupertinoButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Cancel'),
-                    ),
-                    CupertinoButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: CupertinoDatePicker(
-                    mode: CupertinoDatePickerMode.date,
-                    initialDateTime: _selectedDate,
-                    maximumDate: DateTime.now(),
-                    onDateTimeChanged: (picked) => setState(() => _selectedDate = picked),
+              height: 280,
+              color: isDark
+                  ? const Color(0xFF1C1C1E)
+                  : CupertinoColors.systemBackground.resolveFrom(ctx),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CupertinoButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel'),
+                      ),
+                      CupertinoButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Done',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: CupertinoDatePicker(
+                      mode: CupertinoDatePickerMode.date,
+                      initialDateTime: _selectedDate,
+                      maximumDate: DateTime.now(),
+                      onDateTimeChanged: (picked) =>
+                          setState(() => _selectedDate = picked),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
           ),
         );
       },
@@ -2291,16 +2622,21 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
               style: AppTypography.footnote(color: secondaryText),
             ),
             const SizedBox(width: 4),
-            Icon(CupertinoIcons.pencil, size: 11, color: secondaryText.withValues(alpha: 0.5)),
+            Icon(CupertinoIcons.pencil,
+                size: 11, color: secondaryText.withValues(alpha: 0.5)),
           ],
         ),
       ),
     );
   }
 
-  Widget _smallChip({required String label, required bool isDark, required Color primaryText}) {
+  Widget _smallChip(
+      {required String label,
+      required bool isDark,
+      required Color primaryText}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.xs),
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.md, vertical: Spacing.xs),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0D1829) : const Color(0xFFEEF4FF),
         borderRadius: BorderRadius.circular(Radii.full),
@@ -2319,7 +2655,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     required bool isSelected,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.xs),
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.md, vertical: Spacing.xs),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0D1829) : const Color(0xFFEEF4FF),
         borderRadius: BorderRadius.circular(Radii.full),
@@ -2358,16 +2695,20 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     final isExpense = _branch == TransactionWizardBranch.expense;
     final startColor = _errorFlash
         ? SemanticColors.getError(context).withValues(alpha: 0.85)
-        : isExpense ? const Color(0xFFFF3B30) : const Color(0xFF34C759);
+        : isExpense
+            ? const Color(0xFFFF3B30)
+            : const Color(0xFF34C759);
     final endColor = _errorFlash
         ? SemanticColors.getError(context)
-        : isExpense ? const Color(0xFFFF6B60) : const Color(0xFF00C44F);
+        : isExpense
+            ? const Color(0xFFFF6B60)
+            : const Color(0xFF00C44F);
 
     return Opacity(
       opacity: canSave && !_isSaving ? 1.0 : (_errorFlash ? 0.9 : 0.4),
       child: BouncyButton(
         onPressed: _isSaving
-            ? _triggerErrorFlash  // noop-ish; already blocked by guard
+            ? _triggerErrorFlash // noop-ish; already blocked by guard
             : (canSave ? _save : _triggerErrorFlash),
         child: Container(
           width: double.infinity,
@@ -2389,14 +2730,14 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                         color: CupertinoColors.white),
                   )
                 : const Text(
-              'Save Transaction',
-              style: TextStyle(
-                fontFamily: 'SpaceGrotesk',
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Colors.white,
-              ),
-            ),
+                    'Save Transaction',
+                    style: TextStyle(
+                      fontFamily: 'SpaceGrotesk',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
           ),
         ),
       ),

@@ -15,6 +15,7 @@ import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/landscape_scaffold.dart';
+import 'package:vittara_fin_os/ui/whats_new_sheet.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
@@ -223,6 +224,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: AppStyles.getPrimaryColor(context),
               onTap: () => _showAboutDialog(context),
             ),
+            _buildDivider(context),
+            _buildNavRow(
+              context,
+              icon: CupertinoIcons.sparkles,
+              title: "What's New",
+              subtitle: 'See recent feature updates',
+              value: null,
+              color: AppStyles.teal(context),
+              onTap: () => showCupertinoModalPopup<void>(
+                context: context,
+                barrierColor: Colors.black.withValues(alpha: 0.6),
+                builder: (_) => const WhatsNewSheet(),
+              ),
+            ),
           ]),
           _buildHeader('Danger Zone'),
           _buildModernSection(context, [
@@ -241,9 +256,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: isLandscape
-          ? null
-          : AppStyles.standardNavBar(context, 'Settings'),
+      navigationBar:
+          isLandscape ? null : AppStyles.standardNavBar(context, 'Settings'),
       child: SafeArea(
         child: isLandscape
             ? LandscapeScaffold(
@@ -267,15 +281,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   List<Widget> _buildSettingsSectionTiles(BuildContext context) {
     final sections = [
-      (CupertinoIcons.lock_shield_fill, 'Privacy & Security',
-          AppStyles.gain(context)),
-      (CupertinoIcons.brightness, 'Display',
-          AppStyles.getPrimaryColor(context)),
+      (
+        CupertinoIcons.lock_shield_fill,
+        'Privacy & Security',
+        AppStyles.gain(context)
+      ),
+      (
+        CupertinoIcons.brightness,
+        'Display',
+        AppStyles.getPrimaryColor(context)
+      ),
       (CupertinoIcons.cloud_upload, 'Data & Backup', SemanticColors.error),
-      (CupertinoIcons.info_circle_fill, 'About',
-          AppStyles.accentBlue),
-      (CupertinoIcons.exclamationmark_triangle_fill, 'Danger Zone',
-          SemanticColors.error),
+      (CupertinoIcons.info_circle_fill, 'About', AppStyles.accentBlue),
+      (
+        CupertinoIcons.exclamationmark_triangle_fill,
+        'Danger Zone',
+        SemanticColors.error
+      ),
     ];
     return sections.asMap().entries.map((entry) {
       final i = entry.key;
@@ -288,10 +310,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
           decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
+            color:
+                isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected ? color.withValues(alpha: 0.4) : Colors.transparent,
+              color: isSelected
+                  ? color.withValues(alpha: 0.4)
+                  : Colors.transparent,
               width: 0.5,
             ),
           ),
@@ -308,11 +333,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected
-                        ? color
-                        : AppStyles.getTextColor(context),
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected ? color : AppStyles.getTextColor(context),
                   ),
                 ),
               ),
@@ -326,7 +348,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _runIntegrityCheck(BuildContext context) {
     final txCtrl = context.read<TransactionsController>();
     final accCtrl = context.read<AccountsController>();
-    final issues = IntegrityCheckService.check(txCtrl: txCtrl, accCtrl: accCtrl);
+    final issues =
+        IntegrityCheckService.check(txCtrl: txCtrl, accCtrl: accCtrl);
     final message = issues.isEmpty
         ? 'No issues found. Your data looks healthy!'
         : issues.join('\n');
@@ -341,7 +364,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               isDestructiveAction: true,
               onPressed: () async {
                 Navigator.pop(ctx);
-                final cleaned = await IntegrityCheckService.cleanupOrphanedRecords(
+                final cleaned =
+                    await IntegrityCheckService.cleanupOrphanedRecords(
                   txCtrl: txCtrl,
                   accCtrl: accCtrl,
                 );
@@ -450,8 +474,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Text(
             'Security Status',
-            style: AppStyles.titleStyle(context)
-                .copyWith(fontSize: TypeScale.footnote, fontWeight: FontWeight.w600),
+            style: AppStyles.titleStyle(context).copyWith(
+                fontSize: TypeScale.footnote, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -472,8 +496,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(width: 4),
                   Text(
                     item.$2,
-                    style: TextStyle(
-                        fontSize: TypeScale.caption, color: color),
+                    style: TextStyle(fontSize: TypeScale.caption, color: color),
                   ),
                 ],
               );
@@ -665,8 +688,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(Spacing.sm),
-              decoration: AppStyles.iconBoxDecoration(
-                  context, AppStyles.loss(context)),
+              decoration:
+                  AppStyles.iconBoxDecoration(context, AppStyles.loss(context)),
               child: Icon(icon, size: 20, color: AppStyles.loss(context)),
             ),
             const SizedBox(width: Spacing.lg),
@@ -733,8 +756,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(ctx);
-                settings.setAccentColor(
-                    name == 'Aether Teal' ? null : color);
+                settings.setAccentColor(name == 'Aether Teal' ? null : color);
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -779,24 +801,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => RLayout.tabletConstrain(
         context,
         CupertinoActionSheet(
-        title: const Text('Auto-Lock Timeout'),
-        actions: [
-          _buildActionSheetItem(
-              context, 'Immediate', () => settings.setLockTimeout(0)),
-          _buildActionSheetItem(
-              context, 'After 10 seconds', () => settings.setLockTimeout(10)),
-          _buildActionSheetItem(
-              context, 'After 30 seconds', () => settings.setLockTimeout(30)),
-          _buildActionSheetItem(
-              context, 'After 1 minute', () => settings.setLockTimeout(60)),
-          _buildActionSheetItem(
-              context, 'After 5 minutes', () => settings.setLockTimeout(300)),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          title: const Text('Auto-Lock Timeout'),
+          actions: [
+            _buildActionSheetItem(
+                context, 'Immediate', () => settings.setLockTimeout(0)),
+            _buildActionSheetItem(
+                context, 'After 10 seconds', () => settings.setLockTimeout(10)),
+            _buildActionSheetItem(
+                context, 'After 30 seconds', () => settings.setLockTimeout(30)),
+            _buildActionSheetItem(
+                context, 'After 1 minute', () => settings.setLockTimeout(60)),
+            _buildActionSheetItem(
+                context, 'After 5 minutes', () => settings.setLockTimeout(300)),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
         ),
-      ),
       ),
     );
   }
@@ -809,30 +831,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
         builder: (ctx) => RLayout.tabletConstrain(
           ctx,
           CupertinoActionSheet(
-          title: const Text('PIN Lock'),
-          message: const Text('Your PIN is currently set.'),
-          actions: [
-            CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(ctx);
-                _showPinEntryDialog(context, settings, isSetup: true);
-              },
-              child: const Text('Change PIN'),
+            title: const Text('PIN Lock'),
+            message: const Text('Your PIN is currently set.'),
+            actions: [
+              CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  _showPinEntryDialog(context, settings, isSetup: true);
+                },
+                child: const Text('Change PIN'),
+              ),
+              CupertinoActionSheetAction(
+                isDestructiveAction: true,
+                onPressed: () {
+                  settings.clearPin();
+                  Navigator.pop(ctx);
+                },
+                child: const Text('Remove PIN'),
+              ),
+            ],
+            cancelButton: CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
             ),
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              onPressed: () {
-                settings.clearPin();
-                Navigator.pop(ctx);
-              },
-              child: const Text('Remove PIN'),
-            ),
-          ],
-          cancelButton: CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
           ),
-        ),
         ),
       );
     } else {
@@ -852,161 +874,161 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (ctx) => RLayout.tabletConstrain(
         ctx,
         StatefulBuilder(
-        builder: (ctx, setS) {
-          final dotColor =
-              error ? AppStyles.loss(ctx) : AppStyles.accentBlue;
-          final current = inConfirm ? confirmDigits! : digits;
+          builder: (ctx, setS) {
+            final dotColor = error ? AppStyles.loss(ctx) : AppStyles.accentBlue;
+            final current = inConfirm ? confirmDigits! : digits;
 
-          Future<void> onDigit(String d) async {
-            if (current.length >= 6) return;
-            setS(() {
-              current.add(d);
-              error = false;
-            });
-            if (current.length == 6) {
-              if (!isSetup) return; // shouldn't happen
-              if (!inConfirm) {
-                setS(() => inConfirm = true);
-              } else {
-                if (digits.join() == confirmDigits!.join()) {
-                  await settings.setPin(digits.join());
-                  Navigator.pop(ctx);
-                  // Generate recovery code and show save screen
-                  final code = await PinRecoveryController.instance
-                      .generateAndStoreRecoveryCode();
-                  if (context.mounted) {
-                    Navigator.of(context).push(CupertinoPageRoute(
-                      builder: (_) => RecoveryCodeSaveScreen(
-                        recoveryCode: code,
-                        onConfirmed: () => Navigator.of(context).pop(),
-                      ),
-                    ));
-                  }
+            Future<void> onDigit(String d) async {
+              if (current.length >= 6) return;
+              setS(() {
+                current.add(d);
+                error = false;
+              });
+              if (current.length == 6) {
+                if (!isSetup) return; // shouldn't happen
+                if (!inConfirm) {
+                  setS(() => inConfirm = true);
                 } else {
-                  setS(() {
-                    error = true;
-                    confirmDigits.clear();
-                  });
+                  if (digits.join() == confirmDigits!.join()) {
+                    await settings.setPin(digits.join());
+                    Navigator.pop(ctx);
+                    // Generate recovery code and show save screen
+                    final code = await PinRecoveryController.instance
+                        .generateAndStoreRecoveryCode();
+                    if (context.mounted) {
+                      Navigator.of(context).push(CupertinoPageRoute(
+                        builder: (_) => RecoveryCodeSaveScreen(
+                          recoveryCode: code,
+                          onConfirmed: () => Navigator.of(context).pop(),
+                        ),
+                      ));
+                    }
+                  } else {
+                    setS(() {
+                      error = true;
+                      confirmDigits.clear();
+                    });
+                  }
                 }
               }
             }
-          }
 
-          void onBack() {
-            if (current.isEmpty) return;
-            setS(() => current.removeLast());
-          }
+            void onBack() {
+              if (current.isEmpty) return;
+              setS(() => current.removeLast());
+            }
 
-          return Container(
-            height: AppStyles.sheetMaxHeight(ctx),
-            decoration: AppStyles.bottomSheetDecoration(ctx),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  const SizedBox(height: 16),
-                  const ModalHandle(),
-                  const SizedBox(height: 24),
-                  Icon(CupertinoIcons.number_square_fill,
-                      size: 36, color: SemanticColors.categories),
-                  const SizedBox(height: 12),
-                  Text(
-                    inConfirm ? 'Confirm PIN' : 'Set New PIN',
-                    style: TextStyle(
-                      color: AppStyles.getTextColor(ctx),
-                      fontSize: RT.title2(ctx),
-                      fontWeight: FontWeight.bold,
+            return Container(
+              height: AppStyles.sheetMaxHeight(ctx),
+              decoration: AppStyles.bottomSheetDecoration(ctx),
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    const ModalHandle(),
+                    const SizedBox(height: 24),
+                    Icon(CupertinoIcons.number_square_fill,
+                        size: 36, color: SemanticColors.categories),
+                    const SizedBox(height: 12),
+                    Text(
+                      inConfirm ? 'Confirm PIN' : 'Set New PIN',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(ctx),
+                        fontSize: RT.title2(ctx),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error
-                        ? 'PINs do not match. Try again.'
-                        : inConfirm
-                            ? 'Re-enter your 6-digit PIN'
-                            : 'Choose a 6-digit PIN',
-                    style: TextStyle(
-                      color: error
-                          ? AppStyles.loss(ctx)
-                          : AppStyles.getSecondaryTextColor(ctx),
-                      fontSize: TypeScale.body,
+                    const SizedBox(height: 8),
+                    Text(
+                      error
+                          ? 'PINs do not match. Try again.'
+                          : inConfirm
+                              ? 'Re-enter your 6-digit PIN'
+                              : 'Choose a 6-digit PIN',
+                      style: TextStyle(
+                        color: error
+                            ? AppStyles.loss(ctx)
+                            : AppStyles.getSecondaryTextColor(ctx),
+                        fontSize: TypeScale.body,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(6, (i) {
-                      final filled = i < current.length;
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: filled ? dotColor : Colors.transparent,
-                          border: Border.all(color: dotColor, width: 1.5),
-                        ),
-                      );
-                    }),
-                  ),
-                  const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Column(
-                      children: [
-                        for (final row in [
-                          ['1', '2', '3'],
-                          ['4', '5', '6'],
-                          ['7', '8', '9'],
-                          ['', '0', '⌫'],
-                        ])
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: row.map((label) {
-                                if (label.isEmpty) {
-                                  return const SizedBox(width: 72);
-                                }
-                                return GestureDetector(
-                                  onTap: () {
-                                    if (label == '⌫') {
-                                      onBack();
-                                    } else {
-                                      onDigit(label);
-                                    }
-                                  },
-                                  child: Container(
-                                    width: 72,
-                                    height: 72,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppStyles.getCardColor(ctx),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        label,
-                                        style: TextStyle(
-                                          color: AppStyles.getTextColor(ctx),
-                                          fontSize: RT.largeTitle(ctx),
-                                          fontWeight: FontWeight.w400,
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(6, (i) {
+                        final filled = i < current.length;
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: filled ? dotColor : Colors.transparent,
+                            border: Border.all(color: dotColor, width: 1.5),
+                          ),
+                        );
+                      }),
+                    ),
+                    const Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        children: [
+                          for (final row in [
+                            ['1', '2', '3'],
+                            ['4', '5', '6'],
+                            ['7', '8', '9'],
+                            ['', '0', '⌫'],
+                          ])
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: row.map((label) {
+                                  if (label.isEmpty) {
+                                    return const SizedBox(width: 72);
+                                  }
+                                  return GestureDetector(
+                                    onTap: () {
+                                      if (label == '⌫') {
+                                        onBack();
+                                      } else {
+                                        onDigit(label);
+                                      }
+                                    },
+                                    child: Container(
+                                      width: 72,
+                                      height: 72,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: AppStyles.getCardColor(ctx),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          label,
+                                          style: TextStyle(
+                                            color: AppStyles.getTextColor(ctx),
+                                            fontSize: RT.largeTitle(ctx),
+                                            fontWeight: FontWeight.w400,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              }).toList(),
+                                  );
+                                }).toList(),
+                              ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -1072,20 +1094,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => RLayout.tabletConstrain(
         context,
         CupertinoActionSheet(
-        title: const Text('Appearance'),
-        actions: [
-          _buildActionSheetItem(
-              context, 'Light', () => settings.setThemeMode(ThemeMode.light)),
-          _buildActionSheetItem(context, 'Dark',
-              () => settings.setThemeMode(ThemeMode.dark)),
-          _buildActionSheetItem(context, 'System Default',
-              () => settings.setThemeMode(ThemeMode.system)),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          title: const Text('Appearance'),
+          actions: [
+            _buildActionSheetItem(
+                context, 'Light', () => settings.setThemeMode(ThemeMode.light)),
+            _buildActionSheetItem(
+                context, 'Dark', () => settings.setThemeMode(ThemeMode.dark)),
+            _buildActionSheetItem(context, 'System Default',
+                () => settings.setThemeMode(ThemeMode.system)),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
         ),
-      ),
       ),
     );
   }
@@ -1100,5 +1122,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Text(text),
     );
   }
-
 }

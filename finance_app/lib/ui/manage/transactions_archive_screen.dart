@@ -57,22 +57,22 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
       builder: (ctx) => RLayout.tabletConstrain(
         ctx,
         CupertinoActionSheet(
-        title: const Text('Filter by Type'),
-        actions: [
-          _filterAction(ctx, null, 'All Types'),
-          _filterAction(ctx, TransactionType.expense, 'Expense'),
-          _filterAction(ctx, TransactionType.income, 'Income'),
-          _filterAction(ctx, TransactionType.transfer, 'Transfer'),
-          _filterAction(ctx, TransactionType.lending, 'Lending'),
-          _filterAction(ctx, TransactionType.borrowing, 'Borrowing'),
-          _filterAction(ctx, TransactionType.investment, 'Investment'),
-          _filterAction(ctx, TransactionType.cashback, 'Cashback'),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(ctx),
-          child: const Text('Cancel'),
+          title: const Text('Filter by Type'),
+          actions: [
+            _filterAction(ctx, null, 'All Types'),
+            _filterAction(ctx, TransactionType.expense, 'Expense'),
+            _filterAction(ctx, TransactionType.income, 'Income'),
+            _filterAction(ctx, TransactionType.transfer, 'Transfer'),
+            _filterAction(ctx, TransactionType.lending, 'Lending'),
+            _filterAction(ctx, TransactionType.borrowing, 'Borrowing'),
+            _filterAction(ctx, TransactionType.investment, 'Investment'),
+            _filterAction(ctx, TransactionType.cashback, 'Cashback'),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
         ),
-      ),
       ),
     );
   }
@@ -143,9 +143,8 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
                       body: const Center(
                         child: EmptyStateView(
                           icon: CupertinoIcons.archivebox_fill,
-                          title: 'No Archived Transactions',
-                          subtitle:
-                              'Deleted entries will appear once you archive a transaction',
+                          title: 'Your archive is clean',
+                          subtitle: 'Archived transactions appear here.',
                           actionLabel: null,
                         ),
                       ),
@@ -153,9 +152,8 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
                   : const Center(
                       child: EmptyStateView(
                         icon: CupertinoIcons.archivebox_fill,
-                        title: 'No Archived Transactions',
-                        subtitle:
-                            'Deleted entries will appear once you archive a transaction',
+                        title: 'Your archive is clean',
+                        subtitle: 'Archived transactions appear here.',
                         actionLabel: null,
                       ),
                     ),
@@ -286,7 +284,8 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
                         _archiveFilterChip(null, 'All'),
                         _archiveFilterChip(TransactionType.expense, 'Expense'),
                         _archiveFilterChip(TransactionType.income, 'Income'),
-                        _archiveFilterChip(TransactionType.transfer, 'Transfer'),
+                        _archiveFilterChip(
+                            TransactionType.transfer, 'Transfer'),
                         _archiveFilterChip(TransactionType.lending, 'Lending'),
                         _archiveFilterChip(
                             TransactionType.borrowing, 'Borrowing'),
@@ -335,9 +334,8 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
           style: TextStyle(
             fontSize: 10,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            color: isSelected
-                ? accent
-                : AppStyles.getSecondaryTextColor(context),
+            color:
+                isSelected ? accent : AppStyles.getSecondaryTextColor(context),
           ),
         ),
       ),
@@ -375,9 +373,18 @@ class _ArchivedTransactionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final eventType = transaction.metadata?['investmentEventType'] as String?;
     final isDividend = eventType == 'dividend';
-    final isSell = eventType == 'sell' || eventType == 'decrease' || eventType == 'redeem';
-    final typeColor = isDividend ? const Color(0xFFFFB800) : isSell ? AppStyles.gain(context) : transaction.type.typeColor(context);
-    final typeIcon = isDividend ? CupertinoIcons.money_dollar_circle_fill : isSell ? CupertinoIcons.arrow_up_circle_fill : transaction.type.typeIcon;
+    final isSell =
+        eventType == 'sell' || eventType == 'decrease' || eventType == 'redeem';
+    final typeColor = isDividend
+        ? const Color(0xFFFFB800)
+        : isSell
+            ? AppStyles.gain(context)
+            : transaction.type.typeColor(context);
+    final typeIcon = isDividend
+        ? CupertinoIcons.money_dollar_circle_fill
+        : isSell
+            ? CupertinoIcons.arrow_up_circle_fill
+            : transaction.type.typeIcon;
 
     return BouncyButton(
       onPressed: () => _showDetailSheet(context),
@@ -451,46 +458,47 @@ class _ArchivedTransactionCard extends StatelessWidget {
       builder: (modalContext) => RLayout.tabletConstrain(
         modalContext,
         DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.7,
-        minChildSize: 0.4,
-        maxChildSize: 0.95,
-        builder: (dragContext, scrollController) {
-          final restoreButton = CupertinoButton.filled(
-            onPressed: () async {
-              await transactionsController.addTransaction(transaction);
-              await archiveController.removeFromArchive(transaction.id);
-              toast_lib.toast.showSuccess('Transaction restored');
-              Haptics.success();
-              Navigator.pop(modalContext);
-            },
-            child: const Text('Restore to History'),
-          );
+          expand: false,
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          builder: (dragContext, scrollController) {
+            final restoreButton = CupertinoButton.filled(
+              onPressed: () async {
+                await transactionsController.addTransaction(transaction);
+                await archiveController.removeFromArchive(transaction.id);
+                toast_lib.toast.showSuccess('Transaction restored');
+                Haptics.success();
+                Navigator.pop(modalContext);
+              },
+              child: const Text('Restore to History'),
+            );
 
-          final deleteButton = CupertinoButton(
-            onPressed: () => _showPermanentDeleteOptions(context, modalContext),
-            child: Text('Permanently Delete',
-                style: TextStyle(color: AppStyles.loss(context))),
-          );
+            final deleteButton = CupertinoButton(
+              onPressed: () =>
+                  _showPermanentDeleteOptions(context, modalContext),
+              child: Text('Permanently Delete',
+                  style: TextStyle(color: AppStyles.loss(context))),
+            );
 
-          return Container(
-            decoration: AppStyles.bottomSheetDecoration(dragContext),
-            child: SingleChildScrollView(
-              controller: scrollController,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const ModalHandle(),
-                  TransactionDetailsContent(
-                    transaction: transaction,
-                    actionButtons: [restoreButton, deleteButton],
-                  ),
-                ],
+            return Container(
+              decoration: AppStyles.bottomSheetDecoration(dragContext),
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const ModalHandle(),
+                    TransactionDetailsContent(
+                      transaction: transaction,
+                      actionButtons: [restoreButton, deleteButton],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -503,46 +511,46 @@ class _ArchivedTransactionCard extends StatelessWidget {
         return RLayout.tabletConstrain(
           actionContext,
           CupertinoActionSheet(
-          title: const Text('Delete Permanently'),
-          message: const Text(
-              'The transaction will be gone forever. Do you want to also reverse the account balance, or leave balances unchanged?'),
-          actions: [
-            CupertinoActionSheetAction(
-              child: const Text('Delete — Keep balances unchanged'),
-              onPressed: () async {
-                await archiveController.removeFromArchive(transaction.id);
-                toast_lib.toast.showSuccess('Transaction removed permanently');
-                Haptics.success();
-                Navigator.pop(actionContext);
-                Navigator.pop(modalContext);
-              },
+            title: const Text('Delete Permanently'),
+            message: const Text(
+                'The transaction will be gone forever. Do you want to also reverse the account balance, or leave balances unchanged?'),
+            actions: [
+              CupertinoActionSheetAction(
+                child: const Text('Delete — Keep balances unchanged'),
+                onPressed: () async {
+                  await archiveController.removeFromArchive(transaction.id);
+                  toast_lib.toast
+                      .showSuccess('Transaction removed permanently');
+                  Haptics.success();
+                  Navigator.pop(actionContext);
+                  Navigator.pop(modalContext);
+                },
+              ),
+              CupertinoActionSheetAction(
+                isDestructiveAction: true,
+                child: const Text('Delete & Reverse account balance'),
+                onPressed: () async {
+                  await TransactionAccountAdjuster.reverseTransaction(
+                    accountsController,
+                    transaction,
+                    paymentAppsController,
+                  );
+                  await archiveController.removeFromArchive(transaction.id);
+                  toast_lib.toast.showSuccess(
+                      'Transaction reversed and removed permanently');
+                  Haptics.delete();
+                  Navigator.pop(actionContext);
+                  Navigator.pop(modalContext);
+                },
+              ),
+            ],
+            cancelButton: CupertinoActionSheetAction(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(actionContext),
             ),
-            CupertinoActionSheetAction(
-              isDestructiveAction: true,
-              child: const Text('Delete & Reverse account balance'),
-              onPressed: () async {
-                await TransactionAccountAdjuster.reverseTransaction(
-                  accountsController,
-                  transaction,
-                  paymentAppsController,
-                );
-                await archiveController.removeFromArchive(transaction.id);
-                toast_lib.toast.showSuccess(
-                    'Transaction reversed and removed permanently');
-                Haptics.delete();
-                Navigator.pop(actionContext);
-                Navigator.pop(modalContext);
-              },
-            ),
-          ],
-          cancelButton: CupertinoActionSheetAction(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.pop(actionContext),
           ),
-        ),
         );
       },
     );
   }
-
 }

@@ -15,6 +15,7 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_renewal_wizard_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
+import 'package:vittara_fin_os/ui/manage/investment_type_selection.dart';
 
 class FDDetailsScreen extends StatefulWidget {
   final FixedDeposit fd;

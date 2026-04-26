@@ -2,12 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vittara_fin_os/logic/loan_model.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
+import 'package:provider/provider.dart';
 
 class LoanWizard extends StatefulWidget {
   final Loan? existingLoan;
@@ -93,7 +96,7 @@ class _LoanWizardState extends State<LoanWizard> {
     _notesController.dispose();
     // Restore all orientations when the wizard is dismissed.
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-        super.dispose();
+    super.dispose();
   }
 
   void _nextStep() {
@@ -232,8 +235,7 @@ class _LoanWizardState extends State<LoanWizard> {
         context: context,
         builder: (_) => CupertinoAlertDialog(
           title: const Text('Invalid EMI'),
-          content: Text(
-              'EMI ₹${emi.toStringAsFixed(0)} × $tenure months = '
+          content: Text('EMI ₹${emi.toStringAsFixed(0)} × $tenure months = '
               '₹${(emi * tenure).toStringAsFixed(0)}, which is less than '
               'the principal ₹${principal.toStringAsFixed(0)}. '
               'Please check your EMI and tenure values.'),
@@ -294,27 +296,29 @@ class _LoanWizardState extends State<LoanWizard> {
       },
       child: CupertinoPageScaffold(
         backgroundColor: AppStyles.getBackground(context),
-        navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-          middle: Text(
-            widget.existingLoan != null ? 'Edit Loan' : 'Add Loan',
-            style: TextStyle(color: AppStyles.getTextColor(context)),
-          ),
-          leading: CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: _prevStep,
-            child: Icon(
-              _currentStep == 0
-                  ? CupertinoIcons.xmark
-                  : CupertinoIcons.arrow_left,
-              color: AppStyles.getPrimaryColor(context),
-              size: 20,
-            ),
-          ),
-          backgroundColor: AppStyles.isDarkMode(context)
-              ? Colors.black
-              : Colors.white.withValues(alpha: 0.95),
-          border: null,
-        ),
+        navigationBar: AppStyles.isLandscape(context)
+            ? null
+            : CupertinoNavigationBar(
+                middle: Text(
+                  widget.existingLoan != null ? 'Edit Loan' : 'Add Loan',
+                  style: TextStyle(color: AppStyles.getTextColor(context)),
+                ),
+                leading: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: _prevStep,
+                  child: Icon(
+                    _currentStep == 0
+                        ? CupertinoIcons.xmark
+                        : CupertinoIcons.arrow_left,
+                    color: AppStyles.getPrimaryColor(context),
+                    size: 20,
+                  ),
+                ),
+                backgroundColor: AppStyles.isDarkMode(context)
+                    ? Colors.black
+                    : Colors.white.withValues(alpha: 0.95),
+                border: null,
+              ),
         child: SafeArea(
           child: Column(
             children: [
@@ -337,13 +341,15 @@ class _LoanWizardState extends State<LoanWizard> {
                       nameController: _nameController,
                       bankNameController: _bankNameController,
                       accountNumberController: _accountNumberController,
-                      onChanged: () => setState(() => _hasUnsavedChanges = true),
+                      onChanged: () =>
+                          setState(() => _hasUnsavedChanges = true),
                     ),
                     _Step3Amounts(
                       principalController: _principalController,
                       outstandingController: _outstandingController,
                       emiController: _emiController,
-                      onChanged: () => setState(() => _hasUnsavedChanges = true),
+                      onChanged: () =>
+                          setState(() => _hasUnsavedChanges = true),
                     ),
                     _Step4Terms(
                       interestRateController: _interestRateController,
@@ -352,22 +358,31 @@ class _LoanWizardState extends State<LoanWizard> {
                       notesController: _notesController,
                       startDate: _startDate,
                       nextDueDate: _nextDueDate,
-                      onStartDateChanged: (d) =>
-                          setState(() { _startDate = d; _hasUnsavedChanges = true; }),
-                      onNextDueDateChanged: (d) =>
-                          setState(() { _nextDueDate = d; _hasUnsavedChanges = true; }),
-                      onChanged: () => setState(() => _hasUnsavedChanges = true),
+                      onStartDateChanged: (d) => setState(() {
+                        _startDate = d;
+                        _hasUnsavedChanges = true;
+                      }),
+                      onNextDueDateChanged: (d) => setState(() {
+                        _nextDueDate = d;
+                        _hasUnsavedChanges = true;
+                      }),
+                      onChanged: () =>
+                          setState(() => _hasUnsavedChanges = true),
                     ),
                     _Step5Review(
                       loanName: _nameController.text.trim(),
                       loanType: _selectedType,
                       bankName: _bankNameController.text.trim(),
-                      principal: double.tryParse(_principalController.text) ?? 0,
-                      outstanding: double.tryParse(_outstandingController.text) ?? 0,
+                      principal:
+                          double.tryParse(_principalController.text) ?? 0,
+                      outstanding:
+                          double.tryParse(_outstandingController.text) ?? 0,
                       emi: double.tryParse(_emiController.text) ?? 0,
-                      interestRate: double.tryParse(_interestRateController.text) ?? 0,
+                      interestRate:
+                          double.tryParse(_interestRateController.text) ?? 0,
                       tenureMonths: int.tryParse(_tenureController.text) ?? 0,
-                      remainingMonths: int.tryParse(_remainingController.text) ?? 0,
+                      remainingMonths:
+                          int.tryParse(_remainingController.text) ?? 0,
                       startDate: _startDate,
                       nextDueDate: _nextDueDate,
                     ),
@@ -384,7 +399,8 @@ class _LoanWizardState extends State<LoanWizard> {
 
   Widget _buildStepIndicator(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.lg, vertical: Spacing.md),
       child: Column(
         children: [
           Row(
@@ -447,7 +463,8 @@ class _LoanWizardState extends State<LoanWizard> {
           decoration: BoxDecoration(
             color: isLast ? AppStyles.teal(context) : AppStyles.loss(context),
             borderRadius: BorderRadius.circular(Radii.lg),
-            boxShadow: Shadows.fab(isLast ? AppStyles.teal(context) : AppStyles.loss(context)),
+            boxShadow: Shadows.fab(
+                isLast ? AppStyles.teal(context) : AppStyles.loss(context)),
           ),
           alignment: Alignment.center,
           child: _isSaving
@@ -545,64 +562,67 @@ class _Step1TypeSelector extends StatelessWidget {
             builder: (context, constraints) {
               const cols = 3;
               const spacing = 12.0;
-              final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+              final itemW =
+                  (constraints.maxWidth - (cols - 1) * spacing) / cols;
               return GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: cols,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: spacing,
-              childAspectRatio: itemW / (itemW * 1.0),
-            ),
-            itemCount: _types.length,
-            itemBuilder: (context, i) {
-              final type = _types[i];
-              final isSelected = type == selected;
-              final color = _colorForType(context, type);
-              return BouncyButton(
-                onPressed: () {
-                  HapticFeedback.selectionClick();
-                  onSelect(type);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? color.withValues(alpha: 0.18)
-                        : AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(Radii.xl),
-                    border: Border.all(
-                      color: isSelected
-                          ? color
-                          : AppStyles.getDividerColor(context),
-                      width: isSelected ? 1.5 : 1,
-                    ),
-                    boxShadow: isSelected ? Shadows.iconGlow(color) : null,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(_iconForType(type), color: color, size: 28),
-                      const SizedBox(height: Spacing.xs),
-                      Text(
-                        type.displayName,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: cols,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: spacing,
+                  childAspectRatio: itemW / (itemW * 1.0),
+                ),
+                itemCount: _types.length,
+                itemBuilder: (context, i) {
+                  final type = _types[i];
+                  final isSelected = type == selected;
+                  final color = _colorForType(context, type);
+                  return BouncyButton(
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
+                      onSelect(type);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? color.withValues(alpha: 0.18)
+                            : AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(Radii.xl),
+                        border: Border.all(
                           color: isSelected
                               ? color
-                              : AppStyles.getTextColor(context),
+                              : AppStyles.getDividerColor(context),
+                          width: isSelected ? 1.5 : 1,
                         ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        boxShadow: isSelected ? Shadows.iconGlow(color) : null,
                       ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(_iconForType(type), color: color, size: 28),
+                          const SizedBox(height: Spacing.xs),
+                          Text(
+                            type.displayName,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? color
+                                  : AppStyles.getTextColor(context),
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),
@@ -890,8 +910,12 @@ class _Step5Review extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalInterest = (emi * tenureMonths) - principal;
-    final progressPercent =
-        principal > 0 ? ((principal - outstanding) / principal).clamp(0.0, 1.0) : 0.0;
+    final progressPercent = principal > 0
+        ? ((principal - outstanding) / principal).clamp(0.0, 1.0)
+        : 0.0;
+    final averageMonthlyIncome = _averageMonthlyIncome(context);
+    final emiShare =
+        averageMonthlyIncome > 0 ? emi / averageMonthlyIncome : 0.0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(Spacing.lg),
@@ -927,7 +951,8 @@ class _Step5Review extends StatelessWidget {
                   valueColor: AppStyles.getTextColor(context),
                 ),
                 _ReviewRow(label: 'Type', value: loanType.displayName),
-                if (bankName.isNotEmpty) _ReviewRow(label: 'Bank', value: bankName),
+                if (bankName.isNotEmpty)
+                  _ReviewRow(label: 'Bank', value: bankName),
                 _divider(context),
                 _ReviewRow(
                   label: 'Principal',
@@ -942,6 +967,12 @@ class _Step5Review extends StatelessWidget {
                   label: 'Monthly EMI',
                   value: CurrencyFormatter.format(emi, decimals: 0),
                   valueColor: AppStyles.teal(context),
+                ),
+                const SizedBox(height: Spacing.sm),
+                _EmiImpactCard(
+                  emi: emi,
+                  averageMonthlyIncome: averageMonthlyIncome,
+                  emiShare: emiShare,
                 ),
                 _divider(context),
                 _ReviewRow(
@@ -958,7 +989,8 @@ class _Step5Review extends StatelessWidget {
                 ),
                 _ReviewRow(
                   label: 'Est. Total Interest',
-                  value: CurrencyFormatter.compact(totalInterest > 0 ? totalInterest : 0),
+                  value: CurrencyFormatter.compact(
+                      totalInterest > 0 ? totalInterest : 0),
                   valueColor: AppStyles.accentOrange,
                 ),
                 _divider(context),
@@ -1014,6 +1046,96 @@ class _Step5Review extends StatelessWidget {
       child: Divider(
         color: AppStyles.getDividerColor(context),
         height: 1,
+      ),
+    );
+  }
+
+  double _averageMonthlyIncome(BuildContext context) {
+    final txns = context.watch<TransactionsController>().transactions;
+    final now = DateTime.now();
+    final monthTotals = <String, double>{};
+    for (final txn in txns) {
+      if (txn.type != TransactionType.income) continue;
+      if (txn.dateTime.isBefore(DateTime(now.year, now.month - 5))) continue;
+      final key =
+          '${txn.dateTime.year}-${txn.dateTime.month.toString().padLeft(2, '0')}';
+      monthTotals[key] = (monthTotals[key] ?? 0) + txn.amount;
+    }
+    if (monthTotals.isEmpty) return 0;
+    final total =
+        monthTotals.values.fold<double>(0, (sum, value) => sum + value);
+    return total / monthTotals.length;
+  }
+}
+
+class _EmiImpactCard extends StatelessWidget {
+  final double emi;
+  final double averageMonthlyIncome;
+  final double emiShare;
+
+  const _EmiImpactCard({
+    required this.emi,
+    required this.averageMonthlyIncome,
+    required this.emiShare,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasIncome = averageMonthlyIncome > 0;
+    final impactColor = !hasIncome
+        ? AppStyles.getSecondaryTextColor(context)
+        : emiShare < 0.30
+            ? AppStyles.gain(context)
+            : emiShare <= 0.40
+                ? AppStyles.accentOrange
+                : AppStyles.loss(context);
+    final impactLabel = !hasIncome
+        ? 'Income history needed'
+        : emiShare < 0.30
+            ? 'Comfortable'
+            : emiShare <= 0.40
+                ? 'Watch carefully'
+                : 'High burden';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: impactColor.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(color: impactColor.withValues(alpha: 0.28)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'EMI Impact',
+            style: TextStyle(
+              fontSize: TypeScale.body,
+              fontWeight: FontWeight.w800,
+              color: AppStyles.getTextColor(context),
+            ),
+          ),
+          const SizedBox(height: Spacing.xs),
+          Text(
+            hasIncome
+                ? 'This EMI of ${CurrencyFormatter.format(emi, decimals: 0)} is ${(emiShare * 100).toStringAsFixed(0)}% of your average monthly income (${CurrencyFormatter.format(averageMonthlyIncome, decimals: 0)}). Recommended maximum: 40%.'
+                : 'Add income transactions to compare this EMI against your real monthly income. Recommended maximum: 40%.',
+            style: TextStyle(
+              fontSize: TypeScale.caption,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+          const SizedBox(height: Spacing.sm),
+          Text(
+            impactLabel,
+            style: TextStyle(
+              fontSize: TypeScale.caption,
+              fontWeight: FontWeight.w800,
+              color: impactColor,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1116,7 +1238,8 @@ class _WizardField extends StatelessWidget {
               fontSize: TypeScale.body,
             ),
             placeholderStyle: TextStyle(
-              color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.6),
+              color: AppStyles.getSecondaryTextColor(context)
+                  .withValues(alpha: 0.6),
               fontSize: TypeScale.body,
             ),
             padding: const EdgeInsets.all(Spacing.md),

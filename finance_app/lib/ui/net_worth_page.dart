@@ -132,36 +132,46 @@ class _AllocationRingState extends State<_AllocationRing>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _anim,
-      builder: (_, __) => CustomPaint(
-        size: const Size(72, 72),
-        painter: _AllocationArcPainter(
-          savingsFrac: widget.savings,
-          investmentsFrac: widget.investments,
-          debtFrac: widget.debt,
-          progress: _anim.value,
-          trackColor: AppStyles.isDarkMode(context)
-              ? Colors.white.withValues(alpha: 0.06)
-              : Colors.black.withValues(alpha: 0.06),
-        ),
-        child: SizedBox(
-          width: 72,
-          height: 72,
-          child: Center(
-            child: Text(
-              widget.centerLabel,
-              style: TextStyle(
-                fontSize: TypeScale.micro,
-                fontWeight: FontWeight.w700,
-                color: AppStyles.isDarkMode(context) ? Colors.white : Colors.black87,
+    final savingsPct = (widget.savings * 100).toStringAsFixed(0);
+    final investPct = (widget.investments * 100).toStringAsFixed(0);
+    final debtPct = (widget.debt * 100).toStringAsFixed(0);
+    return Semantics(
+      label: 'Asset allocation ring: savings $savingsPct%, '
+          'investments $investPct%, debt $debtPct%',
+      excludeSemantics: true,
+      child: AnimatedBuilder(
+        animation: _anim,
+        builder: (_, __) => CustomPaint(
+          size: const Size(72, 72),
+          painter: _AllocationArcPainter(
+            savingsFrac: widget.savings,
+            investmentsFrac: widget.investments,
+            debtFrac: widget.debt,
+            progress: _anim.value,
+            trackColor: AppStyles.isDarkMode(context)
+                ? Colors.white.withValues(alpha: 0.06)
+                : Colors.black.withValues(alpha: 0.06),
+          ),
+          child: SizedBox(
+            width: 72,
+            height: 72,
+            child: Center(
+              child: Text(
+                widget.centerLabel,
+                style: TextStyle(
+                  fontSize: TypeScale.micro,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.isDarkMode(context)
+                      ? Colors.white
+                      : Colors.black87,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
         ),
-      ),
-    );
+      ), // AnimatedBuilder
+    ); // Semantics
   }
 }
 
@@ -246,14 +256,20 @@ class _CompositionBarState extends State<_CompositionBar>
             const SizedBox(height: 6),
             Row(
               children: [
-                _LegendDot(color: const Color(0xFF34C759), label: '${(sFrac * 100).toStringAsFixed(0)}% Savings'),
+                _LegendDot(
+                    color: const Color(0xFF34C759),
+                    label: '${(sFrac * 100).toStringAsFixed(0)}% Savings'),
                 const SizedBox(width: 12),
                 if (iFrac > 0) ...[
-                  _LegendDot(color: const Color(0xFF00D4AA), label: '${(iFrac * 100).toStringAsFixed(0)}% Invest'),
+                  _LegendDot(
+                      color: const Color(0xFF00D4AA),
+                      label: '${(iFrac * 100).toStringAsFixed(0)}% Invest'),
                   const SizedBox(width: 12),
                 ],
                 if (dFrac > 0)
-                  _LegendDot(color: const Color(0xFFFF453A), label: '${(dFrac * 100).toStringAsFixed(0)}% Debt'),
+                  _LegendDot(
+                      color: const Color(0xFFFF453A),
+                      label: '${(dFrac * 100).toStringAsFixed(0)}% Debt'),
               ],
             ),
           ],
@@ -283,7 +299,8 @@ class _LegendDot extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: TypeScale.micro,
-            color: AppStyles.isDarkMode(context) ? Colors.white60 : Colors.black54,
+            color:
+                AppStyles.isDarkMode(context) ? Colors.white60 : Colors.black54,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -345,7 +362,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
   Future<void> _loadDailyHistory() async {
     final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now();
-    final cutoff = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 29));
+    final cutoff = DateTime(now.year, now.month, now.day)
+        .subtract(const Duration(days: 29));
     final keys = prefs
         .getKeys()
         .where((k) => k.startsWith('nw_daily_'))
@@ -377,8 +395,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
     if (_snapshotSavedThisSession) return;
     _snapshotSavedThisSession = true;
     final now = DateTime.now();
-    final monthKey = 'nw_history_${now.year}_${now.month.toString().padLeft(2, '0')}';
-    final dailyKey = 'nw_daily_${now.year}_${now.month.toString().padLeft(2, '0')}_${now.day.toString().padLeft(2, '0')}';
+    final monthKey =
+        'nw_history_${now.year}_${now.month.toString().padLeft(2, '0')}';
+    final dailyKey =
+        'nw_daily_${now.year}_${now.month.toString().padLeft(2, '0')}_${now.day.toString().padLeft(2, '0')}';
     SharedPreferences.getInstance().then((prefs) {
       prefs.setDouble(monthKey, netWorth);
       prefs.setDouble(dailyKey, netWorth);
@@ -415,13 +435,13 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
     return CupertinoPageScaffold(
       // Landscape: hide nav bar — replaced by compact inline bar in body
-      navigationBar: isLandscape
-          ? null
-          : AppStyles.standardNavBar(context, 'Scorecard'),
+      navigationBar:
+          isLandscape ? null : AppStyles.standardNavBar(context, 'Scorecard'),
       child: SafeArea(
         child: Consumer4<AccountsController, InvestmentsController,
             TransactionsController, PaymentAppsController>(
-          builder: (context, accountsController, investmentsController, txCtrl, payCtrl, _) {
+          builder: (context, accountsController, investmentsController, txCtrl,
+              payCtrl, _) {
             // Loading skeleton
             if (!accountsController.isLoaded ||
                 !investmentsController.isLoaded) {
@@ -484,8 +504,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
             }
 
             try {
-              final totalNetWorth = _calculateNetWorth(
-                  accountsController, investmentsController);
+              final totalNetWorth =
+                  _calculateNetWorth(accountsController, investmentsController);
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) _maybeSaveSnapshot(totalNetWorth);
               });
@@ -501,9 +521,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
                           title: 'SCORECARD', outerContext: context),
                       const RailDivider(indent: 0),
                       const SizedBox(height: 8),
-                      _buildLandscapeNetWorthRail(
-                          context, totalNetWorth, accountsController,
-                          investmentsController),
+                      _buildLandscapeNetWorthRail(context, totalNetWorth,
+                          accountsController, investmentsController),
                     ],
                   ),
                   body: GridView.count(
@@ -576,8 +595,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildTotalNetWorthCard(context,
-                            accountsController, investmentsController),
+                        _buildTotalNetWorthCard(
+                            context, accountsController, investmentsController),
                         if (_historySnapshots.length >= 2) ...[
                           const SizedBox(height: Spacing.md),
                           _buildMotivationalBanner(context, totalNetWorth),
@@ -616,7 +635,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       children: [
                         _buildDematAccountsSection(context, accountsController),
                         const SizedBox(height: Spacing.lg),
-                        _buildInvestmentsSection(context, investmentsController),
+                        _buildInvestmentsSection(
+                            context, investmentsController),
                       ],
                     ),
                   ),
@@ -677,7 +697,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                       'Tap for full breakdown →',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: AppStyles.getSecondaryTextColor(ctx),
+                                        color: AppStyles.getSecondaryTextColor(
+                                            ctx),
                                       ),
                                     ),
                                   ],
@@ -756,17 +777,13 @@ class _NetWorthPageState extends State<NetWorthPage> {
   }
 
   // ── Landscape left rail: net worth summary ──────────────────────────────────
-  Widget _buildLandscapeNetWorthRail(
-      BuildContext context,
-      double totalNetWorth,
-      AccountsController accCtrl,
-      InvestmentsController invCtrl) {
+  Widget _buildLandscapeNetWorthRail(BuildContext context, double totalNetWorth,
+      AccountsController accCtrl, InvestmentsController invCtrl) {
     const liabilityTypes = {AccountType.credit, AccountType.payLater};
     final liquid = accCtrl.accounts
         .where((a) => !liabilityTypes.contains(a.type) && !a.isHidden)
         .fold(0.0, (s, a) => s + a.balance);
-    final portfolio = invCtrl.investments
-        .fold(0.0, (s, i) => s + i.amount);
+    final portfolio = invCtrl.investments.fold(0.0, (s, i) => s + i.amount);
     final obligations = accCtrl.accounts
         .where((a) => liabilityTypes.contains(a.type) && !a.isHidden)
         .fold(0.0, (s, a) => s + ((a.creditLimit ?? 0.0) - a.balance));
@@ -901,7 +918,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
     );
   }
 
-  Widget _buildMotivationalBanner(BuildContext context, double currentNetWorth) {
+  Widget _buildMotivationalBanner(
+      BuildContext context, double currentNetWorth) {
     // Compare current to previous month snapshot
     // Last snapshot is current month (just saved); use the one before it
     final prevSnapshot = _historySnapshots.length >= 2
@@ -924,7 +942,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
         message =
             'Up ${CurrencyFormatter.compact(absDelta)} (+${pct.toStringAsFixed(1)}%) — crushing it!';
       } else if (pct >= 3) {
-        message = 'Up ${CurrencyFormatter.compact(absDelta)} this month. Keep going!';
+        message =
+            'Up ${CurrencyFormatter.compact(absDelta)} this month. Keep going!';
       } else {
         message = 'Up ${CurrencyFormatter.compact(absDelta)} from last month.';
       }
@@ -1129,7 +1148,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
                           style: TextStyle(
                             fontSize: 42,
                             fontWeight: FontWeight.w900,
-                            color: isDark ? Colors.white : AppStyles.getTextColor(context),
+                            color: isDark
+                                ? Colors.white
+                                : AppStyles.getTextColor(context),
                             letterSpacing: -1.5,
                             height: 1.0,
                           ),
@@ -1298,124 +1319,124 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
     return GestureDetector(
       onTap: () => Navigator.of(context).push(FadeScalePageRoute(
-          page: const AccountsScreen(
-              initialCategoryType: AccountType.savings))),
+          page:
+              const AccountsScreen(initialCategoryType: AccountType.savings))),
       child: Container(
-      decoration: AppStyles.sectionDecoration(
-        context,
-        tint: sectionColor,
-        radius: Radii.xl,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-                Spacing.lg, Spacing.lg, Spacing.lg, Spacing.md),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: AppStyles.iconBoxDecoration(context, sectionColor),
-                  child: const Icon(CupertinoIcons.building_2_fill,
-                      size: 20, color: sectionColor),
-                ),
-                const SizedBox(width: Spacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Bank Accounts',
-                        style: TextStyle(
-                          fontSize: TypeScale.headline,
-                          fontWeight: FontWeight.w700,
-                          color: AppStyles.getTextColor(context),
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      Text(
-                        '${bankAccounts.length} account${bankAccounts.length != 1 ? 's' : ''}',
-                        style: TextStyle(
-                          fontSize: TypeScale.footnote,
-                          color: AppStyles.getSecondaryTextColor(context),
-                        ),
-                      ),
-                    ],
+        decoration: AppStyles.sectionDecoration(
+          context,
+          tint: sectionColor,
+          radius: Radii.xl,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  Spacing.lg, Spacing.lg, Spacing.lg, Spacing.md),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration:
+                        AppStyles.iconBoxDecoration(context, sectionColor),
+                    child: const Icon(CupertinoIcons.building_2_fill,
+                        size: 20, color: sectionColor),
                   ),
-                ),
-                Text(
-                  CurrencyFormatter.compact(total),
-                  style: AppStyles.amountStyle(context,
-                      color: sectionColor),
-                ),
-                const SizedBox(width: Spacing.sm),
-                Icon(CupertinoIcons.chevron_right,
-                    size: 14,
-                    color: AppStyles.getSecondaryTextColor(context)),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(Spacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: bankAccounts.asMap().entries.map((entry) {
-                final isLast = entry.key == bankAccounts.length - 1;
-                final account = entry.value;
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  const SizedBox(width: Spacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                account.name,
-                                style: TextStyle(
-                                  fontSize: TypeScale.subhead,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppStyles.getTextColor(context),
-                                ),
-                              ),
-                              Text(
-                                account.bankName,
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color:
-                                      AppStyles.getSecondaryTextColor(context),
-                                ),
-                              ),
-                            ],
+                        Text(
+                          'Bank Accounts',
+                          style: TextStyle(
+                            fontSize: TypeScale.headline,
+                            fontWeight: FontWeight.w700,
+                            color: AppStyles.getTextColor(context),
+                            letterSpacing: -0.3,
                           ),
                         ),
-                        AnimatedCounter(
-                          value: account.balance,
-                          prefix: '₹',
+                        Text(
+                          '${bankAccounts.length} account${bankAccounts.length != 1 ? 's' : ''}',
                           style: TextStyle(
-                            fontSize: TypeScale.subhead,
-                            fontWeight: FontWeight.bold,
-                            color: AppStyles.getTextColor(context),
+                            fontSize: TypeScale.footnote,
+                            color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
                       ],
                     ),
-                    if (!isLast)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: Spacing.md),
-                        child: Divider(height: 1),
-                      ),
-                  ],
-                );
-              }).toList(),
+                  ),
+                  Text(
+                    CurrencyFormatter.compact(total),
+                    style: AppStyles.amountStyle(context, color: sectionColor),
+                  ),
+                  const SizedBox(width: Spacing.sm),
+                  Icon(CupertinoIcons.chevron_right,
+                      size: 14,
+                      color: AppStyles.getSecondaryTextColor(context)),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(Spacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: bankAccounts.asMap().entries.map((entry) {
+                  final isLast = entry.key == bankAccounts.length - 1;
+                  final account = entry.value;
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  account.name,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.subhead,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                ),
+                                Text(
+                                  account.bankName,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          AnimatedCounter(
+                            value: account.balance,
+                            prefix: '₹',
+                            style: TextStyle(
+                              fontSize: TypeScale.subhead,
+                              fontWeight: FontWeight.bold,
+                              color: AppStyles.getTextColor(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!isLast)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                          child: Divider(height: 1),
+                        ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
       ), // GestureDetector
     );
   }
@@ -1425,9 +1446,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
     BuildContext context,
     PaymentAppsController payCtrl,
   ) {
-    final walletApps = payCtrl.enabledApps
-        .where((app) => app['hasWallet'] == true)
-        .toList();
+    final walletApps =
+        payCtrl.enabledApps.where((app) => app['hasWallet'] == true).toList();
 
     if (walletApps.isEmpty) return [];
 
@@ -1441,8 +1461,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
     return [
       const SizedBox(height: Spacing.lg),
       GestureDetector(
-        onTap: () => Navigator.of(context).push(FadeScalePageRoute(
-            page: const PaymentAppsScreen(initialTab: 1))),
+        onTap: () => Navigator.of(context).push(
+            FadeScalePageRoute(page: const PaymentAppsScreen(initialTab: 1))),
         child: Container(
           decoration: AppStyles.sectionDecoration(
             context,
@@ -1461,10 +1481,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       padding: const EdgeInsets.all(10),
                       decoration:
                           AppStyles.iconBoxDecoration(context, sectionColor),
-                      child: const Icon(
-                          CupertinoIcons.device_phone_portrait,
-                          size: 20,
-                          color: sectionColor),
+                      child: const Icon(CupertinoIcons.device_phone_portrait,
+                          size: 20, color: sectionColor),
                     ),
                     const SizedBox(width: Spacing.md),
                     Expanded(
@@ -1484,8 +1502,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             '${walletApps.length} wallet${walletApps.length != 1 ? 's' : ''}',
                             style: TextStyle(
                               fontSize: TypeScale.footnote,
-                              color:
-                                  AppStyles.getSecondaryTextColor(context),
+                              color: AppStyles.getSecondaryTextColor(context),
                             ),
                           ),
                         ],
@@ -1493,8 +1510,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     ),
                     Text(
                       CurrencyFormatter.compact(totalWallets),
-                      style: AppStyles.amountStyle(context,
-                          color: sectionColor),
+                      style:
+                          AppStyles.amountStyle(context, color: sectionColor),
                     ),
                     const SizedBox(width: Spacing.sm),
                     Icon(CupertinoIcons.chevron_right,
@@ -1514,14 +1531,12 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     final name = app['name'] as String? ?? '';
                     final balance =
                         (app['walletBalance'] as num?)?.toDouble() ?? 0.0;
-                    final appColor =
-                        (app['color'] as Color?) ?? sectionColor;
+                    final appColor = (app['color'] as Color?) ?? sectionColor;
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Row(
                               children: [
@@ -1530,12 +1545,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                   height: 28,
                                   decoration: BoxDecoration(
                                     color: appColor.withValues(alpha: 0.15),
-                                    borderRadius:
-                                        BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Icon(
-                                      CupertinoIcons
-                                          .device_phone_portrait,
+                                      CupertinoIcons.device_phone_portrait,
                                       size: 14,
                                       color: appColor),
                                 ),
@@ -1563,8 +1576,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                         if (!isLast)
                           const Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: Spacing.md),
+                            padding: EdgeInsets.symmetric(vertical: Spacing.md),
                             child: Divider(height: 1),
                           ),
                       ],
@@ -1602,115 +1614,117 @@ class _NetWorthPageState extends State<NetWorthPage> {
           page: const AccountsScreen(
               initialCategoryType: AccountType.investment))),
       child: Container(
-      decoration: AppStyles.cardDecoration(context),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(Spacing.lg),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: AppStyles.iconBoxDecoration(context, CupertinoColors.systemOrange),
-                  child: const Icon(CupertinoIcons.graph_square_fill,
-                      size: 20, color: CupertinoColors.systemOrange),
-                ),
-                const SizedBox(width: Spacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Demat / Investments',
-                        style: TextStyle(
-                          fontSize: TypeScale.headline,
-                          fontWeight: FontWeight.w700,
-                          color: AppStyles.getTextColor(context),
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      Text(
-                        '${dematAccounts.length} account${dematAccounts.length != 1 ? 's' : ''}',
-                        style: TextStyle(
-                          fontSize: TypeScale.footnote,
-                          color: AppStyles.getSecondaryTextColor(context),
-                        ),
-                      ),
-                    ],
+        decoration: AppStyles.cardDecoration(context),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(Spacing.lg),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: AppStyles.iconBoxDecoration(
+                        context, CupertinoColors.systemOrange),
+                    child: const Icon(CupertinoIcons.graph_square_fill,
+                        size: 20, color: CupertinoColors.systemOrange),
                   ),
-                ),
-                Text(
-                  CurrencyFormatter.compact(total),
-                  style: AppStyles.amountStyle(context, color: CupertinoColors.systemOrange),
-                ),
-                const SizedBox(width: Spacing.sm),
-                Icon(CupertinoIcons.chevron_right,
-                    size: 14,
-                    color: AppStyles.getSecondaryTextColor(context)),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(Spacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: dematAccounts.asMap().entries.map((entry) {
-                final isLast = entry.key == dematAccounts.length - 1;
-                final account = entry.value;
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  const SizedBox(width: Spacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                account.name,
-                                style: TextStyle(
-                                  fontSize: TypeScale.subhead,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppStyles.getTextColor(context),
-                                ),
-                              ),
-                              Text(
-                                account.bankName,
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color:
-                                      AppStyles.getSecondaryTextColor(context),
-                                ),
-                              ),
-                            ],
+                        Text(
+                          'Demat / Investments',
+                          style: TextStyle(
+                            fontSize: TypeScale.headline,
+                            fontWeight: FontWeight.w700,
+                            color: AppStyles.getTextColor(context),
+                            letterSpacing: -0.3,
                           ),
                         ),
-                        AnimatedCounter(
-                          value: account.balance,
-                          prefix: '₹',
+                        Text(
+                          '${dematAccounts.length} account${dematAccounts.length != 1 ? 's' : ''}',
                           style: TextStyle(
-                            fontSize: TypeScale.subhead,
-                            fontWeight: FontWeight.bold,
-                            color: AppStyles.getTextColor(context),
+                            fontSize: TypeScale.footnote,
+                            color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
                       ],
                     ),
-                    if (!isLast)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: Spacing.md),
-                        child: Divider(height: 1),
-                      ),
-                  ],
-                );
-              }).toList(),
+                  ),
+                  Text(
+                    CurrencyFormatter.compact(total),
+                    style: AppStyles.amountStyle(context,
+                        color: CupertinoColors.systemOrange),
+                  ),
+                  const SizedBox(width: Spacing.sm),
+                  Icon(CupertinoIcons.chevron_right,
+                      size: 14,
+                      color: AppStyles.getSecondaryTextColor(context)),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(Spacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: dematAccounts.asMap().entries.map((entry) {
+                  final isLast = entry.key == dematAccounts.length - 1;
+                  final account = entry.value;
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  account.name,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.subhead,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                ),
+                                Text(
+                                  account.bankName,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          AnimatedCounter(
+                            value: account.balance,
+                            prefix: '₹',
+                            style: TextStyle(
+                              fontSize: TypeScale.subhead,
+                              fontWeight: FontWeight.bold,
+                              color: AppStyles.getTextColor(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!isLast)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                          child: Divider(height: 1),
+                        ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
       ), // GestureDetector
     );
   }
@@ -1739,242 +1753,241 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
     return GestureDetector(
       onTap: () => Navigator.of(context).push(FadeScalePageRoute(
-          page: const AccountsScreen(
-              initialCategoryType: AccountType.credit))),
+          page: const AccountsScreen(initialCategoryType: AccountType.credit))),
       child: Container(
-      decoration: AppStyles.cardDecoration(context),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(Spacing.lg),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppStyles.loss(context).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(CupertinoIcons.creditcard_fill,
-                      size: 20, color: AppStyles.loss(context)),
-                ),
-                const SizedBox(width: Spacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Credit & BNPL Liabilities',
-                        style: TextStyle(
-                          fontSize: TypeScale.callout,
-                          fontWeight: FontWeight.bold,
-                          color: AppStyles.getTextColor(context),
-                        ),
-                      ),
-                      Text(
-                        '${creditAccounts.length} account${creditAccounts.length != 1 ? 's' : ''}',
-                        style: TextStyle(
-                          fontSize: TypeScale.footnote,
-                          color: AppStyles.getSecondaryTextColor(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  '₹${totalUsed.toStringAsFixed(0)}',
-                  style: TextStyle(
-                    fontSize: TypeScale.callout,
-                    fontWeight: FontWeight.bold,
-                    color: AppStyles.loss(context),
-                  ),
-                ),
-                const SizedBox(width: Spacing.sm),
-                Icon(CupertinoIcons.chevron_right,
-                    size: 14,
-                    color: AppStyles.getSecondaryTextColor(context)),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(Spacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: creditAccounts.asMap().entries.map((entry) {
-                final isLast = entry.key == creditAccounts.length - 1;
-                final account = entry.value;
-                final used = (account.creditLimit ?? 0.0) - account.balance;
-                final available = account.balance;
-                final utilization = (account.creditLimit ?? 0.0) > 0
-                    ? (used / (account.creditLimit ?? 1.0) * 100)
-                    : 0.0;
-
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                account.name,
-                                style: TextStyle(
-                                  fontSize: TypeScale.subhead,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppStyles.getTextColor(context),
-                                ),
-                              ),
-                              Text(
-                                account.bankName,
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color:
-                                      AppStyles.getSecondaryTextColor(context),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+        decoration: AppStyles.cardDecoration(context),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(Spacing.lg),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppStyles.loss(context).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(height: Spacing.md),
-                    // Credit details row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Limit',
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color:
-                                      AppStyles.getSecondaryTextColor(context),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: Spacing.xs),
-                              Text(
-                                '₹${(account.creditLimit ?? 0.0).toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  fontSize: TypeScale.subhead,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppStyles.getTextColor(context),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Used',
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color: AppStyles.loss(context),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: Spacing.xs),
-                              Text(
-                                '₹${used.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  fontSize: TypeScale.subhead,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppStyles.loss(context),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Available',
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color: AppStyles.gain(context),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: Spacing.xs),
-                              Text(
-                                '₹${available.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  fontSize: TypeScale.subhead,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppStyles.gain(context),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: Spacing.md),
-                    // Utilization progress bar
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: utilization / 100,
-                        minHeight: 6,
-                        backgroundColor:
-                            CupertinoColors.systemGrey.withValues(alpha: 0.2),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          utilization > 80
-                              ? AppStyles.loss(context)
-                              : CupertinoColors.systemOrange,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: Spacing.xs),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Icon(CupertinoIcons.creditcard_fill,
+                        size: 20, color: AppStyles.loss(context)),
+                  ),
+                  const SizedBox(width: Spacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Utilization',
+                          'Credit & BNPL Liabilities',
                           style: TextStyle(
-                            fontSize: TypeScale.label,
+                            fontSize: TypeScale.callout,
+                            fontWeight: FontWeight.bold,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                        Text(
+                          '${creditAccounts.length} account${creditAccounts.length != 1 ? 's' : ''}',
+                          style: TextStyle(
+                            fontSize: TypeScale.footnote,
                             color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
-                        Text(
-                          '${utilization.toStringAsFixed(1)}%',
-                          style: TextStyle(
-                            fontSize: TypeScale.label,
-                            fontWeight: FontWeight.w600,
-                            color: utilization > 80
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '₹${totalUsed.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: TypeScale.callout,
+                      fontWeight: FontWeight.bold,
+                      color: AppStyles.loss(context),
+                    ),
+                  ),
+                  const SizedBox(width: Spacing.sm),
+                  Icon(CupertinoIcons.chevron_right,
+                      size: 14,
+                      color: AppStyles.getSecondaryTextColor(context)),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(Spacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: creditAccounts.asMap().entries.map((entry) {
+                  final isLast = entry.key == creditAccounts.length - 1;
+                  final account = entry.value;
+                  final used = (account.creditLimit ?? 0.0) - account.balance;
+                  final available = account.balance;
+                  final utilization = (account.creditLimit ?? 0.0) > 0
+                      ? (used / (account.creditLimit ?? 1.0) * 100)
+                      : 0.0;
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  account.name,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.subhead,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                ),
+                                Text(
+                                  account.bankName,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: Spacing.md),
+                      // Credit details row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Limit',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: Spacing.xs),
+                                Text(
+                                  '₹${(account.creditLimit ?? 0.0).toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.subhead,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Used',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.loss(context),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: Spacing.xs),
+                                Text(
+                                  '₹${used.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.subhead,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppStyles.loss(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Available',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.gain(context),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: Spacing.xs),
+                                Text(
+                                  '₹${available.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.subhead,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppStyles.gain(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: Spacing.md),
+                      // Utilization progress bar
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: utilization / 100,
+                          minHeight: 6,
+                          backgroundColor:
+                              CupertinoColors.systemGrey.withValues(alpha: 0.2),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            utilization > 80
                                 ? AppStyles.loss(context)
                                 : CupertinoColors.systemOrange,
                           ),
                         ),
-                      ],
-                    ),
-                    if (!isLast)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: Spacing.md),
-                        child: Divider(height: 1),
                       ),
-                  ],
-                );
-              }).toList(),
+                      const SizedBox(height: Spacing.xs),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Utilization',
+                            style: TextStyle(
+                              fontSize: TypeScale.label,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                          Text(
+                            '${utilization.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              fontSize: TypeScale.label,
+                              fontWeight: FontWeight.w600,
+                              color: utilization > 80
+                                  ? AppStyles.loss(context)
+                                  : CupertinoColors.systemOrange,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!isLast)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                          child: Divider(height: 1),
+                        ),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ), // GestureDetector
     );
   }
@@ -2037,33 +2050,54 @@ class _NetWorthPageState extends State<NetWorthPage> {
     final displayEntries = sortedEntries;
 
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-          FadeScalePageRoute(page: const InvestmentsScreen())),
+      onTap: () => Navigator.of(context)
+          .push(FadeScalePageRoute(page: const InvestmentsScreen())),
       child: Container(
-      decoration: AppStyles.cardDecoration(context),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(Spacing.lg),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppStyles.gain(context).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
+        decoration: AppStyles.cardDecoration(context),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(Spacing.lg),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppStyles.gain(context).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(CupertinoIcons.chart_bar_fill,
+                        size: 20, color: AppStyles.gain(context)),
                   ),
-                  child: Icon(CupertinoIcons.chart_bar_fill,
-                      size: 20, color: AppStyles.gain(context)),
-                ),
-                const SizedBox(width: Spacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(width: Spacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Investments',
+                          style: TextStyle(
+                            fontSize: TypeScale.callout,
+                            fontWeight: FontWeight.bold,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                        Text(
+                          '${investmentsByType.length} type${investmentsByType.length != 1 ? 's' : ''} • ${investmentsController.investments.length} total',
+                          style: TextStyle(
+                            fontSize: TypeScale.footnote,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        'Investments',
+                        '₹${totalCurrent.toStringAsFixed(0)}',
                         style: TextStyle(
                           fontSize: TypeScale.callout,
                           fontWeight: FontWeight.bold,
@@ -2071,137 +2105,116 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                       ),
                       Text(
-                        '${investmentsByType.length} type${investmentsByType.length != 1 ? 's' : ''} • ${investmentsController.investments.length} total',
+                        anyUnpriced
+                            ? 'Invested ₹${totalInvested.toStringAsFixed(0)} (last known)'
+                            : 'Invested ₹${totalInvested.toStringAsFixed(0)}',
                         style: TextStyle(
-                          fontSize: TypeScale.footnote,
+                          fontSize: TypeScale.caption,
                           color: AppStyles.getSecondaryTextColor(context),
                         ),
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '₹${totalCurrent.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: TypeScale.callout,
-                        fontWeight: FontWeight.bold,
-                        color: AppStyles.getTextColor(context),
-                      ),
-                    ),
-                    Text(
-                      anyUnpriced
-                          ? 'Invested ₹${totalInvested.toStringAsFixed(0)} (last known)'
-                          : 'Invested ₹${totalInvested.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: Spacing.sm),
-                Icon(CupertinoIcons.chevron_right,
-                    size: 14,
-                    color: AppStyles.getSecondaryTextColor(context)),
-              ],
+                  const SizedBox(width: Spacing.sm),
+                  Icon(CupertinoIcons.chevron_right,
+                      size: 14,
+                      color: AppStyles.getSecondaryTextColor(context)),
+                ],
+              ),
             ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(Spacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ...displayEntries.asMap().entries.map((entry) {
-                  final isLast = entry.key == displayEntries.length - 1;
-                  final type = entry.value.key;
-                  final investments = entry.value.value;
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(Spacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ...displayEntries.asMap().entries.map((entry) {
+                    final isLast = entry.key == displayEntries.length - 1;
+                    final type = entry.value.key;
+                    final investments = entry.value.value;
 
-                  double typeInvested = 0;
-                  double typeCurrent = 0;
-                  for (var inv in investments) {
-                    typeInvested += inv.amount;
-                    typeCurrent += _currentValueForInvestment(inv);
-                  }
-                  final percentage = totalCurrent > 0
-                      ? (typeCurrent / totalCurrent * 100)
-                      : 0.0;
+                    double typeInvested = 0;
+                    double typeCurrent = 0;
+                    for (var inv in investments) {
+                      typeInvested += inv.amount;
+                      typeCurrent += _currentValueForInvestment(inv);
+                    }
+                    final percentage = totalCurrent > 0
+                        ? (typeCurrent / totalCurrent * 100)
+                        : 0.0;
 
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _getInvestmentTypeLabel(type),
+                                    style: TextStyle(
+                                      fontSize: TypeScale.subhead,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppStyles.getTextColor(context),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${investments.length} item${investments.length != 1 ? 's' : ''}',
+                                    style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  _getInvestmentTypeLabel(type),
+                                  'Current ₹${typeCurrent.toStringAsFixed(0)}',
                                   style: TextStyle(
                                     fontSize: TypeScale.subhead,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.bold,
                                     color: AppStyles.getTextColor(context),
                                   ),
                                 ),
                                 Text(
-                                  '${investments.length} item${investments.length != 1 ? 's' : ''}',
+                                  'Invested ₹${typeInvested.toStringAsFixed(0)}',
                                   style: TextStyle(
                                     fontSize: TypeScale.caption,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
                                 ),
+                                Text(
+                                  '${percentage.toStringAsFixed(1)}%',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.gain(context),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ],
                             ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                'Current ₹${typeCurrent.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  fontSize: TypeScale.subhead,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppStyles.getTextColor(context),
-                                ),
-                              ),
-                              Text(
-                                'Invested ₹${typeInvested.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color:
-                                      AppStyles.getSecondaryTextColor(context),
-                                ),
-                              ),
-                              Text(
-                                '${percentage.toStringAsFixed(1)}%',
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color: AppStyles.gain(context),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      if (!isLast)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: Spacing.md),
-                          child: Divider(height: 1),
+                          ],
                         ),
-                    ],
-                  );
-                }),
-              ],
+                        if (!isLast)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                            child: Divider(height: 1),
+                          ),
+                      ],
+                    );
+                  }),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ), // GestureDetector
     );
   }
@@ -2362,8 +2375,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 ],
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: deltaColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
@@ -2412,8 +2424,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
           const SizedBox(height: Spacing.lg),
 
           // Projection table — monthly rows (unchanged)
-          _buildProjectionTable(
-              context, projectedMonthlyValues, xLabels, months, now, deltaColor),
+          _buildProjectionTable(context, projectedMonthlyValues, xLabels,
+              months, now, deltaColor),
         ],
       ),
     );
@@ -2431,8 +2443,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
     final rows = <Widget>[];
     for (int i = 1; i <= 6; i++) {
       final targetDate = DateTime(now.year, now.month + i);
-      final monthLabel =
-          '${months[targetDate.month - 1]} ${targetDate.year}';
+      final monthLabel = '${months[targetDate.month - 1]} ${targetDate.year}';
       final value = projectedValues[i];
       final isLast = i == 6;
 
@@ -2454,9 +2465,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 style: TextStyle(
                   fontSize: TypeScale.footnote,
                   fontWeight: FontWeight.w600,
-                  color: i == 6
-                      ? deltaColor
-                      : AppStyles.getTextColor(context),
+                  color: i == 6 ? deltaColor : AppStyles.getTextColor(context),
                 ),
               ),
             ],
@@ -2492,13 +2501,14 @@ class _NetWorthPageState extends State<NetWorthPage> {
       return Container(
         padding: const EdgeInsets.all(Spacing.md),
         decoration: BoxDecoration(
-          color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.06),
+          color:
+              AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(Radii.md),
         ),
         child: Row(
           children: [
-            Icon(CupertinoIcons.chart_bar, size: 14,
-                color: AppStyles.getSecondaryTextColor(context)),
+            Icon(CupertinoIcons.chart_bar,
+                size: 14, color: AppStyles.getSecondaryTextColor(context)),
             const SizedBox(width: 8),
             Text(
               'No transaction data — scenarios unavailable',
@@ -2545,9 +2555,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
     }).toList();
 
     // Max absolute value for bar width normalization (relative to current)
-    final maxDelta = scenarioValues
-        .map((v) => (v - currentNetWorth).abs())
-        .reduce(math.max);
+    final maxDelta =
+        scenarioValues.map((v) => (v - currentNetWorth).abs()).reduce(math.max);
     final maxDeltaSafe = maxDelta == 0 ? 1.0 : maxDelta;
 
     return Column(
@@ -2570,7 +2579,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
           final barFrac = maxDeltaSafe == 0 ? 0.0 : delta.abs() / maxDeltaSafe;
 
           return Padding(
-            padding: EdgeInsets.only(bottom: si < scenarios.length - 1 ? 10 : 0),
+            padding:
+                EdgeInsets.only(bottom: si < scenarios.length - 1 ? 10 : 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2920,4 +2930,3 @@ class _NetWorthSparklinePainter extends CustomPainter {
   bool shouldRepaint(covariant _NetWorthSparklinePainter old) =>
       old.snapshots != snapshots || old.lineColor != lineColor;
 }
-

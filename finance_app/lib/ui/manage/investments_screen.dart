@@ -119,7 +119,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   // the strip can track the PageView continuously during drag, not just on snap.
   final ScrollController _tabStripController = ScrollController();
   final List<GlobalKey> _tabKeys = [];
-  final List<double> _tabOffsets = []; // scroll offset for each tab to be centred
+  final List<double> _tabOffsets =
+      []; // scroll offset for each tab to be centred
 
   static const _prefKeySortBy = 'inv_sort';
   static const _prefKeySortAsc = 'inv_sort_asc';
@@ -132,8 +133,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     super.didChangeDependencies();
     // Attach listener once — clear cache whenever InvestmentsController notifies
     // (handles middle-item edits where first/last IDs don't change)
-    final ctrl =
-        Provider.of<InvestmentsController>(context, listen: false);
+    final ctrl = Provider.of<InvestmentsController>(context, listen: false);
     ctrl.removeListener(_onInvestmentsChanged); // guard against double-attach
     ctrl.addListener(_onInvestmentsChanged);
   }
@@ -147,7 +147,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     super.initState();
     _searchQuery = _persistedSearchQuery;
     _searchController = TextEditingController(text: _persistedSearchQuery);
-    _categoryPageController = PageController(initialPage: _selectedCategoryIndex);
+    _categoryPageController =
+        PageController(initialPage: _selectedCategoryIndex);
     // Continuously sync header strip while user drags the PageView.
     // .page is a double (e.g. 1.4) during drag — interpolating between
     // adjacent tab offsets gives frame-synchronous header tracking.
@@ -213,7 +214,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     if (!_tabStripController.hasClients) return;
     if (_tabOffsets.isEmpty) return;
 
-    final page = _categoryPageController.page ?? _selectedCategoryIndex.toDouble();
+    final page =
+        _categoryPageController.page ?? _selectedCategoryIndex.toDouble();
     final lo = page.floor().clamp(0, _tabOffsets.length - 1);
     final hi = page.ceil().clamp(0, _tabOffsets.length - 1);
     final t = page - page.floor(); // fractional part [0.0, 1.0]
@@ -249,9 +251,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       final tabStart = box.localToGlobal(Offset.zero).dx +
           _tabStripController.position.pixels -
           // Adjust for the strip's own screen position
-          (_tabStripController.position.viewportDimension > 0
-              ? 0
-              : 0);
+          (_tabStripController.position.viewportDimension > 0 ? 0 : 0);
       final tabWidth = box.size.width;
       final centred = tabStart - (stripWidth / 2) + (tabWidth / 2);
       _tabOffsets.add(centred.clamp(
@@ -415,7 +415,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     investment.amount;
               }
               if (metadata.containsKey('estimatedAccruedValue')) {
-                return (metadata['estimatedAccruedValue'] as num?)?.toDouble() ??
+                return (metadata['estimatedAccruedValue'] as num?)
+                        ?.toDouble() ??
                     investment.amount;
               }
             }
@@ -735,120 +736,141 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     ? 'Matures today!'
                                     : 'In $daysLeft day${daysLeft == 1 ? '' : 's'}';
                             return StaggeredItem(
-                              index: i,
-                              itemDelay: const Duration(milliseconds: 40),
-                              child: Container(
-                              margin: const EdgeInsets.only(bottom: Spacing.md),
-                              decoration: AppStyles.accentCardDecoration(
-                                  context, statusColor),
-                              child: ClipRRect(
-                                borderRadius:
-                                    BorderRadius.circular(Radii.xxl),
-                                child: IntrinsicHeight(
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Container(
-                                        width: 3,
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              statusColor,
-                                              statusColor.withValues(
-                                                  alpha: 0.35),
-                                            ],
+                                index: i,
+                                itemDelay: const Duration(milliseconds: 40),
+                                child: Container(
+                                  margin:
+                                      const EdgeInsets.only(bottom: Spacing.md),
+                                  decoration: AppStyles.accentCardDecoration(
+                                      context, statusColor),
+                                  child: ClipRRect(
+                                    borderRadius:
+                                        BorderRadius.circular(Radii.xxl),
+                                    child: IntrinsicHeight(
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Container(
+                                            width: 3,
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                begin: Alignment.topCenter,
+                                                end: Alignment.bottomCenter,
+                                                colors: [
+                                                  statusColor,
+                                                  statusColor.withValues(
+                                                      alpha: 0.35),
+                                                ],
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding:
-                                              const EdgeInsets.all(Spacing.lg),
-                                          child: Row(
-                                            children: [
-                                  Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: AppStyles.iconBoxDecoration(
-                                        context, statusColor),
-                                    child: Center(
-                                      child: Text(
-                                        e.type,
-                                        style: TextStyle(
-                                          color: statusColor,
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: TypeScale.footnote,
-                                        ),
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(
+                                                  Spacing.lg),
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    width: 48,
+                                                    height: 48,
+                                                    decoration: AppStyles
+                                                        .iconBoxDecoration(
+                                                            context,
+                                                            statusColor),
+                                                    child: Center(
+                                                      child: Text(
+                                                        e.type,
+                                                        style: TextStyle(
+                                                          color: statusColor,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          fontSize: TypeScale
+                                                              .footnote,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(
+                                                      width: Spacing.lg),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(e.name,
+                                                            style: AppStyles
+                                                                .titleStyle(
+                                                                    context)),
+                                                        const SizedBox(
+                                                            height: 2),
+                                                        Text(
+                                                          e.bank,
+                                                          style: TextStyle(
+                                                            fontSize: TypeScale
+                                                                .footnote,
+                                                            color: AppStyles
+                                                                .getSecondaryTextColor(
+                                                                    context),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 4),
+                                                        Text(
+                                                          statusText,
+                                                          style: TextStyle(
+                                                            fontSize: TypeScale
+                                                                .caption,
+                                                            color: statusColor,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.end,
+                                                    children: [
+                                                      Text(
+                                                        DateFormatter.format(
+                                                            e.maturityDate),
+                                                        style: TextStyle(
+                                                          fontSize:
+                                                              TypeScale.caption,
+                                                          color: AppStyles
+                                                              .getSecondaryTextColor(
+                                                                  context),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        CurrencyFormatter
+                                                            .compact(e
+                                                                .maturityValue),
+                                                        style: AppStyles
+                                                                .titleStyle(
+                                                                    context)
+                                                            .copyWith(
+                                                          color: AppStyles.gain(
+                                                              context),
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: Spacing.lg),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(e.name,
-                                            style:
-                                                AppStyles.titleStyle(context)),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          e.bank,
-                                          style: TextStyle(
-                                            fontSize: TypeScale.footnote,
-                                            color:
-                                                AppStyles.getSecondaryTextColor(
-                                                    context),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          statusText,
-                                          style: TextStyle(
-                                            fontSize: TypeScale.caption,
-                                            color: statusColor,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        DateFormatter.format(e.maturityDate),
-                                        style: TextStyle(
-                                          fontSize: TypeScale.caption,
-                                          color:
-                                              AppStyles.getSecondaryTextColor(
-                                                  context),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        CurrencyFormatter.compact(
-                                            e.maturityValue),
-                                        style: AppStyles.titleStyle(context)
-                                            .copyWith(
-                                          color: AppStyles.gain(context),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ));
+                                ));
                           },
                         ),
                 ),
@@ -908,7 +930,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         placeholderStyle: TextStyle(
             color: AppStyles.getSecondaryTextColor(context),
             fontSize: TypeScale.body),
-        onChanged: (v) => setState(() { _searchQuery = v; _persistedSearchQuery = v; }),
+        onChanged: (v) => setState(() {
+          _searchQuery = v;
+          _persistedSearchQuery = v;
+        }),
       ),
     );
   }
@@ -921,7 +946,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           Icon(
             CupertinoIcons.search,
             size: 48,
-            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.4),
+            color:
+                AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.4),
           ),
           const SizedBox(height: 16),
           Text(
@@ -1013,8 +1039,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             children: [
               _invTypeChip(context, 'Stocks', CupertinoIcons.graph_circle_fill,
                   SemanticColors.investments, InvestmentType.stocks),
-              _invTypeChip(context, 'Mutual Funds', CupertinoIcons.chart_pie_fill,
-                  AppStyles.accentBlue, InvestmentType.mutualFund),
+              _invTypeChip(
+                  context,
+                  'Mutual Funds',
+                  CupertinoIcons.chart_pie_fill,
+                  AppStyles.accentBlue,
+                  InvestmentType.mutualFund),
               _invTypeChip(context, 'FD / RD', CupertinoIcons.lock_shield_fill,
                   AppStyles.accentTeal, InvestmentType.fixedDeposit),
               _invTypeChip(context, 'Digital Gold', CupertinoIcons.star_fill,
@@ -1146,10 +1176,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 }
                 // Fallback to approximation if offsets not yet measured.
                 final tabWidth = 90.0;
-                final stripWidth = _tabStripController.position.viewportDimension;
-                final target = (index * tabWidth) - (stripWidth / 2) + (tabWidth / 2);
+                final stripWidth =
+                    _tabStripController.position.viewportDimension;
+                final target =
+                    (index * tabWidth) - (stripWidth / 2) + (tabWidth / 2);
                 _tabStripController.animateTo(
-                  target.clamp(0.0, _tabStripController.position.maxScrollExtent),
+                  target.clamp(
+                      0.0, _tabStripController.position.maxScrollExtent),
                   duration: const Duration(milliseconds: 260),
                   curve: Curves.easeOutCubic,
                 );
@@ -1158,48 +1191,50 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
               child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? color.withValues(alpha: 0.15)
-                    : AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
+                duration: const Duration(milliseconds: 180),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
                   color: isSelected
-                      ? color
-                      : AppStyles.getDividerColor(context)
-                          .withValues(alpha: 0.4),
-                  width: isSelected ? 1.5 : 1,
+                      ? color.withValues(alpha: 0.15)
+                      : AppStyles.getCardColor(context),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isSelected
+                        ? color
+                        : AppStyles.getDividerColor(context)
+                            .withValues(alpha: 0.4),
+                    width: isSelected ? 1.5 : 1,
+                  ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: TypeScale.footnote,
-                      fontWeight: FontWeight.w600,
-                      color:
-                          isSelected ? color : AppStyles.getTextColor(context),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? color
+                            : AppStyles.getTextColor(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    CurrencyFormatter.compact(total),
-                    style: TextStyle(
-                      fontSize: TypeScale.caption,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? color
-                          : AppStyles.getSecondaryTextColor(context),
+                    const SizedBox(height: 2),
+                    Text(
+                      CurrencyFormatter.compact(total),
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected
+                            ? color
+                            : AppStyles.getSecondaryTextColor(context),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ), // AnimatedContainer
+                  ],
+                ),
+              ), // AnimatedContainer
             ), // ConstrainedBox
           );
         },
@@ -1270,14 +1305,16 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               Icon(
                 CupertinoIcons.arrow_down,
                 size: 10,
-                color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.55),
+                color: AppStyles.getSecondaryTextColor(context)
+                    .withValues(alpha: 0.55),
               ),
               const SizedBox(width: 3),
               Text(
                 'scroll to refresh',
                 style: TextStyle(
                   fontSize: 10,
-                  color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.55),
+                  color: AppStyles.getSecondaryTextColor(context)
+                      .withValues(alpha: 0.55),
                 ),
               ),
             ],
@@ -1296,27 +1333,27 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       navigationBar: isLandscape
           ? null
           : CupertinoNavigationBar(
-        middle: Text('Investments',
-            style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-        trailing: Semantics(
-          label: 'Maturity calendar',
-          child: CupertinoButton(
-            padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
-            onPressed: () => _showMaturityCalendar(
-                context,
-                Provider.of<InvestmentsController>(context, listen: false)
-                    .investments),
-            child: const Icon(
-              CupertinoIcons.calendar,
-              size: 20,
-              color: SemanticColors.investments,
+              middle: Text('Investments',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
+              previousPageTitle: 'Back',
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+              trailing: Semantics(
+                label: 'Maturity calendar',
+                child: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
+                  onPressed: () => _showMaturityCalendar(
+                      context,
+                      Provider.of<InvestmentsController>(context, listen: false)
+                          .investments),
+                  child: const Icon(
+                    CupertinoIcons.calendar,
+                    size: 20,
+                    color: SemanticColors.investments,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
       child: Consumer<InvestmentsController>(
         builder: (context, investmentsController, child) {
           final investments = investmentsController.investments;
@@ -1341,59 +1378,66 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               else
                 SafeArea(
                   child: isLandscape
-                    ? LandscapeSplitView(
-                        leftFlex: 2,
-                        rightFlex: 3,
-                        leftPanel: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildLandscapeInvestmentsNavBar(context),
-                            Expanded(
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildCompactSummary(context, investments),
-                                    _buildAllocationChart(context, investments),
-                                    _buildCategoryTabs(context, investments, categories),
-                                    const SizedBox(height: Spacing.lg),
-                                  ],
+                      ? LandscapeSplitView(
+                          leftFlex: 2,
+                          rightFlex: 3,
+                          leftPanel: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLandscapeInvestmentsNavBar(context),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _buildCompactSummary(
+                                          context, investments),
+                                      _buildAllocationChart(
+                                          context, investments),
+                                      _buildCategoryTabs(
+                                          context, investments, categories),
+                                      const SizedBox(height: Spacing.lg),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        rightPanel: Column(
+                            ],
+                          ),
+                          rightPanel: Column(
+                            children: [
+                              const SizedBox(height: Spacing.sm),
+                              _buildSearchBar(context),
+                              const SizedBox(height: Spacing.xs),
+                              _buildActiveSortChip(context),
+                              const SizedBox(height: Spacing.sm),
+                              _buildInvestmentPageView(
+                                  context, investments, categories),
+                            ],
+                          ),
+                        )
+                      : Column(
                           children: [
-                            const SizedBox(height: Spacing.sm),
+                            // Compact Summary Section
+                            _buildCompactSummary(context, investments),
+                            // Asset Allocation Donut Chart
+                            _buildAllocationChart(context, investments),
+                            // T-125/T-126: Portfolio timeline chart
+                            _PortfolioTimelineChart(investments: investments),
+                            _buildCategoryTabs(
+                                context, investments, categories),
+                            const SizedBox(height: Spacing.xs),
+                            // Search bar
                             _buildSearchBar(context),
                             const SizedBox(height: Spacing.xs),
+                            // Active sort indicator chip
                             _buildActiveSortChip(context),
                             const SizedBox(height: Spacing.sm),
-                            _buildInvestmentPageView(context, investments, categories),
+                            // Investments List with Staggered Animation
+                            _buildInvestmentPageView(
+                                context, investments, categories),
                           ],
                         ),
-                      )
-                    : Column(
-                        children: [
-                          // Compact Summary Section
-                          _buildCompactSummary(context, investments),
-                          // Asset Allocation Donut Chart
-                          _buildAllocationChart(context, investments),
-                          // T-125/T-126: Portfolio timeline chart
-                          _PortfolioTimelineChart(investments: investments),
-                          _buildCategoryTabs(context, investments, categories),
-                          const SizedBox(height: Spacing.xs),
-                          // Search bar
-                          _buildSearchBar(context),
-                          const SizedBox(height: Spacing.xs),
-                          // Active sort indicator chip
-                          _buildActiveSortChip(context),
-                          const SizedBox(height: Spacing.sm),
-                          // Investments List with Staggered Animation
-                          _buildInvestmentPageView(context, investments, categories),
-                        ],
-                      ),
                 ),
               Positioned(
                 right: Spacing.lg,
@@ -1428,7 +1472,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: AppStyles.teal(context).withValues(alpha: 0.15),
+                            color:
+                                AppStyles.teal(context).withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                             border: Border.all(
                                 color: AppStyles.teal(context)
@@ -1460,8 +1505,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context).withValues(alpha: 0.85),
         border: Border(
-          bottom: BorderSide(
-              color: AppStyles.getDividerColor(context), width: 0.5),
+          bottom:
+              BorderSide(color: AppStyles.getDividerColor(context), width: 0.5),
         ),
       ),
       child: Row(
@@ -1508,10 +1553,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   }
 
   /// Extracted PageView list — used in both portrait Column and landscape right panel.
-  Widget _buildInvestmentPageView(
-      BuildContext context,
-      List<Investment> investments,
-      List<InvestmentType?> categories) {
+  Widget _buildInvestmentPageView(BuildContext context,
+      List<Investment> investments, List<InvestmentType?> categories) {
     return Expanded(
       child: PageView.builder(
         controller: _categoryPageController,
@@ -1559,7 +1602,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
           if (canReorder) {
             return ReorderableListView.builder(
-              padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
+              padding:
+                  const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
               itemCount: pageInvestments.length,
               onReorder: (oldIndex, newIndex) {
                 Haptics.reorder();
@@ -1599,13 +1643,15 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             color: AppStyles.getPrimaryColor(context),
             child: ListView.builder(
               key: PageStorageKey('investments_list_$pageIndex'),
-              controller:
-                  pageIndex == _selectedCategoryIndex ? _scrollController : null,
+              controller: pageIndex == _selectedCategoryIndex
+                  ? _scrollController
+                  : null,
               physics: const SmoothScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               cacheExtent: 600,
-              padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
+              padding:
+                  const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
               itemCount: pageInvestments.length,
               itemBuilder: (context, index) {
                 return StaggeredItem(
@@ -1641,127 +1687,131 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.xs),
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.lg, vertical: Spacing.xs),
       child: RepaintBoundary(
         child: Container(
-        decoration: AppStyles.cardDecoration(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: () => setState(
-                  () => _isAllocationExpanded = !_isAllocationExpanded),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: Spacing.lg, vertical: Spacing.md),
-                child: Row(
-                  children: [
-                    const Icon(CupertinoIcons.chart_pie_fill,
-                        size: 13, color: SemanticColors.investments),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'Asset Allocation',
-                        style: TextStyle(
-                          fontSize: TypeScale.footnote,
-                          fontWeight: FontWeight.w600,
-                          color: AppStyles.getTextColor(context),
+          decoration: AppStyles.cardDecoration(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: () => setState(
+                    () => _isAllocationExpanded = !_isAllocationExpanded),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.lg, vertical: Spacing.md),
+                  child: Row(
+                    children: [
+                      const Icon(CupertinoIcons.chart_pie_fill,
+                          size: 13, color: SemanticColors.investments),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Asset Allocation',
+                          style: TextStyle(
+                            fontSize: TypeScale.footnote,
+                            fontWeight: FontWeight.w600,
+                            color: AppStyles.getTextColor(context),
+                          ),
                         ),
                       ),
-                    ),
-                    Icon(
-                      _isAllocationExpanded
-                          ? CupertinoIcons.chevron_up
-                          : CupertinoIcons.chevron_down,
-                      size: 13,
-                      color: AppStyles.getSecondaryTextColor(context),
-                    ),
-                  ],
+                      Icon(
+                        _isAllocationExpanded
+                            ? CupertinoIcons.chevron_up
+                            : CupertinoIcons.chevron_down,
+                        size: 13,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeInOut,
-              child: _isAllocationExpanded
-                  ? Padding(
-                      padding: const EdgeInsets.only(
-                          left: Spacing.lg,
-                          right: Spacing.lg,
-                          bottom: Spacing.lg),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 80,
-                            height: 80,
-                            child: CustomPaint(
-                              painter: _DonutChartPainter(
-                                slices: entries
-                                    .map((e) => _DonutSlice(
-                                          value: e.value / total,
-                                          color: _getInvestmentTypeColor(e.key),
-                                        ))
-                                    .toList(),
-                                holeColor: AppStyles.getCardColor(context),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeInOut,
+                child: _isAllocationExpanded
+                    ? Padding(
+                        padding: const EdgeInsets.only(
+                            left: Spacing.lg,
+                            right: Spacing.lg,
+                            bottom: Spacing.lg),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 80,
+                              height: 80,
+                              child: CustomPaint(
+                                painter: _DonutChartPainter(
+                                  slices: entries
+                                      .map((e) => _DonutSlice(
+                                            value: e.value / total,
+                                            color:
+                                                _getInvestmentTypeColor(e.key),
+                                          ))
+                                      .toList(),
+                                  holeColor: AppStyles.getCardColor(context),
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: Spacing.lg),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: entries.take(5).map((e) {
-                                final pct = (e.value / total * 100);
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: Spacing.xs),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        width: 8,
-                                        height: 8,
-                                        decoration: BoxDecoration(
-                                          color: _getInvestmentTypeColor(e.key),
-                                          borderRadius:
-                                              BorderRadius.circular(2),
+                            const SizedBox(width: Spacing.lg),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: entries.take(5).map((e) {
+                                  final pct = (e.value / total * 100);
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                        bottom: Spacing.xs),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                _getInvestmentTypeColor(e.key),
+                                            borderRadius:
+                                                BorderRadius.circular(2),
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Expanded(
-                                        child: Text(
-                                          _getInvestmentTypeLabel(e.key),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            _getInvestmentTypeLabel(e.key),
+                                            style: TextStyle(
+                                              fontSize: TypeScale.caption,
+                                              color: AppStyles
+                                                  .getSecondaryTextColor(
+                                                      context),
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${pct.toStringAsFixed(1)}%',
                                           style: TextStyle(
                                             fontSize: TypeScale.caption,
+                                            fontWeight: FontWeight.w600,
                                             color:
-                                                AppStyles.getSecondaryTextColor(
-                                                    context),
+                                                _getInvestmentTypeColor(e.key),
                                           ),
-                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                      Text(
-                                        '${pct.toStringAsFixed(1)}%',
-                                        style: TextStyle(
-                                          fontSize: TypeScale.caption,
-                                          fontWeight: FontWeight.w600,
-                                          color: _getInvestmentTypeColor(e.key),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
         ),
-      ),
       ), // RepaintBoundary
     );
   }
@@ -1799,8 +1849,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             earliestDate = d;
           }
         } catch (e) {
-          logger.warning('Failed to parse investment date for P&L',
-              error: e);
+          logger.warning('Failed to parse investment date for P&L', error: e);
         }
       }
     }
@@ -1835,8 +1884,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             ),
           ),
         ),
-        padding:
-            const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
+        padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.lg, vertical: Spacing.sm),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -3359,8 +3408,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                   Icon(
                                     CupertinoIcons.chevron_right,
                                     size: IconSizes.xs,
-                                    color:
-                                        AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                 ],
                               ),
@@ -3455,8 +3504,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               onPressed: () {
                 Navigator.pop(ctx);
                 Navigator.of(context).push(
-                  FadeScalePageRoute(
-                      page: _addWizardFor(investment)),
+                  FadeScalePageRoute(page: _addWizardFor(investment)),
                 );
               },
               child: const Text('Add / Buy More'),
@@ -3488,18 +3536,30 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
   String _investmentTypeLabel(InvestmentType type) {
     switch (type) {
-      case InvestmentType.stocks: return 'Stocks & ETFs';
-      case InvestmentType.mutualFund: return 'Mutual Fund';
-      case InvestmentType.fixedDeposit: return 'Fixed Deposit';
-      case InvestmentType.recurringDeposit: return 'Recurring Deposit';
-      case InvestmentType.bonds: return 'Bonds';
-      case InvestmentType.nationalSavingsScheme: return 'NPS';
-      case InvestmentType.digitalGold: return 'Digital Gold';
-      case InvestmentType.pensionSchemes: return 'Pension';
-      case InvestmentType.cryptocurrency: return 'Cryptocurrency';
-      case InvestmentType.futuresOptions: return 'Futures & Options';
-      case InvestmentType.forexCurrency: return 'Forex / Currency';
-      case InvestmentType.commodities: return 'Commodities';
+      case InvestmentType.stocks:
+        return 'Stocks & ETFs';
+      case InvestmentType.mutualFund:
+        return 'Mutual Fund';
+      case InvestmentType.fixedDeposit:
+        return 'Fixed Deposit';
+      case InvestmentType.recurringDeposit:
+        return 'Recurring Deposit';
+      case InvestmentType.bonds:
+        return 'Bonds';
+      case InvestmentType.nationalSavingsScheme:
+        return 'NPS';
+      case InvestmentType.digitalGold:
+        return 'Digital Gold';
+      case InvestmentType.pensionSchemes:
+        return 'Pension';
+      case InvestmentType.cryptocurrency:
+        return 'Cryptocurrency';
+      case InvestmentType.futuresOptions:
+        return 'Futures & Options';
+      case InvestmentType.forexCurrency:
+        return 'Forex / Currency';
+      case InvestmentType.commodities:
+        return 'Commodities';
     }
   }
 
@@ -3525,10 +3585,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
   Widget _buildMFBuyMoreWizard(Investment investment) {
     final meta = investment.metadata ?? {};
-    final schemeCode =
-        (meta['schemeCode'] as String?) ?? investment.id;
-    final schemeName =
-        (meta['schemeName'] as String?) ?? investment.name;
+    final schemeCode = (meta['schemeCode'] as String?) ?? investment.id;
+    final schemeName = (meta['schemeName'] as String?) ?? investment.name;
     final nav = (meta['currentNAV'] as num?)?.toDouble() ?? 0.0;
 
     final intent = MFWizardIntent(
@@ -3557,13 +3615,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         await Navigator.of(context).push(FadeScalePageRoute(
             page: StockDetailsScreen(investment: investment)));
       case InvestmentType.mutualFund:
-        await Navigator.of(context).push(FadeScalePageRoute(
-            page: MFDetailsScreen(investment: investment)));
+        await Navigator.of(context).push(
+            FadeScalePageRoute(page: MFDetailsScreen(investment: investment)));
       case InvestmentType.fixedDeposit:
         if (investment.metadata?.containsKey('fdData') == true) {
           try {
-            final fd = FixedDeposit.fromMap(
-                Map<String, dynamic>.from(investment.metadata!['fdData'] as Map));
+            final fd = FixedDeposit.fromMap(Map<String, dynamic>.from(
+                investment.metadata!['fdData'] as Map));
             await Navigator.of(context)
                 .push(FadeScalePageRoute(page: FDDetailsScreen(fd: fd)));
           } catch (_) {
@@ -3573,8 +3631,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       case InvestmentType.recurringDeposit:
         if (investment.metadata?.containsKey('rdData') == true) {
           try {
-            final rd = RecurringDeposit.fromMap(
-                Map<String, dynamic>.from(investment.metadata!['rdData'] as Map));
+            final rd = RecurringDeposit.fromMap(Map<String, dynamic>.from(
+                investment.metadata!['rdData'] as Map));
             await Navigator.of(context)
                 .push(FadeScalePageRoute(page: RDDetailsScreen(rd: rd)));
           } catch (_) {
@@ -3591,8 +3649,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         await Navigator.of(context).push(FadeScalePageRoute(
             page: DigitalGoldDetailsScreen(investment: investment)));
       case InvestmentType.nationalSavingsScheme:
-        await Navigator.of(context).push(FadeScalePageRoute(
-            page: NPSDetailsScreen(investment: investment)));
+        await Navigator.of(context).push(
+            FadeScalePageRoute(page: NPSDetailsScreen(investment: investment)));
       case InvestmentType.pensionSchemes:
         await Navigator.of(context).push(FadeScalePageRoute(
             page: PensionDetailsScreen(investment: investment)));
@@ -3600,8 +3658,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         await Navigator.of(context).push(FadeScalePageRoute(
             page: CommoditiesDetailsScreen(investment: investment)));
       case InvestmentType.futuresOptions:
-        await Navigator.of(context).push(FadeScalePageRoute(
-            page: FODetailsScreen(investment: investment)));
+        await Navigator.of(context).push(
+            FadeScalePageRoute(page: FODetailsScreen(investment: investment)));
       default:
         await Navigator.of(context).push(FadeScalePageRoute(
             page: SimpleInvestmentDetailsScreen(investment: investment)));
@@ -3627,226 +3685,242 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
     final isProfit = gainLoss >= 0;
 
-    return GestureDetector(
-      // AU8-05 — Long-press copies current value to clipboard
-      onLongPress: () {
-        Haptics.medium();
-        final amount = _calculateCurrentValue(investment);
-        Clipboard.setData(ClipboardData(text: amount.toStringAsFixed(2)));
-        ToastController().showSuccess('Amount ₹${amount.toStringAsFixed(2)} copied');
-      },
-      child: Hero(
-      tag: 'investment_${investment.id}',
-      child: BouncyButton(
-        onPressed: () {
-          Haptics.light();
-          _showInvestmentQuickActions(investment);
+    final gainLossLabel = gainLoss >= 0
+        ? 'up ${gainLossPercent.abs().toStringAsFixed(1)}%'
+        : 'down ${gainLossPercent.abs().toStringAsFixed(1)}%';
+    return Semantics(
+      label: '${investment.name}, ${investment.getTypeLabel()}, '
+          'invested ₹${investedAmount.toStringAsFixed(0)}, '
+          'current value ₹${currentValue.toStringAsFixed(0)}, $gainLossLabel',
+      button: true,
+      child: GestureDetector(
+        // AU8-05 — Long-press copies current value to clipboard
+        onLongPress: () {
+          Haptics.medium();
+          final amount = _calculateCurrentValue(investment);
+          Clipboard.setData(ClipboardData(text: amount.toStringAsFixed(2)));
+          ToastController()
+              .showSuccess('Amount ₹${amount.toStringAsFixed(2)} copied');
         },
-        child: Container(
-          margin: const EdgeInsets.only(bottom: Spacing.lg),
-          decoration:
-              AppStyles.accentCardDecoration(context, investment.color),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(Radii.xxl),
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Left accent bar
-                  Container(
-                    width: 4,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          investment.color,
-                          investment.color.withValues(alpha: 0.35),
-                        ],
+        child: Hero(
+          tag: 'investment_${investment.id}',
+          child: BouncyButton(
+            onPressed: () {
+              Haptics.light();
+              _showInvestmentQuickActions(investment);
+            },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: Spacing.lg),
+              decoration:
+                  AppStyles.accentCardDecoration(context, investment.color),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(Radii.xxl),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Left accent bar
+                      Container(
+                        width: 4,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              investment.color,
+                              investment.color.withValues(alpha: 0.35),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  // Card content
-                  Expanded(
-                    child: Padding(
-                      padding: Spacing.cardPadding,
-                      child: Row(
-                        children: [
-                          IconBox(
-                            icon: CupertinoIcons.chart_bar_square_fill,
-                            color: investment.color,
-                            showGlow: true,
-                          ),
-                          const SizedBox(width: Spacing.lg),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(investment.name,
-                                    style: AppStyles.titleStyle(context),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis),
-                                const SizedBox(height: Spacing.xs),
-                                Text(
-                                  investment.getTypeLabel(),
-                                  style: TextStyle(
-                                    fontSize: TypeScale.footnote,
-                                    color: investment.color
-                                        .withValues(alpha: 0.75),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: Spacing.sm),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Invested',
-                                            style: TextStyle(
-                                              fontSize: TypeScale.caption,
-                                              color: AppStyles
-                                                  .getSecondaryTextColor(
-                                                      context),
-                                            ),
-                                          ),
-                                          Text(
-                                            CurrencyFormatter.compact(
-                                                investedAmount),
-                                            style: TextStyle(
-                                              fontSize: TypeScale.subhead,
-                                              fontWeight: FontWeight.w700,
-                                              color:
-                                                  AppStyles.getTextColor(context),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: Spacing.md),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Current',
-                                            style: TextStyle(
-                                              fontSize: TypeScale.caption,
-                                              color: AppStyles
-                                                  .getSecondaryTextColor(
-                                                      context),
-                                            ),
-                                          ),
-                                          _isRefreshingCurrentValues
-                                              ? const Padding(
-                                                  padding: EdgeInsets.only(top: 2),
-                                                  child: SkeletonLoader(
-                                                    width: 56,
-                                                    height: 14,
-                                                    borderRadius: 4,
-                                                  ),
-                                                )
-                                              : Text(
-                                                  CurrencyFormatter.compact(
-                                                      currentValue),
-                                                  style: TextStyle(
-                                                    fontSize: TypeScale.subhead,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: isProfit
-                                                        ? AppStyles.gain(context)
-                                                        : AppStyles.loss(context),
-                                                  ),
-                                                ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: Spacing.sm),
-                          // AU13-01 — P&L badge: coloured pill with % + absolute amount
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.center,
+                      // Card content
+                      Expanded(
+                        child: Padding(
+                          padding: Spacing.cardPadding,
+                          child: Row(
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: Spacing.sm,
-                                    vertical: Spacing.xs),
-                                decoration: BoxDecoration(
-                                  color: isProfit
-                                      ? AppStyles.gain(context)
-                                          .withValues(alpha: 0.15)
-                                      : AppStyles.loss(context)
-                                          .withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: isProfit
-                                        ? AppStyles.gain(context)
-                                            .withValues(alpha: 0.35)
-                                        : AppStyles.loss(context)
-                                            .withValues(alpha: 0.35),
-                                    width: 0.8,
-                                  ),
-                                ),
+                              IconBox(
+                                icon: CupertinoIcons.chart_bar_square_fill,
+                                color: investment.color,
+                                showGlow: true,
+                              ),
+                              const SizedBox(width: Spacing.lg),
+                              Expanded(
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Text(investment.name,
+                                        style: AppStyles.titleStyle(context),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis),
+                                    const SizedBox(height: Spacing.xs),
                                     Text(
-                                      '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(1)}%',
+                                      investment.getTypeLabel(),
                                       style: TextStyle(
                                         fontSize: TypeScale.footnote,
-                                        fontWeight: FontWeight.w800,
-                                        color: isProfit
-                                            ? AppStyles.gain(context)
-                                            : AppStyles.loss(context),
-                                      ),
-                                    ),
-                                    Text(
-                                      '${isProfit ? '+' : '-'}${CurrencyFormatter.compact(gainLoss.abs())}',
-                                      style: TextStyle(
-                                        fontSize: 9.0,
+                                        color: investment.color
+                                            .withValues(alpha: 0.75),
                                         fontWeight: FontWeight.w600,
-                                        color: isProfit
-                                            ? AppStyles.gain(context)
-                                                .withValues(alpha: 0.75)
-                                            : AppStyles.loss(context)
-                                                .withValues(alpha: 0.75),
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: Spacing.sm),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Invested',
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.caption,
+                                                  color: AppStyles
+                                                      .getSecondaryTextColor(
+                                                          context),
+                                                ),
+                                              ),
+                                              Text(
+                                                CurrencyFormatter.compact(
+                                                    investedAmount),
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.subhead,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppStyles.getTextColor(
+                                                      context),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: Spacing.md),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Current',
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.caption,
+                                                  color: AppStyles
+                                                      .getSecondaryTextColor(
+                                                          context),
+                                                ),
+                                              ),
+                                              _isRefreshingCurrentValues
+                                                  ? const Padding(
+                                                      padding: EdgeInsets.only(
+                                                          top: 2),
+                                                      child: SkeletonLoader(
+                                                        width: 56,
+                                                        height: 14,
+                                                        borderRadius: 4,
+                                                      ),
+                                                    )
+                                                  : Text(
+                                                      CurrencyFormatter.compact(
+                                                          currentValue),
+                                                      style: TextStyle(
+                                                        fontSize:
+                                                            TypeScale.subhead,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color: isProfit
+                                                            ? AppStyles.gain(
+                                                                context)
+                                                            : AppStyles.loss(
+                                                                context),
+                                                      ),
+                                                    ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: Spacing.xs),
-                              Icon(
-                                CupertinoIcons.chevron_right,
-                                size: IconSizes.xs,
-                                color:
-                                    AppStyles.getSecondaryTextColor(context),
+                              const SizedBox(width: Spacing.sm),
+                              // AU13-01 — P&L badge: coloured pill with % + absolute amount
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: Spacing.sm,
+                                        vertical: Spacing.xs),
+                                    decoration: BoxDecoration(
+                                      color: isProfit
+                                          ? AppStyles.gain(context)
+                                              .withValues(alpha: 0.15)
+                                          : AppStyles.loss(context)
+                                              .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: isProfit
+                                            ? AppStyles.gain(context)
+                                                .withValues(alpha: 0.35)
+                                            : AppStyles.loss(context)
+                                                .withValues(alpha: 0.35),
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(1)}%',
+                                          style: TextStyle(
+                                            fontSize: TypeScale.footnote,
+                                            fontWeight: FontWeight.w800,
+                                            color: isProfit
+                                                ? AppStyles.gain(context)
+                                                : AppStyles.loss(context),
+                                          ),
+                                        ),
+                                        Text(
+                                          '${isProfit ? '+' : '-'}${CurrencyFormatter.compact(gainLoss.abs())}',
+                                          style: TextStyle(
+                                            fontSize: 9.0,
+                                            fontWeight: FontWeight.w600,
+                                            color: isProfit
+                                                ? AppStyles.gain(context)
+                                                    .withValues(alpha: 0.75)
+                                                : AppStyles.loss(context)
+                                                    .withValues(alpha: 0.75),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: Spacing.xs),
+                                  Icon(
+                                    CupertinoIcons.chevron_right,
+                                    size: IconSizes.xs,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
-      ), // Hero
-    ); // GestureDetector
+        ), // Hero
+      ), // GestureDetector
+    ); // Semantics
   }
 }
 
@@ -3965,8 +4039,10 @@ class _PortfolioTimelineChartState extends State<_PortfolioTimelineChart> {
             const SizedBox(height: Spacing.xs),
             Row(
               children: [
-                _TimelineLegend(color: AppStyles.getSecondaryTextColor(context)
-                    .withValues(alpha: 0.5), label: 'Invested'),
+                _TimelineLegend(
+                    color: AppStyles.getSecondaryTextColor(context)
+                        .withValues(alpha: 0.5),
+                    label: 'Invested'),
                 const SizedBox(width: Spacing.md),
                 _TimelineLegend(color: AppStyles.aetherTeal, label: 'Current'),
               ],
@@ -4014,7 +4090,8 @@ class _PortfolioTimelineChartState extends State<_PortfolioTimelineChart> {
           final d = DateTime.tryParse(ds);
           if (d == null || d.isAfter(monthEnd)) continue;
           final amt = (entry['amount'] as num?)?.toDouble() ??
-              (entry['investedAmount'] as num?)?.toDouble() ?? 0;
+              (entry['investedAmount'] as num?)?.toDouble() ??
+              0;
           final type = (entry['type'] as String? ?? '').toLowerCase();
           if (type == 'sell' || type == 'redeem' || type == 'withdraw') {
             invested -= amt.abs();
@@ -4090,7 +4167,8 @@ class _TimelinePainter extends CustomPainter {
     final w = size.width - padL - padR;
     final h = size.height - padT - padB;
 
-    final maxVal = points.map((p) => p.current > p.invested ? p.current : p.invested)
+    final maxVal = points
+        .map((p) => p.current > p.invested ? p.current : p.invested)
         .reduce((a, b) => a > b ? a : b);
     if (maxVal <= 0) return;
 
@@ -4123,7 +4201,11 @@ class _TimelinePainter extends CustomPainter {
     final fillColor = isGain
         ? tealColor.withAlpha(40)
         : const Color(0xFFFF6B6B).withAlpha(30);
-    canvas.drawPath(fillPath, Paint()..color = fillColor..style = PaintingStyle.fill);
+    canvas.drawPath(
+        fillPath,
+        Paint()
+          ..color = fillColor
+          ..style = PaintingStyle.fill);
 
     // Draw invested line (dashed, muted)
     final invPaint = Paint()

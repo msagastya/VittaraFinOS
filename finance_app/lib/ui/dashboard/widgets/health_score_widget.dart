@@ -69,8 +69,7 @@ class HealthScoreData {
       'investment diversity': diversityScore,
       'debt management': debtScore,
     };
-    final weakest = scores.entries
-        .reduce((a, b) => a.value < b.value ? a : b);
+    final weakest = scores.entries.reduce((a, b) => a.value < b.value ? a : b);
     switch (weakest.key) {
       case 'savings rate':
         return 'Save at least 20% of monthly income to boost your score.';
@@ -102,7 +101,8 @@ HealthScoreData computeHealthScore({
   double expenses = 0;
   for (final tx in transactions) {
     if (tx.dateTime.isBefore(monthStart)) continue;
-    if (tx.type == TransactionType.income || tx.type == TransactionType.cashback) {
+    if (tx.type == TransactionType.income ||
+        tx.type == TransactionType.cashback) {
       income += tx.amount;
     } else if (tx.type == TransactionType.expense) {
       expenses += tx.amount;
@@ -114,10 +114,14 @@ HealthScoreData computeHealthScore({
     savingsScore = 0;
   } else {
     final rate = (income - expenses) / income * 100;
-    if (rate >= 20) savingsScore = 25;
-    else if (rate >= 10) savingsScore = 15;
-    else if (rate >= 0) savingsScore = 8;
-    else savingsScore = 0;
+    if (rate >= 20)
+      savingsScore = 25;
+    else if (rate >= 10)
+      savingsScore = 15;
+    else if (rate >= 0)
+      savingsScore = 8;
+    else
+      savingsScore = 0;
   }
 
   final activeBudgets = budgets.where((b) => b.isActive).toList();
@@ -125,22 +129,33 @@ HealthScoreData computeHealthScore({
   if (activeBudgets.isEmpty) {
     budgetScore = 0;
   } else {
-    final onTrack = activeBudgets.where((b) => b.status != BudgetStatus.exceeded).length;
+    final onTrack =
+        activeBudgets.where((b) => b.status != BudgetStatus.exceeded).length;
     final ratio = onTrack / activeBudgets.length;
-    if (ratio >= 1.0) budgetScore = 25;
-    else if (ratio > 0.75) budgetScore = 15;
-    else if (ratio > 0.50) budgetScore = 8;
-    else budgetScore = 0;
+    if (ratio >= 1.0)
+      budgetScore = 25;
+    else if (ratio > 0.75)
+      budgetScore = 15;
+    else if (ratio > 0.50)
+      budgetScore = 8;
+    else
+      budgetScore = 0;
   }
 
-  final activeInvestments = investments.where((inv) => inv.metadata?['isWithdrawn'] != true).toList();
+  final activeInvestments =
+      investments.where((inv) => inv.metadata?['isWithdrawn'] != true).toList();
   final distinctTypes = activeInvestments.map((inv) => inv.type).toSet().length;
   int diversityScore;
-  if (distinctTypes >= 4) diversityScore = 25;
-  else if (distinctTypes == 3) diversityScore = 18;
-  else if (distinctTypes == 2) diversityScore = 10;
-  else if (distinctTypes == 1) diversityScore = 5;
-  else diversityScore = 0;
+  if (distinctTypes >= 4)
+    diversityScore = 25;
+  else if (distinctTypes == 3)
+    diversityScore = 18;
+  else if (distinctTypes == 2)
+    diversityScore = 10;
+  else if (distinctTypes == 1)
+    diversityScore = 5;
+  else
+    diversityScore = 0;
 
   double totalAssets = 0;
   double totalDebt = 0;
@@ -153,7 +168,8 @@ HealthScoreData computeHealthScore({
     }
   }
   for (final inv in investments) {
-    final currentValue = (inv.metadata?['currentValue'] as num?)?.toDouble() ?? inv.amount;
+    final currentValue =
+        (inv.metadata?['currentValue'] as num?)?.toDouble() ?? inv.amount;
     totalAssets += currentValue;
   }
 
@@ -162,11 +178,16 @@ HealthScoreData computeHealthScore({
     debtScore = 25;
   } else {
     final ratio = totalDebt / totalAssets;
-    if (ratio < 0.1) debtScore = 25;
-    else if (ratio < 0.2) debtScore = 18;
-    else if (ratio < 0.35) debtScore = 10;
-    else if (ratio < 0.5) debtScore = 5;
-    else debtScore = 0;
+    if (ratio < 0.1)
+      debtScore = 25;
+    else if (ratio < 0.2)
+      debtScore = 18;
+    else if (ratio < 0.35)
+      debtScore = 10;
+    else if (ratio < 0.5)
+      debtScore = 5;
+    else
+      debtScore = 0;
   }
 
   return HealthScoreData(
@@ -219,7 +240,8 @@ class _ScoreArcPainter extends CustomPainter {
     canvas.drawArc(rect, startAngle, sweepAngle, false, trackPaint);
 
     if (fraction > 0) {
-      canvas.drawArc(rect, startAngle, sweepAngle * fraction, false, scorePaint);
+      canvas.drawArc(
+          rect, startAngle, sweepAngle * fraction, false, scorePaint);
 
       // Glow dot at arc end
       if (glowOpacity > 0 && fraction > 0.01) {
@@ -373,16 +395,15 @@ class _AnimatedSubScoreBarState extends State<_AnimatedSubScoreBar> {
                               children: [
                                 Icon(CupertinoIcons.info_circle_fill,
                                     size: 12,
-                                    color:
-                                        widget.color.withValues(alpha: 0.7)),
+                                    color: widget.color.withValues(alpha: 0.7)),
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
                                     widget.tip,
                                     style: TextStyle(
                                       fontSize: TypeScale.caption,
-                                      color:
-                                          AppStyles.getSecondaryTextColor(context),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
                                       height: 1.4,
                                     ),
                                   ),
@@ -409,7 +430,8 @@ class _AnimatedSubScoreBarState extends State<_AnimatedSubScoreBar> {
 class HealthScoreBody extends StatefulWidget {
   final HealthScoreData data;
   final bool isDark;
-  final int? scoreDelta; // positive = improved, negative = dropped, null = no prev data
+  final int?
+      scoreDelta; // positive = improved, negative = dropped, null = no prev data
 
   const HealthScoreBody({
     super.key,
@@ -533,52 +555,60 @@ class HealthScoreBodyState extends State<HealthScoreBody>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Arc gauge
-            SizedBox(
-              width: 90,
-              height: 90,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  AnimatedBuilder(
-                    animation: Listenable.merge([_arcAnim, _glowAnim]),
-                    builder: (_, __) => CustomPaint(
-                      size: const Size(90, 90),
-                      painter: _ScoreArcPainter(
-                        fraction: data.total / 100.0 * _arcAnim.value,
-                        scoreColor: data.bandColor,
-                        trackColor: trackColor,
-                        glowOpacity: _glowAnim.value,
+            Semantics(
+              label:
+                  'Financial health score: ${data.total} out of 100, ${data.bandLabel}',
+              child: SizedBox(
+                width: 90,
+                height: 90,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    AnimatedBuilder(
+                      animation: Listenable.merge([_arcAnim, _glowAnim]),
+                      builder: (_, __) => ExcludeSemantics(
+                        child: CustomPaint(
+                          size: const Size(90, 90),
+                          painter: _ScoreArcPainter(
+                            fraction: data.total / 100.0 * _arcAnim.value,
+                            scoreColor: data.bandColor,
+                            trackColor: trackColor,
+                            glowOpacity: _glowAnim.value,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  // Score count-up + "of 100"
-                  AnimatedBuilder(
-                    animation: _scoreCountAnim,
-                    builder: (_, __) => Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${(data.total * _scoreCountAnim.value).round()}',
-                          style: TextStyle(
-                            fontSize: RT.title1(context),
-                            fontWeight: FontWeight.w800,
-                            color: data.bandColor,
-                            height: 1.1,
-                          ),
+                    // Score count-up + "of 100"
+                    AnimatedBuilder(
+                      animation: _scoreCountAnim,
+                      builder: (_, __) => ExcludeSemantics(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${(data.total * _scoreCountAnim.value).round()}',
+                              style: TextStyle(
+                                fontSize: RT.title1(context),
+                                fontWeight: FontWeight.w800,
+                                color: data.bandColor,
+                                height: 1.1,
+                              ),
+                            ),
+                            Text(
+                              data.grade,
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                fontWeight: FontWeight.w800,
+                                color: data.bandColor,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          data.grade,
-                          style: TextStyle(
-                            fontSize: TypeScale.caption,
-                            fontWeight: FontWeight.w800,
-                            color: data.bandColor,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
@@ -620,7 +650,8 @@ class HealthScoreBodyState extends State<HealthScoreBody>
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: data.bandColor.withValues(alpha: 0.8),
+                                    color:
+                                        data.bandColor.withValues(alpha: 0.8),
                                     blurRadius: 4,
                                     spreadRadius: 1,
                                   ),
@@ -679,7 +710,8 @@ class HealthScoreBodyState extends State<HealthScoreBody>
           maxScore: 25,
           color: const Color(0xFF00C853),
           animation: _bar1Anim,
-          tip: 'Based on income vs savings ratio. Aim to save 20%+ of monthly income to score full marks.',
+          tip:
+              'Based on income vs savings ratio. Aim to save 20%+ of monthly income to score full marks.',
         ),
         _AnimatedSubScoreBar(
           label: 'Budget Adherence',
@@ -687,7 +719,8 @@ class HealthScoreBodyState extends State<HealthScoreBody>
           maxScore: 25,
           color: AppStyles.accentBlue,
           animation: _bar2Anim,
-          tip: 'Based on staying within your budgets. Review and resolve exceeded budgets to improve this score.',
+          tip:
+              'Based on staying within your budgets. Review and resolve exceeded budgets to improve this score.',
         ),
         _AnimatedSubScoreBar(
           label: 'Investment Diversity',
@@ -695,7 +728,8 @@ class HealthScoreBodyState extends State<HealthScoreBody>
           maxScore: 25,
           color: AppStyles.accentTeal,
           animation: _bar3Anim,
-          tip: 'Based on spread across asset classes. Adding equity, debt, gold, and FDs improves diversity.',
+          tip:
+              'Based on spread across asset classes. Adding equity, debt, gold, and FDs improves diversity.',
         ),
         _AnimatedSubScoreBar(
           label: 'Debt Ratio',
@@ -703,7 +737,8 @@ class HealthScoreBodyState extends State<HealthScoreBody>
           maxScore: 25,
           color: AppStyles.accentOrange,
           animation: _bar4Anim,
-          tip: 'Based on debt-to-income ratio. Keep EMIs below 40% of monthly income for a healthy score.',
+          tip:
+              'Based on debt-to-income ratio. Keep EMIs below 40% of monthly income for a healthy score.',
         ),
         if (data.total < 90) ...[
           const SizedBox(height: Spacing.md),
@@ -715,15 +750,14 @@ class HealthScoreBodyState extends State<HealthScoreBody>
               decoration: BoxDecoration(
                 color: data.bandColor.withValues(alpha: 0.07),
                 borderRadius: BorderRadius.circular(Radii.md),
-                border: Border.all(
-                    color: data.bandColor.withValues(alpha: 0.2)),
+                border:
+                    Border.all(color: data.bandColor.withValues(alpha: 0.2)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(CupertinoIcons.lightbulb_fill,
-                      size: 12,
-                      color: data.bandColor.withValues(alpha: 0.8)),
+                      size: 12, color: data.bandColor.withValues(alpha: 0.8)),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -792,7 +826,9 @@ class _DeltaBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isUp ? CupertinoIcons.arrow_up_right : CupertinoIcons.arrow_down_right,
+            isUp
+                ? CupertinoIcons.arrow_up_right
+                : CupertinoIcons.arrow_down_right,
             size: 10,
             color: color,
           ),

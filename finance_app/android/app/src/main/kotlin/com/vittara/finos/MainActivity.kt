@@ -11,12 +11,9 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Block screenshots and screen recording from the moment the window appears.
-        // This also prevents the app content from showing in the recent-apps switcher.
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE,
-        )
+        // Screenshots are temporarily allowed while implementation is in progress.
+        // Dart can still enable FLAG_SECURE through the method channel when needed.
+        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

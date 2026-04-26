@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
@@ -127,7 +128,8 @@ _NextMoveItem? _computeNextMove({
   if (!hasEmergencyGoal) {
     return _NextMoveItem(
       title: 'Create an Emergency Fund',
-      body: 'No safety net yet. Financial advisors recommend 6 months of expenses.',
+      body:
+          'No safety net yet. Financial advisors recommend 6 months of expenses.',
       icon: CupertinoIcons.shield_fill,
       color: AppStyles.accentOrange,
       onAction: () => showCupertinoModalPopup(
@@ -141,7 +143,8 @@ _NextMoveItem? _computeNextMove({
   if (!hasIncome) {
     return _NextMoveItem(
       title: 'Log your income',
-      body: 'Without income data, we can\'t compute your savings rate or health score.',
+      body:
+          'Without income data, we can\'t compute your savings rate or health score.',
       icon: CupertinoIcons.arrow_down_circle_fill,
       color: AppStyles.accentGreen,
       onAction: () {}, // handled by parent quick-add
@@ -185,10 +188,67 @@ _NextMoveItem? _computeNextMove({
     );
   }
 
-  // Rule 9 — No AI plan
+  // Rule 9 — October tax harvesting alert for long-term equity gains.
+  final now = DateTime.now();
+  if (now.month == 10) {
+    final harvestableGain = (investments as List)
+        .whereType<Investment>()
+        .where((inv) =>
+            inv.type == InvestmentType.stocks ||
+            inv.type == InvestmentType.mutualFund)
+        .where((inv) {
+      final rawPurchaseDate = inv.metadata?['purchaseDate']?.toString();
+      final purchaseDate =
+          rawPurchaseDate == null ? null : DateTime.tryParse(rawPurchaseDate);
+      if (purchaseDate == null) return false;
+      return now.difference(purchaseDate).inDays > 365 &&
+          inv.unrealisedPnL > 100000;
+    }).fold<double>(0, (sum, inv) => sum + inv.unrealisedPnL);
+
+    if (harvestableGain > 100000) {
+      return _NextMoveItem(
+        title: 'Tax harvesting window',
+        body:
+            'You have ${CurrencyFormatter.format(harvestableGain, decimals: 0)} in long-term gains. Consider booking profits before March 31 to use your ₹1L LTCG exemption.',
+        icon: CupertinoIcons.doc_text_fill,
+        color: AppStyles.accentOrange,
+        onAction: () => Navigator.of(context)
+            .push(FadeScalePageRoute(page: const InvestmentsScreen())),
+      );
+    }
+  }
+
+  // Rule 10 — Weekly savings round-up tracker.
+  final weekStart = DateTime(now.year, now.month, now.day)
+      .subtract(Duration(days: now.weekday - 1));
+  final roundUpTotal = (transactions as List)
+      .whereType<Transaction>()
+      .where((tx) =>
+          tx.type == TransactionType.expense &&
+          !tx.dateTime.isBefore(weekStart))
+      .fold<double>(0, (sum, tx) {
+    final rounded = (tx.amount / 50).ceil() * 50;
+    return sum + (rounded - tx.amount).clamp(0.0, 50.0);
+  });
+  if (roundUpTotal >= 50) {
+    return _NextMoveItem(
+      title: 'Round-up savings available',
+      body:
+          'You could have saved ${CurrencyFormatter.format(roundUpTotal, decimals: 0)} this week by rounding spends to the next ₹50.',
+      icon: CupertinoIcons.arrow_up_right_diamond_fill,
+      color: AppStyles.accentGreen,
+      onAction: () => showCupertinoModalPopup(
+        context: context,
+        builder: (_) => const AddGoalModal(),
+      ),
+    );
+  }
+
+  // Rule 11 — No AI plan
   return _NextMoveItem(
     title: 'Build your financial plan',
-    body: 'AI analysis turns your goals into a concrete monthly savings action.',
+    body:
+        'AI analysis turns your goals into a concrete monthly savings action.',
     icon: CupertinoIcons.wand_stars,
     color: AppStyles.novaPurple,
     onAction: () => Navigator.of(context).push(
@@ -223,16 +283,14 @@ class NextMoveWidget extends StatelessWidget {
         final isDark = AppStyles.isDarkMode(context);
 
         return Padding(
-          padding: const EdgeInsets.fromLTRB(
-              Spacing.lg, Spacing.md, Spacing.lg, 0),
+          padding:
+              const EdgeInsets.fromLTRB(Spacing.lg, Spacing.md, Spacing.lg, 0),
           child: BouncyButton(
             onPressed: move.onAction,
             child: Container(
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
-                color: isDark
-                    ? AppStyles.darkCard
-                    : AppStyles.lightCard,
+                color: isDark ? AppStyles.darkCard : AppStyles.lightCard,
                 borderRadius: BorderRadius.circular(Radii.xl),
                 border: Border.all(
                   color: move.color.withValues(alpha: 0.3),
@@ -255,8 +313,7 @@ class NextMoveWidget extends StatelessWidget {
                       color: move.color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(Radii.md),
                     ),
-                    child:
-                        Icon(move.icon, color: move.color, size: 22),
+                    child: Icon(move.icon, color: move.color, size: 22),
                   ),
                   const SizedBox(width: Spacing.md),
                   Expanded(
@@ -270,8 +327,7 @@ class NextMoveWidget extends StatelessWidget {
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: move.color.withValues(alpha: 0.12),
-                                borderRadius:
-                                    BorderRadius.circular(Radii.xs),
+                                borderRadius: BorderRadius.circular(Radii.xs),
                               ),
                               child: Text(
                                 'YOUR NEXT MOVE',

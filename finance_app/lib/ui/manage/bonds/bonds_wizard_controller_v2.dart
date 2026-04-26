@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/bond_cashflow_model.dart';
+import 'package:vittara_fin_os/logic/bonds_model.dart' as legacy;
 
 enum PayoutFrequency {
   monthly,
@@ -62,6 +63,16 @@ class BondsWizardControllerV2 extends ChangeNotifier {
   bool createNewNps = false;
   String newNpsName = '';
 
+  // Older, unused bond step widgets still import this controller name. Keep a
+  // small compatibility surface so analyzer/builds remain clean while V2 owns
+  // the active wizard.
+  legacy.BondType? selectedBondType;
+  String? selectedIssuer;
+  String? creditRating;
+  String? notes;
+  int purchaseQuantity = 1;
+  legacy.CouponFrequency couponFrequency = legacy.CouponFrequency.annual;
+
   int get currentStep => _currentStep;
   int get totalSteps =>
       6; // 0-5 (6 steps: Name, Amount, Account, Frequency, Dates, Review)
@@ -93,9 +104,11 @@ class BondsWizardControllerV2 extends ChangeNotifier {
       case 4:
         // Dates validation
         if (payoutFrequency == PayoutFrequency.atMaturity) {
-          return maturityDate.isAfter(DateTime.now().add(const Duration(days: 1)));
+          return maturityDate
+              .isAfter(DateTime.now().add(const Duration(days: 1)));
         } else {
-          return maturityDate.isAfter(DateTime.now().add(const Duration(days: 1))) &&
+          return maturityDate
+                  .isAfter(DateTime.now().add(const Duration(days: 1))) &&
               firstPayoutDay >= 1 &&
               firstPayoutDay <= 31 &&
               firstPayoutMonth >= 1 &&
@@ -148,6 +161,13 @@ class BondsWizardControllerV2 extends ChangeNotifier {
       autoDebitFromPurchaseAccount = false;
     }
     notifyListeners();
+  }
+
+  String? get selectedAccountId => linkedAccountId;
+  String? get selectedAccountName => linkedAccountName;
+
+  void updateAccountSelection(String? accountId, String? accountName) {
+    updateLinkedAccount(accountId, accountName);
   }
 
   void updateAutoDebit(bool value) {
@@ -207,6 +227,49 @@ class BondsWizardControllerV2 extends ChangeNotifier {
 
   void updateFixedCouponRate(double value) {
     fixedCouponRate = value;
+    notifyListeners();
+  }
+
+  double? get couponRate => fixedCouponRate;
+
+  void updateCouponRate(double value) {
+    updateFixedCouponRate(value);
+  }
+
+  void updateBondType(legacy.BondType type) {
+    selectedBondType = type;
+    selectedType = BondType.fixedCoupon;
+    notifyListeners();
+  }
+
+  void updateIssuer(String? issuer) {
+    selectedIssuer = issuer;
+    notifyListeners();
+  }
+
+  void updateCouponFrequency(legacy.CouponFrequency frequency) {
+    couponFrequency = frequency;
+    paymentsPerYear = switch (frequency) {
+      legacy.CouponFrequency.annual => 1,
+      legacy.CouponFrequency.semiAnnual => 2,
+      legacy.CouponFrequency.quarterly => 4,
+      legacy.CouponFrequency.monthly => 12,
+    };
+    notifyListeners();
+  }
+
+  void updatePurchaseQuantity(int quantity) {
+    purchaseQuantity = quantity < 1 ? 1 : quantity;
+    notifyListeners();
+  }
+
+  void updateCreditRating(String? value) {
+    creditRating = value;
+    notifyListeners();
+  }
+
+  void updateNotes(String? value) {
+    notes = value;
     notifyListeners();
   }
 
@@ -350,6 +413,15 @@ class BondsWizardControllerV2 extends ChangeNotifier {
   double get totalInvested => generatedCashFlows
       .where((cf) => cf.amount < 0)
       .fold(0.0, (sum, cf) => sum + cf.amount.abs());
+
+  double get totalCost => purchasePrice * purchaseQuantity;
+
+  double get maturityValue => faceValue * purchaseQuantity;
+
+  double get annualCouponPayment => maturityValue * ((couponRate ?? 0) / 100);
+
+  double get couponPerPayment =>
+      paymentsPerYear > 0 ? annualCouponPayment / paymentsPerYear : 0;
 
   double get totalReceived => generatedCashFlows
       .where((cf) => cf.amount > 0)

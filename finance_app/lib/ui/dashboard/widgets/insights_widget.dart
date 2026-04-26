@@ -62,8 +62,9 @@ class SpendCategoryDrift {
 
   double get momDelta =>
       lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : 0;
-  double get vsAvgDelta =>
-      threeMonthAvg > 0 ? ((thisMonth - threeMonthAvg) / threeMonthAvg) * 100 : 0;
+  double get vsAvgDelta => threeMonthAvg > 0
+      ? ((thisMonth - threeMonthAvg) / threeMonthAvg) * 100
+      : 0;
   bool get isAnomalous => thisMonth > 0 && vsAvgDelta > 40;
 }
 
@@ -94,12 +95,14 @@ class SpendIntelData {
     required this.hasData,
   });
 
-  double get monthElapsedFraction => daysInMonth > 0 ? dayOfMonth / daysInMonth : 0;
+  double get monthElapsedFraction =>
+      daysInMonth > 0 ? dayOfMonth / daysInMonth : 0;
   double get momChange => totalLastMonth > 0
       ? ((totalThisMonth - totalLastMonth) / totalLastMonth) * 100
       : 0;
-  double get savingsRate =>
-      incomeThisMonth > 0 ? ((incomeThisMonth - totalThisMonth) / incomeThisMonth) * 100 : -1;
+  double get savingsRate => incomeThisMonth > 0
+      ? ((incomeThisMonth - totalThisMonth) / incomeThisMonth) * 100
+      : -1;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -141,8 +144,7 @@ String _catEmoji(String cat) {
   return '💳';
 }
 
-SpendIntelData computeSpendIntel(
-    List<Transaction> transactions, List budgets,
+SpendIntelData computeSpendIntel(List<Transaction> transactions, List budgets,
     {List goals = const []}) {
   final now = DateTime.now();
   final dayOfMonth = now.day;
@@ -184,9 +186,8 @@ SpendIntelData computeSpendIntel(
   final hasData = totalThis > 0 || totalLast > 0;
 
   // Projection: linear extrapolation
-  final projected = dayOfMonth > 0
-      ? (totalThis / dayOfMonth) * daysInMonth
-      : 0.0;
+  final projected =
+      dayOfMonth > 0 ? (totalThis / dayOfMonth) * daysInMonth : 0.0;
 
   // ── Category aggregation ─────────────────────────────────────────────────
   Map<String, double> catTotal(List<Transaction> list) {
@@ -210,7 +211,11 @@ SpendIntelData computeSpendIntel(
     final lastV = catLast[cat] ?? 0;
     final twoV = catTwo[cat] ?? 0;
     final threeV = catThree[cat] ?? 0;
-    final historicMonths = [if (lastV > 0) lastV, if (twoV > 0) twoV, if (threeV > 0) threeV];
+    final historicMonths = [
+      if (lastV > 0) lastV,
+      if (twoV > 0) twoV,
+      if (threeV > 0) threeV
+    ];
     final avg = historicMonths.isEmpty
         ? 0.0
         : historicMonths.fold(0.0, (a, b) => a + b) / historicMonths.length;
@@ -290,7 +295,8 @@ SpendIntelData computeSpendIntel(
   final anomalous = topCats.where((c) => c.isAnomalous).toList();
   if (anomalous.isNotEmpty) {
     final top = anomalous.first;
-    final mult = top.threeMonthAvg > 0 ? top.thisMonth / top.threeMonthAvg : 0.0;
+    final mult =
+        top.threeMonthAvg > 0 ? top.thisMonth / top.threeMonthAvg : 0.0;
     narratives.add(SpendNarrative(
       headline: '${top.emoji} ${top.name} spike detected',
       detail:
@@ -389,13 +395,15 @@ SpendIntelData computeSpendIntel(
   // 8. Goal nudges (AI-01)
   for (final goal in goals.take(2)) {
     try {
-      final remaining = (goal.targetAmount as double) - (goal.currentAmount as double);
+      final remaining =
+          (goal.targetAmount as double) - (goal.currentAmount as double);
       if (remaining <= 0) continue;
       final monthsLeft = goal.monthsRemaining as int;
       if (monthsLeft <= 0) continue;
       final neededPerMonth = remaining / monthsLeft;
       // Estimate monthly savings from income vs expense
-      final monthlySavings = (incomeThis - totalThis).clamp(0.0, double.infinity);
+      final monthlySavings =
+          (incomeThis - totalThis).clamp(0.0, double.infinity);
       if (monthlySavings <= 0) {
         narratives.add(SpendNarrative(
           headline: '🎯 ${goal.name} goal at risk',
@@ -537,9 +545,7 @@ class SpendNarrativeCarouselState extends State<SpendNarrativeCarousel>
           padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(Radii.lg),
-            color: (widget.isDark
-                    ? Colors.white
-                    : Colors.black)
+            color: (widget.isDark ? Colors.white : Colors.black)
                 .withValues(alpha: 0.04),
             border: Border.all(
               color: (widget.isDark ? Colors.white : Colors.black)
@@ -549,8 +555,7 @@ class SpendNarrativeCarouselState extends State<SpendNarrativeCarousel>
           child: Row(
             children: [
               Icon(CupertinoIcons.lightbulb,
-                  size: 24,
-                  color: AppStyles.getSecondaryTextColor(context)),
+                  size: 24, color: AppStyles.getSecondaryTextColor(context)),
               const SizedBox(width: Spacing.sm),
               Expanded(
                 child: Column(
@@ -585,8 +590,8 @@ class SpendNarrativeCarouselState extends State<SpendNarrativeCarousel>
             controller: _ctrl,
             itemCount: widget.insights.length,
             onPageChanged: (i) => setState(() => _page = i),
-            itemBuilder: (_, i) =>
-                _NarrativeCard(insight: widget.insights[i], isDark: widget.isDark),
+            itemBuilder: (_, i) => _NarrativeCard(
+                insight: widget.insights[i], isDark: widget.isDark),
           ),
         ),
         if (widget.insights.length > 1) ...[
@@ -706,8 +711,7 @@ class _SpendForecastBarState extends State<SpendForecastBar>
       vsync: this,
       duration: const Duration(milliseconds: 700),
     );
-    _fillAnim =
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    _fillAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
     _ctrl.forward();
   }
 
@@ -735,35 +739,99 @@ class _SpendForecastBarState extends State<SpendForecastBar>
         ? Colors.white.withValues(alpha: 0.08)
         : Colors.black.withValues(alpha: 0.06);
 
-    return AnimatedBuilder(
-      animation: _fillAnim,
-      builder: (context, _) {
-        final animFrac = spendFrac * _fillAnim.value;
-        return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Day ${data.dayOfMonth} of ${data.daysInMonth}',
-              style: TextStyle(
-                fontSize: TypeScale.caption,
-                color: AppStyles.getSecondaryTextColor(context),
-              ),
-            ),
-            Row(
+    return Semantics(
+      label: 'Spending forecast chart. Day ${data.dayOfMonth} of '
+          '${data.daysInMonth}. Spent ${spendFmt(data.totalThisMonth)} so far, '
+          'projected ${spendFmt(data.projectedMonthEnd)}.',
+      child: ExcludeSemantics(
+        child: AnimatedBuilder(
+          animation: _fillAnim,
+          builder: (context, _) {
+            final animFrac = spendFrac * _fillAnim.value;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  spendFmt(data.totalThisMonth),
-                  style: TextStyle(
-                    fontSize: TypeScale.caption,
-                    fontWeight: FontWeight.w700,
-                    color: AppStyles.getTextColor(context),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Day ${data.dayOfMonth} of ${data.daysInMonth}',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          spendFmt(data.totalThisMonth),
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            fontWeight: FontWeight.w700,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                        Text(
+                          '  →  ${spendFmt(data.projectedMonthEnd)}',
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: barColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
+                const SizedBox(height: Spacing.xs),
+                Stack(
+                  children: [
+                    // track
+                    Container(
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: trackColor,
+                        borderRadius: BorderRadius.circular(Radii.full),
+                      ),
+                    ),
+                    // spend fill — animated
+                    FractionallySizedBox(
+                      widthFactor: animFrac.clamp(0.0, 1.0),
+                      child: Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [barColor.withValues(alpha: 0.7), barColor],
+                          ),
+                          borderRadius: BorderRadius.circular(Radii.full),
+                        ),
+                      ),
+                    ),
+                    // day marker line
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: elapsed,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Container(
+                            width: 1.5,
+                            height: 10,
+                            color: Colors.white.withValues(alpha: 0.6),
+                            margin: const EdgeInsets.only(top: -2),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: Spacing.xs),
                 Text(
-                  '  →  ${spendFmt(data.projectedMonthEnd)}',
+                  data.totalLastMonth > 0
+                      ? '${data.momChange >= 0 ? '+' : ''}${data.momChange.toStringAsFixed(1)}% vs last month\'s ${spendFmt(data.totalLastMonth)}'
+                      : 'At ${spendFmt(data.projectedMonthEnd > 0 ? data.totalThisMonth / data.dayOfMonth : 0)}/day pace',
                   style: TextStyle(
                     fontSize: TypeScale.caption,
                     color: barColor,
@@ -771,67 +839,10 @@ class _SpendForecastBarState extends State<SpendForecastBar>
                   ),
                 ),
               ],
-            ),
-          ],
+            );
+          },
         ),
-        const SizedBox(height: Spacing.xs),
-        Stack(
-          children: [
-            // track
-            Container(
-              height: 6,
-              decoration: BoxDecoration(
-                color: trackColor,
-                borderRadius: BorderRadius.circular(Radii.full),
-              ),
-            ),
-            // spend fill — animated
-            FractionallySizedBox(
-              widthFactor: animFrac.clamp(0.0, 1.0),
-              child: Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [barColor.withValues(alpha: 0.7), barColor],
-                  ),
-                  borderRadius: BorderRadius.circular(Radii.full),
-                ),
-              ),
-            ),
-            // day marker line
-            Positioned(
-              left: 0,
-              right: 0,
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: elapsed,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Container(
-                    width: 1.5,
-                    height: 10,
-                    color: Colors.white.withValues(alpha: 0.6),
-                    margin: const EdgeInsets.only(top: -2),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: Spacing.xs),
-        Text(
-          data.totalLastMonth > 0
-              ? '${data.momChange >= 0 ? '+' : ''}${data.momChange.toStringAsFixed(1)}% vs last month\'s ${spendFmt(data.totalLastMonth)}'
-              : 'At ${spendFmt(data.projectedMonthEnd > 0 ? data.totalThisMonth / data.dayOfMonth : 0)}/day pace',
-          style: TextStyle(
-            fontSize: TypeScale.caption,
-            color: barColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-        );
-      },
+      ),
     );
   }
 }
@@ -863,7 +874,8 @@ class SpendCategoryDriftRow extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemCount: drifts.length,
         separatorBuilder: (_, __) => const SizedBox(width: Spacing.sm),
-        itemBuilder: (_, i) => SpendCategoryDriftCard(drift: drifts[i], isDark: isDark),
+        itemBuilder: (_, i) =>
+            SpendCategoryDriftCard(drift: drifts[i], isDark: isDark),
       ),
     );
   }
@@ -921,94 +933,96 @@ class _SpendCategoryDriftCardState extends State<SpendCategoryDriftCard>
       animation: _anim,
       builder: (context, _) {
         return Container(
-      width: 88,
-      padding: const EdgeInsets.all(Spacing.sm),
-      decoration: BoxDecoration(
-        color: widget.isDark
-            ? Colors.white.withValues(alpha: 0.04)
-            : Colors.black.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(Radii.md),
-        border: drift.isAnomalous
-            ? Border.all(color: AppStyles.loss(context).withValues(alpha: 0.4), width: 1)
-            : null,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
+          width: 88,
+          padding: const EdgeInsets.all(Spacing.sm),
+          decoration: BoxDecoration(
+            color: widget.isDark
+                ? Colors.white.withValues(alpha: 0.04)
+                : Colors.black.withValues(alpha: 0.03),
+            borderRadius: BorderRadius.circular(Radii.md),
+            border: drift.isAnomalous
+                ? Border.all(
+                    color: AppStyles.loss(context).withValues(alpha: 0.4),
+                    width: 1)
+                : null,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(drift.emoji, style: AppTypography.caption()),
-              const SizedBox(width: 3),
-              Expanded(
-                child: Text(
-                  drift.name,
-                  style: AppTypography.micro().copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppStyles.getSecondaryTextColor(context),
+              Row(
+                children: [
+                  Text(drift.emoji, style: AppTypography.caption()),
+                  const SizedBox(width: 3),
+                  Expanded(
+                    child: Text(
+                      drift.name,
+                      style: AppTypography.micro().copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                ],
               ),
-            ],
-          ),
-          Text(
-            spendFmt(drift.thisMonth),
-            style: TextStyle(
-              fontSize: TypeScale.caption,
-              fontWeight: FontWeight.w700,
-              color: AppStyles.getTextColor(context),
-            ),
-          ),
-          // Mini twin bar — animated heights
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: (14 * thisFrac + 2) * _anim.value,
-                      decoration: BoxDecoration(
-                        color: barColor,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: (14 * lastFrac + 2) * _anim.value,
-                      decoration: BoxDecoration(
-                        color: barColor.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 4),
               Text(
-                delta == 0
-                    ? '—'
-                    : '${isUp ? '↑' : '↓'}${delta.abs().toStringAsFixed(0)}%',
+                spendFmt(drift.thisMonth),
                 style: TextStyle(
-                  fontSize: 9,
+                  fontSize: TypeScale.caption,
                   fontWeight: FontWeight.w700,
-                  color: barColor,
+                  color: AppStyles.getTextColor(context),
                 ),
+              ),
+              // Mini twin bar — animated heights
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: (14 * thisFrac + 2) * _anim.value,
+                          decoration: BoxDecoration(
+                            color: barColor,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: (14 * lastFrac + 2) * _anim.value,
+                          decoration: BoxDecoration(
+                            color: barColor.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    delta == 0
+                        ? '—'
+                        : '${isUp ? '↑' : '↓'}${delta.abs().toStringAsFixed(0)}%',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: barColor,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
         );
       },
     );
@@ -1072,8 +1086,9 @@ class _SpendDowHeatmapState extends State<SpendDowHeatmap>
         return Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: List.generate(7, (i) {
-            final fraction =
-                maxVal > 0 ? (widget.dowSpend[i] / maxVal).clamp(0.0, 1.0) : 0.0;
+            final fraction = maxVal > 0
+                ? (widget.dowSpend[i] / maxVal).clamp(0.0, 1.0)
+                : 0.0;
             final isPeak = widget.dowSpend[i] == maxVal;
             // Staggered: bar i starts at i/7 * 0.35 of total animation
             final startT = (i / 7) * 0.35;
@@ -1120,8 +1135,8 @@ class _SpendDowHeatmapState extends State<SpendDowHeatmap>
                     margin: const EdgeInsets.symmetric(horizontal: 2),
                     decoration: BoxDecoration(
                       color: color,
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(3)),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(3)),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -1129,8 +1144,7 @@ class _SpendDowHeatmapState extends State<SpendDowHeatmap>
                     spendDowName(i).substring(0, 2),
                     style: TextStyle(
                       fontSize: 9,
-                      fontWeight:
-                          isPeak ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: isPeak ? FontWeight.w700 : FontWeight.w500,
                       color: isPeak
                           ? peakColor
                           : AppStyles.getSecondaryTextColor(context),
@@ -1297,7 +1311,8 @@ class InsightsWidget extends BaseDashboardWidget {
     required double height,
   }) {
     return RepaintBoundary(
-      child: Consumer3<TransactionsController, BudgetsController, GoalsController>(
+      child:
+          Consumer3<TransactionsController, BudgetsController, GoalsController>(
         builder: (context, txCtrl, budgetsCtrl, goalsCtrl, _) {
           final data = computeSpendIntel(
               txCtrl.transactions, budgetsCtrl.budgets,
@@ -1317,8 +1332,7 @@ class InsightsWidget extends BaseDashboardWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(CupertinoIcons.chart_bar,
-                        size: 32,
-                        color: AppStyles.teal(context)),
+                        size: 32, color: AppStyles.teal(context)),
                   ),
                   const SizedBox(height: Spacing.md),
                   Text('Spending Insights',
@@ -1361,7 +1375,8 @@ class InsightsWidget extends BaseDashboardWidget {
               // ── Category Pulse ─────────────────────────────────────
               if (data.categoryDrifts.isNotEmpty) ...[
                 SpendSectionLabel('CATEGORY PULSE  ·  this month vs last'),
-                SpendCategoryDriftRow(drifts: data.categoryDrifts, isDark: isDark),
+                SpendCategoryDriftRow(
+                    drifts: data.categoryDrifts, isDark: isDark),
                 const SizedBox(height: Spacing.md),
               ],
 

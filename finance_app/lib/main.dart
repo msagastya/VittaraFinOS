@@ -102,6 +102,10 @@ final AppLogger logger = AppLogger();
 /// sheet. The dashboard FAB listens to this and plays its checkmark morph.
 final dashboardSavedSignal = ValueNotifier<int>(0);
 
+// Temporary implementation-mode switch: keep screenshots enabled until the
+// remaining plan work is complete and security hardening is re-enabled.
+const bool kAllowScreenshotsDuringImplementation = true;
+
 /// Hard-stop scroll physics applied to every scrollable in the app.
 /// ClampingScrollPhysics prevents lists from drifting past top/bottom
 /// boundaries and getting stuck — consistent Android scroll behaviour.
@@ -115,9 +119,14 @@ void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Device security checks + screenshot protection — before any UI renders.
+    // Device security checks run before UI renders. Screenshot protection is
+    // temporarily disabled so builds can be captured during implementation.
     unawaited(DeviceSecurityService.instance.check());
-    unawaited(DeviceSecurityService.instance.enableScreenshotProtection());
+    if (kAllowScreenshotsDuringImplementation) {
+      unawaited(DeviceSecurityService.instance.disableScreenshotProtection());
+    } else {
+      unawaited(DeviceSecurityService.instance.enableScreenshotProtection());
+    }
 
     // Open encrypted SQLite DB and run one-time SharedPreferences migration
     // BEFORE any controller initializes so load() calls find data in SQLite.
@@ -138,73 +147,139 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) {
-            try { return SettingsController()..loadSettings(); }
-            catch (e) { logger.error('SettingsController init failed', error: e); return SettingsController(); }
+            try {
+              return SettingsController()..loadSettings();
+            } catch (e) {
+              logger.error('SettingsController init failed', error: e);
+              return SettingsController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return AccountsController()..loadAccounts(); }
-            catch (e) { logger.error('AccountsController init failed', error: e); return AccountsController(); }
+            try {
+              return AccountsController()..loadAccounts();
+            } catch (e) {
+              logger.error('AccountsController init failed', error: e);
+              return AccountsController();
+            }
           }),
           ChangeNotifierProvider(create: (_) => BanksController()),
           ChangeNotifierProvider(create: (_) => BrokersController()),
           ChangeNotifierProvider(create: (_) {
-            try { return PaymentAppsController()..loadApps(); }
-            catch (e) { logger.error('PaymentAppsController init failed', error: e); return PaymentAppsController(); }
+            try {
+              return PaymentAppsController()..loadApps();
+            } catch (e) {
+              logger.error('PaymentAppsController init failed', error: e);
+              return PaymentAppsController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return InvestmentsController()..loadInvestments(); }
-            catch (e) { logger.error('InvestmentsController init failed', error: e); return InvestmentsController(); }
+            try {
+              return InvestmentsController()..loadInvestments();
+            } catch (e) {
+              logger.error('InvestmentsController init failed', error: e);
+              return InvestmentsController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return InvestmentTypePreferencesController()..loadPreferences(); }
-            catch (e) { logger.error('InvestmentTypePreferencesController init failed', error: e); return InvestmentTypePreferencesController(); }
+            try {
+              return InvestmentTypePreferencesController()..loadPreferences();
+            } catch (e) {
+              logger.error('InvestmentTypePreferencesController init failed',
+                  error: e);
+              return InvestmentTypePreferencesController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return CategoriesController()..loadCategories(); }
-            catch (e) { logger.error('CategoriesController init failed', error: e); return CategoriesController(); }
+            try {
+              return CategoriesController()..loadCategories();
+            } catch (e) {
+              logger.error('CategoriesController init failed', error: e);
+              return CategoriesController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return LendingBorrowingController()..loadRecords(); }
-            catch (e) { logger.error('LendingBorrowingController init failed', error: e); return LendingBorrowingController(); }
+            try {
+              return LendingBorrowingController()..loadRecords();
+            } catch (e) {
+              logger.error('LendingBorrowingController init failed', error: e);
+              return LendingBorrowingController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return ContactsController()..loadContacts(); }
-            catch (e) { logger.error('ContactsController init failed', error: e); return ContactsController(); }
+            try {
+              return ContactsController()..loadContacts();
+            } catch (e) {
+              logger.error('ContactsController init failed', error: e);
+              return ContactsController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return TagsController()..loadTags(); }
-            catch (e) { logger.error('TagsController init failed', error: e); return TagsController(); }
+            try {
+              return TagsController()..loadTags();
+            } catch (e) {
+              logger.error('TagsController init failed', error: e);
+              return TagsController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return TransactionsController()..loadTransactions(); }
-            catch (e) { logger.error('TransactionsController init failed', error: e); return TransactionsController(); }
+            try {
+              return TransactionsController()..loadTransactions();
+            } catch (e) {
+              logger.error('TransactionsController init failed', error: e);
+              return TransactionsController();
+            }
           }),
-          ChangeNotifierProvider(create: (_) => TransactionsArchiveController()),
+          ChangeNotifierProvider(
+              create: (_) => TransactionsArchiveController()),
           ChangeNotifierProvider(create: (_) {
-            try { return DashboardController()..initialize(); }
-            catch (e) { logger.error('DashboardController init failed', error: e); return DashboardController(); }
+            try {
+              return DashboardController()..initialize();
+            } catch (e) {
+              logger.error('DashboardController init failed', error: e);
+              return DashboardController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return GoalsController()..initialize(); }
-            catch (e) { logger.error('GoalsController init failed', error: e); return GoalsController(); }
+            try {
+              return GoalsController()..initialize();
+            } catch (e) {
+              logger.error('GoalsController init failed', error: e);
+              return GoalsController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return BudgetsController()..initialize(); }
-            catch (e) { logger.error('BudgetsController init failed', error: e); return BudgetsController(); }
+            try {
+              return BudgetsController()..initialize();
+            } catch (e) {
+              logger.error('BudgetsController init failed', error: e);
+              return BudgetsController();
+            }
           }),
           ChangeNotifierProvider(create: (_) => RecurringTemplatesController()),
           ChangeNotifierProvider(create: (_) => FinancialPlansController()),
           ChangeNotifierProvider(create: (_) {
-            try { return LoanController()..load(); }
-            catch (e) { logger.error('LoanController init failed', error: e); return LoanController(); }
+            try {
+              return LoanController()..load();
+            } catch (e) {
+              logger.error('LoanController init failed', error: e);
+              return LoanController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return InsuranceController()..load(); }
-            catch (e) { logger.error('InsuranceController init failed', error: e); return InsuranceController(); }
+            try {
+              return InsuranceController()..load();
+            } catch (e) {
+              logger.error('InsuranceController init failed', error: e);
+              return InsuranceController();
+            }
           }),
           ChangeNotifierProvider(create: (_) {
-            try { return EngagementService()..initialize(); }
-            catch (e) { logger.error('EngagementService init failed', error: e); return EngagementService(); }
+            try {
+              return EngagementService()..initialize();
+            } catch (e) {
+              logger.error('EngagementService init failed', error: e);
+              return EngagementService();
+            }
           }),
           ChangeNotifierProvider(create: (ctx) {
             try {
@@ -212,15 +287,19 @@ void main() {
               // Wire live data providers after the Provider tree is ready.
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 try {
-                  final accounts = Provider.of<AccountsController>(ctx, listen: false);
-                  final budgetsCtrl = Provider.of<BudgetsController>(ctx, listen: false);
-                  final goalsCtrl = Provider.of<GoalsController>(ctx, listen: false);
+                  final accounts =
+                      Provider.of<AccountsController>(ctx, listen: false);
+                  final budgetsCtrl =
+                      Provider.of<BudgetsController>(ctx, listen: false);
+                  final goalsCtrl =
+                      Provider.of<GoalsController>(ctx, listen: false);
                   ctrl.wireProviders(AIDataProviders(
                     accountCount: () => accounts.accounts.length,
                     accountBalances: () => {
                       for (final a in accounts.accounts) a.id: a.balance,
                     },
-                    budgets: () => budgetsCtrl.budgets.map((b) => b.toMap()).toList(),
+                    budgets: () =>
+                        budgetsCtrl.budgets.map((b) => b.toMap()).toList(),
                     goals: () => goalsCtrl.activeGoals,
                   ));
                 } catch (e) {
@@ -278,8 +357,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     } else if (state == AppLifecycleState.resumed) {
       settings.appResumed();
       // Re-show lock screen if lock is active — but only if one isn't already shown.
-      if (settings.lockOnMinimize && settings.isLocked && settings.appLoaded &&
-          !kIsWeb && !_lockDialogActive) {
+      if (settings.lockOnMinimize &&
+          settings.isLocked &&
+          settings.appLoaded &&
+          !kIsWeb &&
+          !_lockDialogActive) {
         _showLockDialog();
       }
     }
@@ -289,13 +371,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final nav = appNavigatorKey.currentState;
     if (nav == null) return;
     _lockDialogActive = true;
-    nav.push(
-      PageRouteBuilder(
-        opaque: false,
-        barrierDismissible: false,
-        pageBuilder: (_, __, ___) => const _LockDialog(),
-      ),
-    ).then((_) => _lockDialogActive = false);
+    nav
+        .push(
+          PageRouteBuilder(
+            opaque: false,
+            barrierDismissible: false,
+            pageBuilder: (_, __, ___) => const _LockDialog(),
+          ),
+        )
+        .then((_) => _lockDialogActive = false);
   }
 
   @override
@@ -606,8 +690,7 @@ class _LockScreenState extends State<LockScreen> {
 
   Widget _buildPinEntry(BuildContext context, SettingsController settings) {
     final dotColor = _pinError ? Colors.red : Colors.white;
-    final btnSize =
-        (MediaQuery.of(context).size.width / 5.5).clamp(56.0, 80.0);
+    final btnSize = (MediaQuery.of(context).size.width / 5.5).clamp(56.0, 80.0);
     return Column(
       children: [
         const SizedBox(height: Spacing.xxxl),
@@ -667,7 +750,8 @@ class _LockScreenState extends State<LockScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: row.map((label) {
-                      if (label.isEmpty) return SizedBox(width: btnSize, height: btnSize);
+                      if (label.isEmpty)
+                        return SizedBox(width: btnSize, height: btnSize);
                       return GestureDetector(
                         onTap: () {
                           HapticFeedback.lightImpact();
@@ -746,16 +830,28 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _logoCtrl;
+
   @override
   void initState() {
     super.initState();
     logger.info("Initializing SplashScreen state", context: 'SplashScreen');
 
+    _logoCtrl = AnimationController.unbounded(vsync: this, value: 0.0)
+      ..animateWith(AppSprings.from(AppSprings.bouncy, 0.0, 1.0));
+
     // Initialize MFDatabaseService in background (non-blocking)
     MFDatabaseService().initialize();
 
     _waitForReadyThenNavigate();
+  }
+
+  @override
+  void dispose() {
+    _logoCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _waitForReadyThenNavigate() async {
@@ -783,36 +879,36 @@ class _SplashScreenState extends State<SplashScreen> {
     // Track session for feature-discovery tooltips
     await TooltipService.instance.incrementSession();
 
-      final v1Done = await hasCompletedOnboarding();
-      final v2Done = await hasCompletedActivation();
-      if (!mounted) return;
+    final v1Done = await hasCompletedOnboarding();
+    final v2Done = await hasCompletedActivation();
+    if (!mounted) return;
 
-      void _goToDashboard() {
-        Navigator.of(context).pushReplacement(
-            FadeScalePageRoute(page: const DashboardScreen()));
-        _triggerSmsStartupScan();
-        _checkAndShowWhatsNew();
-        _showDeviceSecurityWarningIfNeeded();
-        _checkOptimiseDashboardPrompt();
-        BackupRestoreService.runAutoBackupIfNeeded();
-        DeviceIntelligenceTier.detect();
-        MerchantNormalizer.init();
-        UsageTimingService.instance.recordAppOpen(); // T-145/T-146
-      }
+    void _goToDashboard() {
+      Navigator.of(context)
+          .pushReplacement(FadeScalePageRoute(page: const DashboardScreen()));
+      _triggerSmsStartupScan();
+      _checkAndShowWhatsNew();
+      _showDeviceSecurityWarningIfNeeded();
+      _checkOptimiseDashboardPrompt();
+      BackupRestoreService.runAutoBackupIfNeeded();
+      DeviceIntelligenceTier.detect();
+      MerchantNormalizer.init();
+      UsageTimingService.instance.recordAppOpen(); // T-145/T-146
+    }
 
-      if (v1Done || v2Done) {
-        // Existing user (v1) or activation-complete user (v2) → dashboard
-        _goToDashboard();
-      } else {
-        // New user → show activation wizard
-        Navigator.of(context).pushReplacement(
-          FadeScalePageRoute(
-            page: OnboardingActivationScreen(
-              onComplete: _goToDashboard,
-            ),
+    if (v1Done || v2Done) {
+      // Existing user (v1) or activation-complete user (v2) → dashboard
+      _goToDashboard();
+    } else {
+      // New user → show activation wizard
+      Navigator.of(context).pushReplacement(
+        FadeScalePageRoute(
+          page: OnboardingActivationScreen(
+            onComplete: _goToDashboard,
           ),
-        );
-      }
+        ),
+      );
+    }
   }
 
   /// T-138: Show a one-time warning if the device is rooted or an emulator.
@@ -848,7 +944,8 @@ class _SplashScreenState extends State<SplashScreen> {
   void _checkOptimiseDashboardPrompt() {
     Future.delayed(const Duration(seconds: 3), () async {
       if (!mounted) return;
-      final should = await UsageTrackerService.instance.shouldShowOptimisePrompt();
+      final should =
+          await UsageTrackerService.instance.shouldShowOptimisePrompt();
       if (!should || !mounted) return;
       await UsageTrackerService.instance.markOptimisePromptShown();
       if (!mounted) return;
@@ -873,8 +970,7 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
       if (ok == true) {
-        final tapCounts =
-            await UsageTrackerService.instance.widgetTapCounts();
+        final tapCounts = await UsageTrackerService.instance.widgetTapCounts();
         await dashCtrl.reorderByUsage(tapCounts);
       }
     });
@@ -901,7 +997,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _triggerSmsStartupScan() {
-    final smsEnabled = Provider.of<SettingsController>(context, listen: false).isSmsEnabled;
+    final smsEnabled =
+        Provider.of<SettingsController>(context, listen: false).isSmsEnabled;
     if (!smsEnabled) return;
     // Run silently — errors are swallowed so they never crash the app.
     Future.microtask(() async {
@@ -921,8 +1018,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppStyles.darkText : AppStyles.lightText;
-    final subColor =
-        isDark ? const Color(0xFF6B8AAD) : Colors.black54;
+    final subColor = isDark ? const Color(0xFF6B8AAD) : Colors.black54;
 
     return Scaffold(
       backgroundColor:
@@ -931,14 +1027,32 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const FintechLoader(size: 200),
-            const SizedBox(height: Spacing.xl),
-            Text(
-              'VittaraFinOS',
-              style: TextStyle(
-                fontSize: RT.largeTitle(context),
-                fontWeight: FontWeight.bold,
-                color: textColor,
+            AnimatedBuilder(
+              animation: _logoCtrl,
+              builder: (context, child) {
+                final t = _logoCtrl.value.clamp(0.0, 1.0);
+                return Opacity(
+                  opacity: t,
+                  child: Transform.scale(
+                    scale: 0.7 + (0.3 * t),
+                    child: child,
+                  ),
+                );
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const FintechLoader(size: 200),
+                  const SizedBox(height: Spacing.xl),
+                  Text(
+                    'VittaraFinOS',
+                    style: TextStyle(
+                      fontSize: RT.largeTitle(context),
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 6),
@@ -1098,7 +1212,8 @@ class _MonthlyDigestSheet extends StatelessWidget {
     final catMap = <String, double>{};
 
     for (final tx in txCtrl.transactions) {
-      if (tx.dateTime.isBefore(prevMonth) || tx.dateTime.isAfter(prevMonthEnd)) {
+      if (tx.dateTime.isBefore(prevMonth) ||
+          tx.dateTime.isAfter(prevMonthEnd)) {
         continue;
       }
       txCount++;
@@ -1113,8 +1228,8 @@ class _MonthlyDigestSheet extends StatelessWidget {
     }
 
     if (catMap.isNotEmpty) {
-      final topEntry = catMap.entries.reduce(
-          (a, b) => a.value > b.value ? a : b);
+      final topEntry =
+          catMap.entries.reduce((a, b) => a.value > b.value ? a : b);
       topCategory = topEntry.key;
       topCatAmount = topEntry.value;
     }
@@ -1178,7 +1293,9 @@ class _MonthlyDigestSheet extends StatelessWidget {
                   // Stats grid
                   Row(
                     children: [
-                      _statTile(context, 'Savings Rate',
+                      _statTile(
+                          context,
+                          'Savings Rate',
                           '${savingsRate.toStringAsFixed(1)}%',
                           savingsRate >= 20
                               ? AppStyles.accentGreen
@@ -1246,7 +1363,8 @@ class _MonthlyDigestSheet extends StatelessWidget {
     );
   }
 
-  Widget _statTile(BuildContext context, String label, String value, Color color) {
+  Widget _statTile(
+      BuildContext context, String label, String value, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(Spacing.md),
@@ -1300,8 +1418,18 @@ class _MonthlyDigestSheet extends StatelessWidget {
 
   String _monthName(int month) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return months[month - 1];
   }
@@ -1340,7 +1468,8 @@ class _DashboardScreenOuterState extends State<DashboardScreen> {
         context: context,
         targetKey: _searchIconKey,
         title: 'Search with natural language',
-        body: "Try 'food last week', 'coffee this month', or 'show savings'. Works in English and Hinglish.",
+        body:
+            "Try 'food last week', 'coffee this month', or 'show savings'. Works in English and Hinglish.",
       );
       await TooltipService.instance.markShown(1);
     }
@@ -1352,7 +1481,8 @@ class _DashboardScreenOuterState extends State<DashboardScreen> {
         context: context,
         targetKey: _searchIconKey, // fallback — ideally mic key
         title: 'Add transactions by voice',
-        body: "Tap the + button and hold the mic. Say '500 on Swiggy' or '₹1200 salary credited'. Hindi and Hinglish work too.",
+        body:
+            "Tap the + button and hold the mic. Say '500 on Swiggy' or '₹1200 salary credited'. Hindi and Hinglish work too.",
       );
       await TooltipService.instance.markShown(2);
     }
@@ -1364,7 +1494,8 @@ class _DashboardScreenOuterState extends State<DashboardScreen> {
         context: context,
         targetKey: _calendarIconKey,
         title: 'Your financial calendar',
-        body: 'This shows when your FDs mature, SIPs are due, and bills are coming — all in one timeline.',
+        body:
+            'This shows when your FDs mature, SIPs are due, and bills are coming — all in one timeline.',
       );
       await TooltipService.instance.markShown(3);
     }
@@ -1376,7 +1507,8 @@ class _DashboardScreenOuterState extends State<DashboardScreen> {
         context: context,
         targetKey: _searchIconKey, // fallback key
         title: 'Navigate by voice',
-        body: "Say 'goals dikhao', 'show my budget', or 'open investments' to jump anywhere in the app.",
+        body:
+            "Say 'goals dikhao', 'show my budget', or 'open investments' to jump anywhere in the app.",
       );
       await TooltipService.instance.markShown(4);
     }
@@ -1464,8 +1596,9 @@ class _DashboardScreenContent extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).push(
                         PageRouteBuilder(
-                          pageBuilder: (context, animation, secondaryAnimation) =>
-                              const DashboardAppMenuScreen(),
+                          pageBuilder:
+                              (context, animation, secondaryAnimation) =>
+                                  const DashboardAppMenuScreen(),
                           transitionsBuilder:
                               (context, animation, secondaryAnimation, child) {
                             final slideTween = Tween<Offset>(
@@ -1672,27 +1805,40 @@ class _DashboardScreenContent extends StatelessWidget {
                               final all = invCtrl.investments;
                               final fdsMatured = all.where((inv) {
                                 final md = inv.metadata;
-                                if (md == null || !md.containsKey('maturityDate')) return false;
-                                final days = DateTime.parse(md['maturityDate'] as String)
-                                    .difference(DateTime.now()).inDays;
+                                if (md == null ||
+                                    !md.containsKey('maturityDate'))
+                                  return false;
+                                final days =
+                                    DateTime.parse(md['maturityDate'] as String)
+                                        .difference(DateTime.now())
+                                        .inDays;
                                 return days < 0;
                               }).length;
                               final fdsNear = all.where((inv) {
                                 final md = inv.metadata;
-                                if (md == null || !md.containsKey('maturityDate')) return false;
-                                final days = DateTime.parse(md['maturityDate'] as String)
-                                    .difference(DateTime.now()).inDays;
+                                if (md == null ||
+                                    !md.containsKey('maturityDate'))
+                                  return false;
+                                final days =
+                                    DateTime.parse(md['maturityDate'] as String)
+                                        .difference(DateTime.now())
+                                        .inDays;
                                 return days >= 0 && days <= 10;
                               }).length;
-                              final sipCount = collectSipNotifications(all).length;
-                              final bondCount = collectBondPayoutNotifications(all).length;
-                              final count = fdsMatured + fdsNear + sipCount + bondCount;
+                              final sipCount =
+                                  collectSipNotifications(all).length;
+                              final bondCount =
+                                  collectBondPayoutNotifications(all).length;
+                              final count =
+                                  fdsMatured + fdsNear + sipCount + bondCount;
                               if (count == 0) return const SizedBox.shrink();
                               return Padding(
-                                padding: const EdgeInsets.only(bottom: Spacing.sm),
+                                padding:
+                                    const EdgeInsets.only(bottom: Spacing.sm),
                                 child: GestureDetector(
                                   onTap: () => Navigator.of(context).push(
-                                      FadeScalePageRoute(page: const NotificationsPage())),
+                                      FadeScalePageRoute(
+                                          page: const NotificationsPage())),
                                   child: Container(
                                     width: 26,
                                     height: 26,
@@ -1701,7 +1847,8 @@ class _DashboardScreenContent extends StatelessWidget {
                                       shape: BoxShape.circle,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: CupertinoColors.systemRed.withValues(alpha: 0.40),
+                                          color: CupertinoColors.systemRed
+                                              .withValues(alpha: 0.40),
                                           blurRadius: 8,
                                           offset: const Offset(0, 2),
                                         ),
@@ -1746,22 +1893,27 @@ class _DashboardScreenContent extends StatelessWidget {
                                             width: 46,
                                             height: 46,
                                             decoration: BoxDecoration(
-                                              color: AppStyles.isDarkMode(context)
-                                                  ? const Color(0xFF00D4AA).withValues(alpha: 0.10)
-                                                  : const Color(0xFFE0FAF5),
+                                              color:
+                                                  AppStyles.isDarkMode(context)
+                                                      ? const Color(0xFF00D4AA)
+                                                          .withValues(
+                                                              alpha: 0.10)
+                                                      : const Color(0xFFE0FAF5),
                                               shape: BoxShape.circle,
                                               border: Border.all(
                                                 color: AppStyles.aetherTeal
                                                     .withValues(alpha: 0.40),
                                               ),
-                                              boxShadow: AppStyles.elevatedShadows(
+                                              boxShadow:
+                                                  AppStyles.elevatedShadows(
                                                 context,
                                                 tint: AppStyles.aetherTeal,
                                                 strength: 0.35,
                                               ),
                                             ),
                                             child: const Icon(
-                                              CupertinoIcons.chat_bubble_text_fill,
+                                              CupertinoIcons
+                                                  .chat_bubble_text_fill,
                                               color: AppStyles.aetherTeal,
                                               size: 20,
                                             ),
@@ -2052,7 +2204,8 @@ class _DashboardScreenContent extends StatelessWidget {
                     ),
                     BouncyButton(
                       onPressed: () => showGlobalSearch(context),
-                      child: Icon(CupertinoIcons.search, size: 16, color: secondary),
+                      child: Icon(CupertinoIcons.search,
+                          size: 16, color: secondary),
                     ),
                   ],
                 ),
@@ -2195,9 +2348,8 @@ class _DashboardScreenContent extends StatelessWidget {
                     context,
                     CupertinoIcons.list_bullet,
                     'History',
-                    () => Navigator.of(context).push(
-                        FadeScalePageRoute(
-                            page: const TransactionHistoryScreen())),
+                    () => Navigator.of(context).push(FadeScalePageRoute(
+                        page: const TransactionHistoryScreen())),
                   ),
                   _sidebarNavBtn(
                     context,
@@ -2217,9 +2369,8 @@ class _DashboardScreenContent extends StatelessWidget {
                     context,
                     CupertinoIcons.slider_horizontal_3,
                     'Layout',
-                    () => Navigator.of(context).push(
-                        FadeScalePageRoute(
-                            page: const DashboardSettingsModal())),
+                    () => Navigator.of(context).push(FadeScalePageRoute(
+                        page: const DashboardSettingsModal())),
                   ),
                 ],
               ),
@@ -2284,122 +2435,122 @@ class _DashboardScreenContent extends StatelessWidget {
         _showReorderSheet(context);
       },
       child: BouncyButton(
-      onPressed: () => _handleWidgetTap(context, widgetConfig),
-      child: AnimatedContainer(
-        duration: AppDurations.medium,
-        curve: MotionCurves.standard,
-        decoration: AppStyles.accentCardDecoration(context, accent),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(Radii.xxl),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // ── Left accent bar ──────────────────────────────────────
-              Container(
-                width: 4,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      accent,
-                      accent.withValues(alpha: 0.40),
-                    ],
+        onPressed: () => _handleWidgetTap(context, widgetConfig),
+        child: AnimatedContainer(
+          duration: AppDurations.medium,
+          curve: MotionCurves.standard,
+          decoration: AppStyles.accentCardDecoration(context, accent),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(Radii.xxl),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ── Left accent bar ──────────────────────────────────────
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        accent,
+                        accent.withValues(alpha: 0.40),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              // ── Card body ────────────────────────────────────────────
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header row
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                          Spacing.md, Spacing.md, Spacing.md, Spacing.xs),
-                      child: Row(
-                        children: [
-                          // Icon badge
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: accent.withValues(
-                                  alpha: isDark ? 0.22 : 0.12),
-                              borderRadius: BorderRadius.circular(Radii.sm),
-                              border: Border.all(
+                // ── Card body ────────────────────────────────────────────
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header row
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                            Spacing.md, Spacing.md, Spacing.md, Spacing.xs),
+                        child: Row(
+                          children: [
+                            // Icon badge
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
                                 color: accent.withValues(
-                                    alpha: isDark ? 0.45 : 0.28),
-                                width: 0.8,
-                              ),
-                            ),
-                            child: Icon(
-                              _widgetIcon(widgetConfig.type),
-                              size: 16,
-                              color: accent,
-                            ),
-                          ),
-                          const SizedBox(width: Spacing.sm),
-                          // Title
-                          Expanded(
-                            child: Text(
-                              widgetConfig.title,
-                              style: AppTypography.headline(
-                                color: AppStyles.getTextColor(context),
-                                fontWeight: AppTypography.bold,
-                              ),
-                            ),
-                          ),
-                          // Tap indicator
-                          Icon(
-                            CupertinoIcons.chevron_right,
-                            size: 16,
-                            color: accent.withValues(alpha: 0.70),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Thin divider
-                    Container(
-                      height: 0.5,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: Spacing.md),
-                      color: accent.withValues(alpha: isDark ? 0.18 : 0.12),
-                    ),
-
-                    // Content — fills remaining card height; scrollable on overflow
-                    Expanded(
-                      child: RepaintBoundary(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                              Spacing.md, Spacing.sm, Spacing.md, Spacing.md),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              return SingleChildScrollView(
-                                physics: const ClampingScrollPhysics(),
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minHeight: constraints.maxHeight,
-                                  ),
-                                  child: _buildWidgetPreview(
-                                      context, widgetConfig),
+                                    alpha: isDark ? 0.22 : 0.12),
+                                borderRadius: BorderRadius.circular(Radii.sm),
+                                border: Border.all(
+                                  color: accent.withValues(
+                                      alpha: isDark ? 0.45 : 0.28),
+                                  width: 0.8,
                                 ),
-                              );
-                            },
+                              ),
+                              child: Icon(
+                                _widgetIcon(widgetConfig.type),
+                                size: 16,
+                                color: accent,
+                              ),
+                            ),
+                            const SizedBox(width: Spacing.sm),
+                            // Title
+                            Expanded(
+                              child: Text(
+                                widgetConfig.title,
+                                style: AppTypography.headline(
+                                  color: AppStyles.getTextColor(context),
+                                  fontWeight: AppTypography.bold,
+                                ),
+                              ),
+                            ),
+                            // Tap indicator
+                            Icon(
+                              CupertinoIcons.chevron_right,
+                              size: 16,
+                              color: accent.withValues(alpha: 0.70),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Thin divider
+                      Container(
+                        height: 0.5,
+                        margin:
+                            const EdgeInsets.symmetric(horizontal: Spacing.md),
+                        color: accent.withValues(alpha: isDark ? 0.18 : 0.12),
+                      ),
+
+                      // Content — fills remaining card height; scrollable on overflow
+                      Expanded(
+                        child: RepaintBoundary(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                                Spacing.md, Spacing.sm, Spacing.md, Spacing.md),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return SingleChildScrollView(
+                                  physics: const ClampingScrollPhysics(),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight: constraints.maxHeight,
+                                    ),
+                                    child: _buildWidgetPreview(
+                                        context, widgetConfig),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-    ), // BouncyButton
+      ), // BouncyButton
     ); // GestureDetector
   }
 
@@ -2444,8 +2595,7 @@ class _DashboardScreenContent extends StatelessWidget {
                 ? 'Good Evening'
                 : 'Good Night';
     // T-148: personalise greeting with display name
-    final name =
-        context.read<SettingsController>().greetingName;
+    final name = context.read<SettingsController>().greetingName;
     final greeting = '$baseGreeting, $name';
 
     final dateFormatter = _formatHeaderDate(now);
@@ -2455,314 +2605,329 @@ class _DashboardScreenContent extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-      Padding(
-      padding:
-          const EdgeInsets.fromLTRB(Spacing.lg, Spacing.sm, Spacing.lg, Spacing.sm),
-      child: Container(
-        decoration: AppStyles.heroCardDecoration(context),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(Radii.xxl),
-          child: Stack(
-            children: [
-              // Dark mode only: ambient orbs + dot grid give the emissive feel.
-              // Light mode: clean gradient from heroCardDecoration is enough —
-              // orbs look washed out on white and the grid disappears entirely.
-              if (isDark) ...[
-                // Aether teal emission — top-right
-                Positioned(
-                  top: -30,
-                  right: -20,
-                  child: Container(
-                    width: 160,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          AppStyles.aetherTeal.withValues(alpha: 0.22),
-                          AppStyles.aetherTeal.withValues(alpha: 0.00),
-                        ],
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              Spacing.lg, Spacing.sm, Spacing.lg, Spacing.sm),
+          child: Container(
+            decoration: AppStyles.heroCardDecoration(context),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(Radii.xxl),
+              child: Stack(
+                children: [
+                  // Dark mode only: ambient orbs + dot grid give the emissive feel.
+                  // Light mode: clean gradient from heroCardDecoration is enough —
+                  // orbs look washed out on white and the grid disappears entirely.
+                  if (isDark) ...[
+                    // Aether teal emission — top-right
+                    Positioned(
+                      top: -30,
+                      right: -20,
+                      child: Container(
+                        width: 160,
+                        height: 160,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              AppStyles.aetherTeal.withValues(alpha: 0.22),
+                              AppStyles.aetherTeal.withValues(alpha: 0.00),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                // Nova violet emission — bottom-left
-                Positioned(
-                  bottom: -50,
-                  left: -30,
-                  child: Container(
-                    width: 180,
-                    height: 180,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          AppStyles.novaPurple.withValues(alpha: 0.18),
-                          AppStyles.novaPurple.withValues(alpha: 0.00),
-                        ],
+                    // Nova violet emission — bottom-left
+                    Positioned(
+                      bottom: -50,
+                      left: -30,
+                      child: Container(
+                        width: 180,
+                        height: 180,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              AppStyles.novaPurple.withValues(alpha: 0.18),
+                              AppStyles.novaPurple.withValues(alpha: 0.00),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                // Subtle grid dots overlay
-                Positioned.fill(
-                  child: CustomPaint(painter: _DotGridPainter(isDark: isDark)),
-                ),
-              ],
-              // Content
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    Spacing.lg, Spacing.xl, Spacing.lg, Spacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Greeting + Status badge row
-                    Row(
+                    // Subtle grid dots overlay
+                    Positioned.fill(
+                      child:
+                          CustomPaint(painter: _DotGridPainter(isDark: isDark)),
+                    ),
+                  ],
+                  // Content
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        Spacing.lg, Spacing.xl, Spacing.lg, Spacing.lg),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _FadeSlideIn(
-                                delay: Duration.zero,
-                                child: Text(
-                                  greeting,
-                                  style: TextStyle(
-                                    fontSize: RT.title2(context),
-                                    fontWeight: FontWeight.w800,
-                                    color: isDark ? Colors.white : AppStyles.getTextColor(context),
-                                    letterSpacing: -0.5,
-                                    height: 1.1,
+                        // Greeting + Status badge row
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _FadeSlideIn(
+                                    delay: Duration.zero,
+                                    child: Text(
+                                      greeting,
+                                      style: TextStyle(
+                                        fontSize: RT.title2(context),
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppStyles.getTextColor(context),
+                                        letterSpacing: -0.5,
+                                        height: 1.1,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  _FadeSlideIn(
+                                    delay: const Duration(milliseconds: 80),
+                                    child: Text(
+                                      dateFormatter,
+                                      style: TextStyle(
+                                        fontSize: TypeScale.footnote,
+                                        color: isDark
+                                            ? Colors.white
+                                                .withValues(alpha: 0.55)
+                                            : AppStyles.getSecondaryTextColor(
+                                                context),
+                                        fontWeight: FontWeight.w500,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Net worth mini-badge — tappable, navigates to net worth page
+                            BouncyButton(
+                              onPressed: () => Navigator.of(context).push(
+                                  FadeScalePageRoute(
+                                      page: const NetWorthPage())),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: AppStyles.aetherTeal
+                                      .withValues(alpha: 0.15),
+                                  borderRadius:
+                                      BorderRadius.circular(Radii.full),
+                                  border: Border.all(
+                                    color: AppStyles.aetherTeal
+                                        .withValues(alpha: 0.40),
+                                    width: 1.0,
                                   ),
                                 ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.chart_bar_square_fill,
+                                      size: 11,
+                                      color: AppStyles.aetherTeal,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Net Worth',
+                                      style: TextStyle(
+                                        fontSize: TypeScale.caption,
+                                        color: AppStyles.aetherTeal,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(height: 4),
-                              _FadeSlideIn(
-                                delay: const Duration(milliseconds: 80),
-                                child: Text(
-                                  dateFormatter,
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: Spacing.xl),
+
+                        // Hero balance — total across all accounts
+                        Consumer<AccountsController>(
+                          builder: (context, acCtrl, _) {
+                            final visibleAccounts = acCtrl.accounts
+                                .where((a) => !a.isHidden)
+                                .toList();
+                            final total = visibleAccounts.fold(0.0, (sum, a) {
+                              // Credit/payLater: balance = available limit remaining.
+                              // Amount owed = creditLimit - balance. Subtract as liability.
+                              if (a.type == AccountType.credit ||
+                                  a.type == AccountType.payLater) {
+                                final owed = (a.creditLimit ?? 0.0) - a.balance;
+                                return sum - owed.clamp(0.0, double.infinity);
+                              }
+                              return sum + a.balance;
+                            });
+                            final count = visibleAccounts.length;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AnimatedCounter(
+                                  value: total,
+                                  prefix: '₹',
                                   style: TextStyle(
-                                    fontSize: TypeScale.footnote,
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppStyles.getTextColor(context),
+                                    letterSpacing: -1.0,
+                                    fontFamily: 'SpaceGrotesk',
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                  duration: const Duration(milliseconds: 700),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Across $count account${count == 1 ? '' : 's'}',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
                                     color: isDark
                                         ? Colors.white.withValues(alpha: 0.55)
-                                        : AppStyles.getSecondaryTextColor(context),
+                                        : AppStyles.getSecondaryTextColor(
+                                            context),
                                     fontWeight: FontWeight.w500,
-                                    letterSpacing: 0.2,
+                                    letterSpacing: 0.3,
                                   ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: Spacing.lg),
+
+                        // Divider line
+                        Container(
+                          height: 0.6,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: isDark
+                                  ? [
+                                      Colors.white.withValues(alpha: 0.00),
+                                      Colors.white.withValues(alpha: 0.18),
+                                      Colors.white.withValues(alpha: 0.00),
+                                    ]
+                                  : [
+                                      AppStyles.aetherTeal
+                                          .withValues(alpha: 0.00),
+                                      AppStyles.aetherTeal
+                                          .withValues(alpha: 0.25),
+                                      AppStyles.aetherTeal
+                                          .withValues(alpha: 0.00),
+                                    ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: Spacing.lg),
+
+                        // Quick action pills — frequency descending: History first
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const ClampingScrollPhysics(),
+                          child: Row(
+                            children: [
+                              _FadeSlideIn(
+                                delay: const Duration(milliseconds: 200),
+                                child: _buildQuickActionPill(
+                                  context,
+                                  'History',
+                                  CupertinoIcons.clock_fill,
+                                  SemanticColors.info,
+                                ),
+                              ),
+                              const SizedBox(width: Spacing.sm),
+                              _FadeSlideIn(
+                                delay: const Duration(milliseconds: 240),
+                                child: _buildQuickActionPill(
+                                  context,
+                                  'Budgets',
+                                  CupertinoIcons.chart_pie_fill,
+                                  AppStyles.accentCoral,
+                                ),
+                              ),
+                              const SizedBox(width: Spacing.sm),
+                              _FadeSlideIn(
+                                delay: const Duration(milliseconds: 280),
+                                child: _buildQuickActionPill(
+                                  context,
+                                  'Goals',
+                                  CupertinoIcons.checkmark_seal_fill,
+                                  AppStyles.aetherTeal,
+                                ),
+                              ),
+                              const SizedBox(width: Spacing.sm),
+                              _FadeSlideIn(
+                                delay: const Duration(milliseconds: 320),
+                                child: _buildQuickActionPill(
+                                  context,
+                                  'Savings',
+                                  CupertinoIcons.heart_fill,
+                                  AppStyles.accentGreen,
+                                ),
+                              ),
+                              const SizedBox(width: Spacing.sm),
+                              _FadeSlideIn(
+                                delay: const Duration(milliseconds: 360),
+                                child: _buildQuickActionPill(
+                                  context,
+                                  'AI Plan',
+                                  CupertinoIcons.sparkles,
+                                  AppStyles.accentOrange,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        // Net worth mini-badge — tappable, navigates to net worth page
-                        BouncyButton(
-                          onPressed: () => Navigator.of(context).push(
-                            FadeScalePageRoute(page: const NetWorthPage())),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: AppStyles.aetherTeal.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(Radii.full),
-                              border: Border.all(
-                                color: AppStyles.aetherTeal.withValues(alpha: 0.40),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  CupertinoIcons.chart_bar_square_fill,
-                                  size: 11,
-                                  color: AppStyles.aetherTeal,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Net Worth',
-                                  style: TextStyle(
-                                    fontSize: TypeScale.caption,
-                                    color: AppStyles.aetherTeal,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
                       ],
                     ),
-
-                    const SizedBox(height: Spacing.xl),
-
-                    // Hero balance — total across all accounts
-                    Consumer<AccountsController>(
-                      builder: (context, acCtrl, _) {
-                        final visibleAccounts = acCtrl.accounts
-                            .where((a) => !a.isHidden)
-                            .toList();
-                        final total = visibleAccounts.fold(0.0, (sum, a) {
-                          // Credit/payLater: balance = available limit remaining.
-                          // Amount owed = creditLimit - balance. Subtract as liability.
-                          if (a.type == AccountType.credit ||
-                              a.type == AccountType.payLater) {
-                            final owed = (a.creditLimit ?? 0.0) - a.balance;
-                            return sum - owed.clamp(0.0, double.infinity);
-                          }
-                          return sum + a.balance;
-                        });
-                        final count = visibleAccounts.length;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AnimatedCounter(
-                              value: total,
-                              prefix: '₹',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w800,
-                                color: isDark ? Colors.white : AppStyles.getTextColor(context),
-                                letterSpacing: -1.0,
-                                fontFamily: 'SpaceGrotesk',
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
-                              ),
-                              duration: const Duration(milliseconds: 700),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Across $count account${count == 1 ? '' : 's'}',
-                              style: TextStyle(
-                                fontSize: TypeScale.caption,
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.55)
-                                    : AppStyles.getSecondaryTextColor(context),
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.3,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: Spacing.lg),
-
-                    // Divider line
-                    Container(
-                      height: 0.6,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: isDark
-                              ? [
-                                  Colors.white.withValues(alpha: 0.00),
-                                  Colors.white.withValues(alpha: 0.18),
-                                  Colors.white.withValues(alpha: 0.00),
-                                ]
-                              : [
-                                  AppStyles.aetherTeal.withValues(alpha: 0.00),
-                                  AppStyles.aetherTeal.withValues(alpha: 0.25),
-                                  AppStyles.aetherTeal.withValues(alpha: 0.00),
-                                ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: Spacing.lg),
-
-                    // Quick action pills — frequency descending: History first
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const ClampingScrollPhysics(),
-                      child: Row(
-                        children: [
-                          _FadeSlideIn(
-                            delay: const Duration(milliseconds: 200),
-                            child: _buildQuickActionPill(
-                              context,
-                              'History',
-                              CupertinoIcons.clock_fill,
-                              SemanticColors.info,
-                            ),
-                          ),
-                          const SizedBox(width: Spacing.sm),
-                          _FadeSlideIn(
-                            delay: const Duration(milliseconds: 240),
-                            child: _buildQuickActionPill(
-                              context,
-                              'Budgets',
-                              CupertinoIcons.chart_pie_fill,
-                              AppStyles.accentCoral,
-                            ),
-                          ),
-                          const SizedBox(width: Spacing.sm),
-                          _FadeSlideIn(
-                            delay: const Duration(milliseconds: 280),
-                            child: _buildQuickActionPill(
-                              context,
-                              'Goals',
-                              CupertinoIcons.checkmark_seal_fill,
-                              AppStyles.aetherTeal,
-                            ),
-                          ),
-                          const SizedBox(width: Spacing.sm),
-                          _FadeSlideIn(
-                            delay: const Duration(milliseconds: 320),
-                            child: _buildQuickActionPill(
-                              context,
-                              'Savings',
-                              CupertinoIcons.heart_fill,
-                              AppStyles.accentGreen,
-                            ),
-                          ),
-                          const SizedBox(width: Spacing.sm),
-                          _FadeSlideIn(
-                            delay: const Duration(milliseconds: 360),
-                            child: _buildQuickActionPill(
-                              context,
-                              'AI Plan',
-                              CupertinoIcons.sparkles,
-                              AppStyles.accentOrange,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ), // ClipRRect / Container
-      ), // Padding
-      // T-072: "Edit layout" hint — visible after 3 sessions, hides once user has reordered
-      FutureBuilder<bool>(
-        future: _shouldShowEditLayoutHint(),
-        builder: (_, snap) {
-          if (snap.data != true) return const SizedBox.shrink();
-          return Padding(
-            padding: const EdgeInsets.only(top: 4, right: Spacing.lg),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: GestureDetector(
-                onTap: () => _showReorderSheet(context),
-                child: Text(
-                  'Edit layout',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppStyles.getSecondaryTextColor(context),
-                    decoration: TextDecoration.underline,
+            ),
+          ), // ClipRRect / Container
+        ), // Padding
+        // T-072: "Edit layout" hint — visible after 3 sessions, hides once user has reordered
+        FutureBuilder<bool>(
+          future: _shouldShowEditLayoutHint(),
+          builder: (_, snap) {
+            if (snap.data != true) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(top: 4, right: Spacing.lg),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: () => _showReorderSheet(context),
+                  child: Text(
+                    'Edit layout',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
-      ),
+            );
+          },
+        ),
       ], // Column children
     ); // Column
   }
@@ -2848,8 +3013,7 @@ class _DashboardScreenContent extends StatelessWidget {
   }
 
   /// Returns true if any FD matures or loan EMI falls within the next 7 days.
-  bool _hasEventDueWithin7Days(
-      List<Investment> investments, List<Loan> loans) {
+  bool _hasEventDueWithin7Days(List<Investment> investments, List<Loan> loans) {
     final today = DateTime.now();
     final cutoff = today.add(const Duration(days: 7));
 
@@ -2866,14 +3030,16 @@ class _DashboardScreenContent extends StatelessWidget {
               fd.maturityDate.isBefore(cutoff)) return true;
         } else if (meta.containsKey('maturityDate')) {
           final d = DateTime.tryParse((meta['maturityDate'] as String?) ?? '');
-          if (d != null && !d.isBefore(today) && d.isBefore(cutoff)) return true;
+          if (d != null && !d.isBefore(today) && d.isBefore(cutoff))
+            return true;
         }
       } catch (_) {}
     }
 
     for (final loan in loans) {
       if (!loan.isActive) continue;
-      var d = DateTime(loan.startDate.year, loan.startDate.month, loan.startDate.day);
+      var d = DateTime(
+          loan.startDate.year, loan.startDate.month, loan.startDate.day);
       while (d.isBefore(today)) {
         d = DateTime(d.year, d.month + 1, d.day);
       }
@@ -2918,7 +3084,8 @@ class _DashboardScreenContent extends StatelessWidget {
         return NetWorthWidget(config: widgetConfig);
       case DashboardWidgetType.transactionHistory:
         return Consumer2<TransactionsController, InvestmentsController>(
-          builder: (context, transactionController, investmentsController, child) {
+          builder:
+              (context, transactionController, investmentsController, child) {
             final allTx = transactionController.transactions;
             final transactions = TransactionFeedBuilder.buildUnifiedFeed(
               transactions: allTx,
@@ -2965,147 +3132,156 @@ class _DashboardScreenContent extends StatelessWidget {
             }
 
             return FadeInAnimation(
-              duration: const Duration(milliseconds: 450),
-              child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => Navigator.of(context).push(
-                      FadeScalePageRoute(page: const TransactionHistoryScreen())),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (monthSpent > 0 || monthIncome > 0) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppStyles.getSecondaryTextColor(context)
-                                .withValues(alpha: 0.06),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(CupertinoIcons.calendar,
-                                  size: 11,
-                                  color: AppStyles.getSecondaryTextColor(context)),
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: Text(
-                                  'This month: $txCount tx · ${_fmtAmt(monthSpent)} out · ${_fmtAmt(monthIncome)} in',
-                                  style: TextStyle(
-                                    fontSize: TypeScale.caption,
-                                    color: AppStyles.getSecondaryTextColor(context),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                duration: const Duration(milliseconds: 450),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.of(context).push(
+                          FadeScalePageRoute(
+                              page: const TransactionHistoryScreen())),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (monthSpent > 0 || monthIncome > 0) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppStyles.getSecondaryTextColor(context)
+                                    .withValues(alpha: 0.06),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: Spacing.sm),
-                      ],
-                      ...transactions.asMap().entries.map((entry) {
-                        final isLast = entry.key == transactions.length - 1;
-                        final tx = entry.value;
-                        final amount = tx.amount;
-                        final isDebit = tx.type == TransactionType.expense ||
-                            tx.type == TransactionType.investment ||
-                            tx.type == TransactionType.lending;
-                        final diff = now.difference(tx.dateTime);
-                        final timeLabel = diff.inMinutes < 60
-                            ? '${diff.inMinutes}m ago'
-                            : diff.inHours < 24
-                                ? '${diff.inHours}h ago'
-                                : diff.inDays == 1
-                                    ? 'Yesterday'
-                                    : '${diff.inDays}d ago';
-
-                        return StaggeredItem(
-                          index: entry.key,
-                          baseDelay: const Duration(milliseconds: 80),
-                          itemDelay: const Duration(milliseconds: 45),
-                          child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: (isDebit
-                                            ? CupertinoColors.systemRed
-                                            : CupertinoColors.systemGreen)
-                                        .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(
-                                    isDebit
-                                        ? CupertinoIcons.arrow_up
-                                        : CupertinoIcons.arrow_down,
-                                    size: 16,
-                                    color: isDebit
-                                        ? CupertinoColors.systemRed
-                                        : CupertinoColors.systemGreen,
-                                  ),
-                                ),
-                                const SizedBox(width: Spacing.sm),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        tx.description,
-                                        style: TextStyle(
-                                          fontSize: TypeScale.footnote,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppStyles.getTextColor(context),
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                              child: Row(
+                                children: [
+                                  Icon(CupertinoIcons.calendar,
+                                      size: 11,
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context)),
+                                  const SizedBox(width: 5),
+                                  Expanded(
+                                    child: Text(
+                                      'This month: $txCount tx · ${_fmtAmt(monthSpent)} out · ${_fmtAmt(monthIncome)} in',
+                                      style: TextStyle(
+                                        fontSize: TypeScale.caption,
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context),
                                       ),
-                                      Text(
-                                        timeLabel,
-                                        style: TextStyle(
-                                          fontSize: TypeScale.caption,
-                                          color: AppStyles.getSecondaryTextColor(
-                                              context),
-                                        ),
-                                      ),
-                                    ],
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '${isDebit ? '-' : '+'}₹${amount.abs().toStringAsFixed(0)}',
-                                  style: TextStyle(
-                                    fontSize: TypeScale.footnote,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDebit
-                                        ? CupertinoColors.systemRed
-                                        : CupertinoColors.systemGreen,
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                            if (!isLast)
-                              const Padding(
-                                padding:
-                                    EdgeInsets.symmetric(vertical: Spacing.sm),
-                                child: Divider(height: 1),
-                              ),
+                            const SizedBox(height: Spacing.sm),
                           ],
-                        ));
-                      }),
-                    ],
-                  ),
-                ),
-              ],
-            ));
+                          ...transactions.asMap().entries.map((entry) {
+                            final isLast = entry.key == transactions.length - 1;
+                            final tx = entry.value;
+                            final amount = tx.amount;
+                            final isDebit =
+                                tx.type == TransactionType.expense ||
+                                    tx.type == TransactionType.investment ||
+                                    tx.type == TransactionType.lending;
+                            final diff = now.difference(tx.dateTime);
+                            final timeLabel = diff.inMinutes < 60
+                                ? '${diff.inMinutes}m ago'
+                                : diff.inHours < 24
+                                    ? '${diff.inHours}h ago'
+                                    : diff.inDays == 1
+                                        ? 'Yesterday'
+                                        : '${diff.inDays}d ago';
+
+                            return StaggeredItem(
+                                index: entry.key,
+                                baseDelay: const Duration(milliseconds: 80),
+                                itemDelay: const Duration(milliseconds: 45),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 36,
+                                          height: 36,
+                                          decoration: BoxDecoration(
+                                            color: (isDebit
+                                                    ? CupertinoColors.systemRed
+                                                    : CupertinoColors
+                                                        .systemGreen)
+                                                .withValues(alpha: 0.15),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Icon(
+                                            isDebit
+                                                ? CupertinoIcons.arrow_up
+                                                : CupertinoIcons.arrow_down,
+                                            size: 16,
+                                            color: isDebit
+                                                ? CupertinoColors.systemRed
+                                                : CupertinoColors.systemGreen,
+                                          ),
+                                        ),
+                                        const SizedBox(width: Spacing.sm),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                tx.description,
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.footnote,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppStyles.getTextColor(
+                                                      context),
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Text(
+                                                timeLabel,
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.caption,
+                                                  color: AppStyles
+                                                      .getSecondaryTextColor(
+                                                          context),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Text(
+                                          '${isDebit ? '-' : '+'}₹${amount.abs().toStringAsFixed(0)}',
+                                          style: TextStyle(
+                                            fontSize: TypeScale.footnote,
+                                            fontWeight: FontWeight.bold,
+                                            color: isDebit
+                                                ? CupertinoColors.systemRed
+                                                : CupertinoColors.systemGreen,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (!isLast)
+                                      const Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: Spacing.sm),
+                                        child: Divider(height: 1),
+                                      ),
+                                  ],
+                                ));
+                          }),
+                        ],
+                      ),
+                    ),
+                  ],
+                ));
           },
         );
       case DashboardWidgetType.sipTracker:
@@ -3122,35 +3298,46 @@ class _DashboardScreenContent extends StatelessWidget {
               final md = inv.metadata;
               if (md == null || !md.containsKey('maturityDate')) return false;
               return DateTime.parse(md['maturityDate'] as String)
-                  .difference(DateTime.now()).inDays < 0;
+                      .difference(DateTime.now())
+                      .inDays <
+                  0;
             }).toList();
             final fdsNear = allInvestments.where((inv) {
               if (inv.type.name != 'fixedDeposit') return false;
               final md = inv.metadata;
               if (md == null || !md.containsKey('maturityDate')) return false;
               final days = DateTime.parse(md['maturityDate'] as String)
-                  .difference(DateTime.now()).inDays;
+                  .difference(DateTime.now())
+                  .inDays;
               return days >= 0 && days <= 10;
             }).toList();
             final sipAlerts = collectSipNotifications(allInvestments);
             final bondAlerts = collectBondPayoutNotifications(allInvestments);
-            final hasAlerts = fdsMatured.isNotEmpty || fdsNear.isNotEmpty ||
-                sipAlerts.isNotEmpty || bondAlerts.isNotEmpty;
+            final hasAlerts = fdsMatured.isNotEmpty ||
+                fdsNear.isNotEmpty ||
+                sipAlerts.isNotEmpty ||
+                bondAlerts.isNotEmpty;
             final alertWidgets = <Widget>[
               if (fdsMatured.isNotEmpty)
                 _buildCompactDashboardAlert(context,
                     icon: CupertinoIcons.exclamationmark_circle_fill,
                     color: CupertinoColors.systemRed,
-                    title: '${fdsMatured.length} FD${fdsMatured.length > 1 ? 's' : ''} matured',
+                    title:
+                        '${fdsMatured.length} FD${fdsMatured.length > 1 ? 's' : ''} matured',
                     subtitle: 'Action required'),
               if (fdsNear.isNotEmpty)
                 _buildCompactDashboardAlert(context,
                     icon: CupertinoIcons.bell_fill,
                     color: CupertinoColors.systemOrange,
-                    title: '${fdsNear.length} FD${fdsNear.length > 1 ? 's' : ''} maturing soon',
+                    title:
+                        '${fdsNear.length} FD${fdsNear.length > 1 ? 's' : ''} maturing soon',
                     subtitle: 'Within 10 days'),
-              ...sipAlerts.take(2).map((e) => _buildDashboardSipNotification(context, e)),
-              ...bondAlerts.take(1).map((e) => _buildDashboardBondNotification(context, e)),
+              ...sipAlerts
+                  .take(2)
+                  .map((e) => _buildDashboardSipNotification(context, e)),
+              ...bondAlerts
+                  .take(1)
+                  .map((e) => _buildDashboardBondNotification(context, e)),
             ];
 
             // No early return — Cash Flow is always shown even with no SIPs/alerts
@@ -3173,178 +3360,191 @@ class _DashboardScreenContent extends StatelessWidget {
             }
 
             return FadeInAnimation(
-              duration: const Duration(milliseconds: 450),
-              child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (activeSips.isNotEmpty) ...[
-                  // ── SIP section ─────────────────────────────────────────
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const InvestmentsScreen())),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                duration: const Duration(milliseconds: 450),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (activeSips.isNotEmpty) ...[
+                      // ── SIP section ─────────────────────────────────────────
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => Navigator.of(context).push(
+                            FadeScalePageRoute(
+                                page: const InvestmentsScreen())),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              '${activeSips.length} active SIP${activeSips.length == 1 ? '' : 's'}',
-                              style: TextStyle(
-                                fontSize: TypeScale.footnote,
-                                color: AppStyles.getSecondaryTextColor(context),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            AnimatedCounter(
-                              value: totalMonthly,
-                              prefix: '~₹',
-                              suffix: '/mo',
-                              duration: const Duration(milliseconds: 700),
-                              style: const TextStyle(
-                                fontSize: TypeScale.footnote,
-                                fontWeight: FontWeight.w700,
-                                color: CupertinoColors.activeBlue,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: Spacing.sm),
-                        ...activeSips.asMap().entries.map((entry) {
-                          final inv = entry.value;
-                          final meta = inv.metadata ?? {};
-                          final sipData = meta['sipData'] as Map<String, dynamic>?;
-                          final freq = sipData?['frequency'] as String? ??
-                              meta['sipFrequency'] as String? ??
-                              'monthly';
-                          final amt = (sipData?['sipAmount'] as num?)?.toDouble() ??
-                              (meta['sipAmount'] as num?)?.toDouble() ??
-                              0.0;
-                          return StaggeredItem(
-                            index: entry.key,
-                            baseDelay: const Duration(milliseconds: 100),
-                            itemDelay: const Duration(milliseconds: 50),
-                            child: Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
-                            child: Row(
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Icon(CupertinoIcons.repeat,
-                                    size: 12,
-                                    color: CupertinoColors.activeBlue
-                                        .withValues(alpha: 0.7)),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    inv.name,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: TypeScale.caption,
-                                      color: AppStyles.getTextColor(context),
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                Text(
+                                  '${activeSips.length} active SIP${activeSips.length == 1 ? '' : 's'}',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.footnote,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                Text(
-                                  amt > 0 ? '₹${amt.toStringAsFixed(0)} · $freq' : freq,
-                                  style: TextStyle(
-                                    fontSize: TypeScale.caption,
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                AnimatedCounter(
+                                  value: totalMonthly,
+                                  prefix: '~₹',
+                                  suffix: '/mo',
+                                  duration: const Duration(milliseconds: 700),
+                                  style: const TextStyle(
+                                    fontSize: TypeScale.footnote,
+                                    fontWeight: FontWeight.w700,
+                                    color: CupertinoColors.activeBlue,
                                   ),
                                 ),
                               ],
                             ),
-                          ));
-                        }),
-                        if (totalMonthly > 0) ...[
-                          const SizedBox(height: Spacing.sm),
-                          const Divider(height: 1),
-                          const SizedBox(height: Spacing.sm),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildSipStat(context,
-                                    label: 'Per month',
-                                    amount: totalMonthly,
-                                    color: CupertinoColors.activeBlue),
-                              ),
-                              Expanded(
-                                child: _buildSipStat(context,
-                                    label: 'Per year',
-                                    amount: totalMonthly * 12,
-                                    color: AppStyles.accentTeal),
-                              ),
-                              Expanded(
-                                child: _buildSipStat(context,
-                                    label: 'Avg / SIP',
-                                    amount: totalMonthly / activeSips.length,
-                                    color: AppStyles.accentOrange),
+                            const SizedBox(height: Spacing.sm),
+                            ...activeSips.asMap().entries.map((entry) {
+                              final inv = entry.value;
+                              final meta = inv.metadata ?? {};
+                              final sipData =
+                                  meta['sipData'] as Map<String, dynamic>?;
+                              final freq = sipData?['frequency'] as String? ??
+                                  meta['sipFrequency'] as String? ??
+                                  'monthly';
+                              final amt =
+                                  (sipData?['sipAmount'] as num?)?.toDouble() ??
+                                      (meta['sipAmount'] as num?)?.toDouble() ??
+                                      0.0;
+                              return StaggeredItem(
+                                  index: entry.key,
+                                  baseDelay: const Duration(milliseconds: 100),
+                                  itemDelay: const Duration(milliseconds: 50),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(bottom: 6),
+                                    child: Row(
+                                      children: [
+                                        Icon(CupertinoIcons.repeat,
+                                            size: 12,
+                                            color: CupertinoColors.activeBlue
+                                                .withValues(alpha: 0.7)),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            inv.name,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: TypeScale.caption,
+                                              color: AppStyles.getTextColor(
+                                                  context),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          amt > 0
+                                              ? '₹${amt.toStringAsFixed(0)} · $freq'
+                                              : freq,
+                                          style: TextStyle(
+                                            fontSize: TypeScale.caption,
+                                            color:
+                                                AppStyles.getSecondaryTextColor(
+                                                    context),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ));
+                            }),
+                            if (totalMonthly > 0) ...[
+                              const SizedBox(height: Spacing.sm),
+                              const Divider(height: 1),
+                              const SizedBox(height: Spacing.sm),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildSipStat(context,
+                                        label: 'Per month',
+                                        amount: totalMonthly,
+                                        color: CupertinoColors.activeBlue),
+                                  ),
+                                  Expanded(
+                                    child: _buildSipStat(context,
+                                        label: 'Per year',
+                                        amount: totalMonthly * 12,
+                                        color: AppStyles.accentTeal),
+                                  ),
+                                  Expanded(
+                                    child: _buildSipStat(context,
+                                        label: 'Avg / SIP',
+                                        amount:
+                                            totalMonthly / activeSips.length,
+                                        color: AppStyles.accentOrange),
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-                // ── ALERTS section ───────────────────────────────────────
-                if (hasAlerts) ...[
-                  if (activeSips.isNotEmpty) ...[
-                    const SizedBox(height: Spacing.sm),
-                    const Divider(height: 1),
-                    const SizedBox(height: Spacing.sm),
-                  ],
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const NotificationsPage())),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTappableSectionHeader(
-                          context,
-                          'ALERTS',
-                          CupertinoColors.systemRed,
-                          () => Navigator.of(context).push(
-                              FadeScalePageRoute(page: const NotificationsPage())),
+                          ],
                         ),
-                        const SizedBox(height: Spacing.xs),
-                        ...alertWidgets,
-                      ],
-                    ),
-                  ),
-                ],
-
-                // ── CASH FLOW section ────────────────────────────────────
-                if (activeSips.isNotEmpty || hasAlerts) ...[
-                  const SizedBox(height: Spacing.sm),
-                  const Divider(height: 1),
-                  const SizedBox(height: Spacing.sm),
-                ],
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => Navigator.of(context).push(
-                      FadeScalePageRoute(page: const ReportsAnalysisScreen())),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTappableSectionHeader(
-                        context,
-                        'CASH FLOW',
-                        AppStyles.accentTeal,
-                        () => Navigator.of(context).push(
-                            FadeScalePageRoute(page: const ReportsAnalysisScreen())),
                       ),
-                      const SizedBox(height: Spacing.sm),
-                      const CashFlowDashboardWidget(),
                     ],
-                  ),
-                ),
-              ],
-            ));
+                    // ── ALERTS section ───────────────────────────────────────
+                    if (hasAlerts) ...[
+                      if (activeSips.isNotEmpty) ...[
+                        const SizedBox(height: Spacing.sm),
+                        const Divider(height: 1),
+                        const SizedBox(height: Spacing.sm),
+                      ],
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => Navigator.of(context).push(
+                            FadeScalePageRoute(
+                                page: const NotificationsPage())),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildTappableSectionHeader(
+                              context,
+                              'ALERTS',
+                              CupertinoColors.systemRed,
+                              () => Navigator.of(context).push(
+                                  FadeScalePageRoute(
+                                      page: const NotificationsPage())),
+                            ),
+                            const SizedBox(height: Spacing.xs),
+                            ...alertWidgets,
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    // ── CASH FLOW section ────────────────────────────────────
+                    if (activeSips.isNotEmpty || hasAlerts) ...[
+                      const SizedBox(height: Spacing.sm),
+                      const Divider(height: 1),
+                      const SizedBox(height: Spacing.sm),
+                    ],
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.of(context).push(
+                          FadeScalePageRoute(
+                              page: const ReportsAnalysisScreen())),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildTappableSectionHeader(
+                            context,
+                            'CASH FLOW',
+                            AppStyles.accentTeal,
+                            () => Navigator.of(context).push(FadeScalePageRoute(
+                                page: const ReportsAnalysisScreen())),
+                          ),
+                          const SizedBox(height: Spacing.sm),
+                          const CashFlowDashboardWidget(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ));
           },
         );
       case DashboardWidgetType.spendingInsights:
@@ -3366,7 +3566,8 @@ class _DashboardScreenContent extends StatelessWidget {
   String _fmtAmt(double v) {
     final abs = v.abs();
     final sign = v < 0 ? '-' : '';
-    if (abs >= 10000000) return '$sign₹${(abs / 10000000).toStringAsFixed(1)}Cr';
+    if (abs >= 10000000)
+      return '$sign₹${(abs / 10000000).toStringAsFixed(1)}Cr';
     if (abs >= 100000) return '$sign₹${(abs / 100000).toStringAsFixed(1)}L';
     if (abs >= 1000) return '$sign₹${(abs / 1000).toStringAsFixed(1)}K';
     return '$sign₹${abs.toStringAsFixed(0)}';
@@ -3441,8 +3642,8 @@ class _DashboardScreenContent extends StatelessWidget {
     Color color,
   ) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xs),
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.sm, vertical: Spacing.xs),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
@@ -3522,8 +3723,8 @@ class _DashboardScreenContent extends StatelessWidget {
                       });
                       final ids = items.map((w) => w.id).toList();
                       dashCtrl.reorderWidgets(ids);
-                      sp.SharedPreferences.getInstance().then(
-                          (p) => p.setBool('dashboard_reordered', true));
+                      sp.SharedPreferences.getInstance()
+                          .then((p) => p.setBool('dashboard_reordered', true));
                     },
                     itemBuilder: (_, i) {
                       final w = items[i];
@@ -3821,8 +4022,7 @@ class _MorphFABState extends State<_MorphFAB>
         duration: const Duration(milliseconds: 600),
       );
       _pulseCtrl = pulse;
-      pulse.animateWith(AppSprings.from(AppSprings.gentle, 0.0, 1.0))
-          .then((_) {
+      pulse.animateWith(AppSprings.from(AppSprings.gentle, 0.0, 1.0)).then((_) {
         if (mounted) {
           pulse.animateWith(AppSprings.from(AppSprings.gentle, 1.0, 0.0));
         }
@@ -3860,74 +4060,73 @@ class _MorphFABState extends State<_MorphFAB>
   @override
   Widget build(BuildContext context) {
     // Merge the morph animation with the optional first-launch pulse
-    final listenable = _pulseCtrl != null
-        ? Listenable.merge([_ctrl, _pulseCtrl!])
-        : _ctrl;
+    final listenable =
+        _pulseCtrl != null ? Listenable.merge([_ctrl, _pulseCtrl!]) : _ctrl;
 
     return GestureDetector(
-      onLongPress: widget.onLongPress,
-      child: BouncyButton(
-      onPressed: widget.onPressed,
-      scaleFactor: 0.92,
-      child: AnimatedBuilder(
-        animation: listenable,
-        builder: (context, _) {
-          final t = _ctrl.value.clamp(0.0, 1.0);
-          // Scale pulse: expands slightly past 1.0 during spring overshoot
-          final morphScale = 1.0 + (_ctrl.value - t) * 0.3;
-          // First-launch pulse: gentle 0→1→0 scale adds up to 6% extra
-          final pulseScale = _pulseCtrl != null
-              ? 1.0 + _pulseCtrl!.value.abs() * 0.06
-              : 1.0;
-          final scale = morphScale;
-          return Transform.scale(
-            scale: (1.0 + scale * 0.04) * pulseScale,
-            child: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: _showCheck
-                      ? [
-                          Color.lerp(AppStyles.aetherTeal,
-                              SemanticColors.success, t)!,
-                          Color.lerp(AppStyles.novaPurple,
-                              SemanticColors.success, t)!,
-                        ]
-                      : [AppStyles.aetherTeal, AppStyles.novaPurple],
+        onLongPress: widget.onLongPress,
+        child: BouncyButton(
+          onPressed: widget.onPressed,
+          scaleFactor: 0.92,
+          child: AnimatedBuilder(
+            animation: listenable,
+            builder: (context, _) {
+              final t = _ctrl.value.clamp(0.0, 1.0);
+              // Scale pulse: expands slightly past 1.0 during spring overshoot
+              final morphScale = 1.0 + (_ctrl.value - t) * 0.3;
+              // First-launch pulse: gentle 0→1→0 scale adds up to 6% extra
+              final pulseScale = _pulseCtrl != null
+                  ? 1.0 + _pulseCtrl!.value.abs() * 0.06
+                  : 1.0;
+              final scale = morphScale;
+              return Transform.scale(
+                scale: (1.0 + scale * 0.04) * pulseScale,
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: _showCheck
+                          ? [
+                              Color.lerp(AppStyles.aetherTeal,
+                                  SemanticColors.success, t)!,
+                              Color.lerp(AppStyles.novaPurple,
+                                  SemanticColors.success, t)!,
+                            ]
+                          : [AppStyles.aetherTeal, AppStyles.novaPurple],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: AppStyles.elevatedShadows(
+                      context,
+                      tint: _showCheck
+                          ? Color.lerp(
+                              AppStyles.aetherTeal, SemanticColors.success, t)!
+                          : AppStyles.aetherTeal,
+                      strength: 0.90,
+                    ),
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    transitionBuilder: (child, anim) => ScaleTransition(
+                      scale: anim,
+                      child: FadeTransition(opacity: anim, child: child),
+                    ),
+                    child: Icon(
+                      _showCheck
+                          ? CupertinoIcons.checkmark_alt
+                          : CupertinoIcons.add,
+                      key: ValueKey(_showCheck),
+                      color: Colors.white,
+                      size: _showCheck ? 22 : 24,
+                    ),
+                  ),
                 ),
-                shape: BoxShape.circle,
-                boxShadow: AppStyles.elevatedShadows(
-                  context,
-                  tint: _showCheck
-                      ? Color.lerp(AppStyles.aetherTeal,
-                          SemanticColors.success, t)!
-                      : AppStyles.aetherTeal,
-                  strength: 0.90,
-                ),
-              ),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                transitionBuilder: (child, anim) => ScaleTransition(
-                  scale: anim,
-                  child: FadeTransition(opacity: anim, child: child),
-                ),
-                child: Icon(
-                  _showCheck
-                      ? CupertinoIcons.checkmark_alt
-                      : CupertinoIcons.add,
-                  key: ValueKey(_showCheck),
-                  color: Colors.white,
-                  size: _showCheck ? 22 : 24,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    ));
+              );
+            },
+          ),
+        ));
   }
 }
 
@@ -4185,7 +4384,8 @@ class _UpcomingEventsWidget extends StatelessWidget {
         final teal = AppStyles.aetherTeal;
 
         return Container(
-          decoration: AppStyles.sectionDecoration(context, tint: teal, radius: 20),
+          decoration:
+              AppStyles.sectionDecoration(context, tint: teal, radius: 20),
           padding: Spacing.cardPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -4216,7 +4416,8 @@ class _UpcomingEventsWidget extends StatelessWidget {
                   ),
                   BouncyButton(
                     onPressed: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const FinancialCalendarScreen())),
+                        FadeScalePageRoute(
+                            page: const FinancialCalendarScreen())),
                     child: Text(
                       'View all',
                       style: TextStyle(
@@ -4241,7 +4442,9 @@ class _UpcomingEventsWidget extends StatelessWidget {
                   ),
                 )
               else
-                ...events.take(3).map((e) => _EventRow(event: e, isDark: isDark)),
+                ...events
+                    .take(3)
+                    .map((e) => _EventRow(event: e, isDark: isDark)),
             ],
           ),
         );
@@ -4270,12 +4473,15 @@ class _UpcomingEventsWidget extends StatelessWidget {
         try {
           final fd = FixedDeposit.fromMap(
               Map<String, dynamic>.from(meta['fdData'] as Map));
-          if (fd.status != FDStatus.prematurelyWithdrawn) maturity = fd.maturityDate;
+          if (fd.status != FDStatus.prematurelyWithdrawn)
+            maturity = fd.maturityDate;
         } catch (_) {}
       } else if (meta.containsKey('maturityDate')) {
         maturity = DateTime.tryParse((meta['maturityDate'] as String?) ?? '');
       }
-      if (maturity != null && !maturity.isBefore(today) && maturity.isBefore(cutoff)) {
+      if (maturity != null &&
+          !maturity.isBefore(today) &&
+          maturity.isBefore(cutoff)) {
         events.add(_UpcomingEvent(
           title: inv.name,
           subtitle: 'FD Maturity',

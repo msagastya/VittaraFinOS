@@ -300,24 +300,25 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
     // Add AI-predicted ghost events — only high/medium confidence, when toggle is on
     final ai = context.read<AIIntelligenceController>();
-    if (_showPredicted) for (final p in ai.predictedCalendar
-        .where((p) => p.confidence != PredictionConfidence.low)) {
-      final k = _dateKey(p.expectedDate);
-      final ghost = CalendarEvent(
-        id: 'pred_${p.id}',
-        title: '${p.merchantName} (predicted)',
-        subtitle: p.type.name == 'income'
-            ? '≈₹${p.typicalAmount.toStringAsFixed(0)} expected'
-            : '≈₹${p.typicalAmount.toStringAsFixed(0)} due',
-        date: p.expectedDate,
-        type: p.source == 'salary'
-            ? CalendarEventType.bill
-            : CalendarEventType.bill,
-        amount: p.typicalAmount,
-        isPredicted: true,
-      );
-      eventsMap.putIfAbsent(k, () => []).add(ghost);
-    }
+    if (_showPredicted)
+      for (final p in ai.predictedCalendar
+          .where((p) => p.confidence != PredictionConfidence.low)) {
+        final k = _dateKey(p.expectedDate);
+        final ghost = CalendarEvent(
+          id: 'pred_${p.id}',
+          title: '${p.merchantName} (predicted)',
+          subtitle: p.type.name == 'income'
+              ? '≈₹${p.typicalAmount.toStringAsFixed(0)} expected'
+              : '≈₹${p.typicalAmount.toStringAsFixed(0)} due',
+          date: p.expectedDate,
+          type: p.source == 'salary'
+              ? CalendarEventType.bill
+              : CalendarEventType.bill,
+          amount: p.typicalAmount,
+          isPredicted: true,
+        );
+        eventsMap.putIfAbsent(k, () => []).add(ghost);
+      }
 
     // Events to display below calendar
     final List<CalendarEvent> displayEvents;
@@ -340,21 +341,22 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text(
-          'Financial Calendar',
-          style: TextStyle(color: AppStyles.getTextColor(context)),
-        ),
-        previousPageTitle: 'Back',
-        backgroundColor:
-            isDark ? Colors.black : Colors.white.withValues(alpha: 0.95),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text(
+                'Financial Calendar',
+                style: TextStyle(color: AppStyles.getTextColor(context)),
+              ),
+              previousPageTitle: 'Back',
+              backgroundColor:
+                  isDark ? Colors.black : Colors.white.withValues(alpha: 0.95),
+              border: null,
+            ),
       child: SafeArea(
         child: Column(
           children: [
-            if (AppStyles.isLandscape(context))
-              _buildLandscapeNavBar(context),
+            if (AppStyles.isLandscape(context)) _buildLandscapeNavBar(context),
             // ── Upcoming 7-day strip ───────────────────────────────────────
             _buildUpcomingStrip(context, eventsMap),
             // ── Calendar card ──────────────────────────────────────────────
@@ -364,67 +366,73 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                 final vx = details.velocity.pixelsPerSecond.dx;
                 final vy = details.velocity.pixelsPerSecond.dy;
                 // Only fire if clearly horizontal (vx dominates by 50%)
-                final isHorizontal = vx.abs() > vy.abs() * 1.5 && vx.abs() > 300;
+                final isHorizontal =
+                    vx.abs() > vy.abs() * 1.5 && vx.abs() > 300;
                 // Only fire if clearly vertical (vy dominates by 50%)
                 final isVertical = vy.abs() > vx.abs() * 1.5 && vy.abs() > 200;
 
                 if (isHorizontal) {
                   if (_calendarCollapsed && _selectedDay != null) {
-                    if (vx < 0) _navigateDay(1);
-                    else _navigateDay(-1);
+                    if (vx < 0)
+                      _navigateDay(1);
+                    else
+                      _navigateDay(-1);
                   } else {
-                    if (vx < 0) _nextMonth();
-                    else _prevMonth();
+                    if (vx < 0)
+                      _nextMonth();
+                    else
+                      _prevMonth();
                   }
                 } else if (isVertical) {
                   if (vy < 0) {
                     // Swipe up → collapse
                     if (!_calendarCollapsed) {
-                      if (_eventsScrollCtrl.hasClients) _eventsScrollCtrl.jumpTo(0);
+                      if (_eventsScrollCtrl.hasClients)
+                        _eventsScrollCtrl.jumpTo(0);
                       setState(() => _calendarCollapsed = true);
                     }
                   } else {
                     // Swipe down → expand
                     if (_calendarCollapsed) {
-                      if (_eventsScrollCtrl.hasClients) _eventsScrollCtrl.jumpTo(0);
+                      if (_eventsScrollCtrl.hasClients)
+                        _eventsScrollCtrl.jumpTo(0);
                       setState(() => _calendarCollapsed = false);
                     }
                   }
                 }
               },
               child: Container(
-              margin: const EdgeInsets.fromLTRB(
-                  Spacing.lg, Spacing.md, Spacing.lg, 0),
-              decoration: BoxDecoration(
-                color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(Radii.xxl),
-                border: Border.all(
-                  color: AppStyles.getDividerColor(context),
-                  width: 0.8,
-                ),
-                boxShadow:
-                    isDark ? Shadows.cardDark : Shadows.cardLight,
-              ),
-              child: Column(
-                children: [
-                  _buildMonthHeader(context),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 320),
-                    curve: Curves.easeInOutCubic,
-                    child: _calendarCollapsed
-                        ? _buildCollapsedDateChip(context)
-                        : Column(
-                            children: [
-                              _buildWeekdayRow(context),
-                              _buildCalendarGrid(context, eventsMap),
-                              const SizedBox(height: Spacing.sm),
-                            ],
-                          ),
+                margin: const EdgeInsets.fromLTRB(
+                    Spacing.lg, Spacing.md, Spacing.lg, 0),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  borderRadius: BorderRadius.circular(Radii.xxl),
+                  border: Border.all(
+                    color: AppStyles.getDividerColor(context),
+                    width: 0.8,
                   ),
-                  if (_calendarCollapsed) const SizedBox(height: Spacing.xs),
-                ],
+                  boxShadow: isDark ? Shadows.cardDark : Shadows.cardLight,
+                ),
+                child: Column(
+                  children: [
+                    _buildMonthHeader(context),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 320),
+                      curve: Curves.easeInOutCubic,
+                      child: _calendarCollapsed
+                          ? _buildCollapsedDateChip(context)
+                          : Column(
+                              children: [
+                                _buildWeekdayRow(context),
+                                _buildCalendarGrid(context, eventsMap),
+                                const SizedBox(height: Spacing.sm),
+                              ],
+                            ),
+                    ),
+                    if (_calendarCollapsed) const SizedBox(height: Spacing.xs),
+                  ],
+                ),
               ),
-            ),
             ), // end GestureDetector (calendar card)
 
             const SizedBox(height: Spacing.md),
@@ -453,7 +461,8 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                   context,
                   filteredEvents,
                   isDark,
-                  isComputingAI: context.watch<AIIntelligenceController>().isComputing,
+                  isComputingAI:
+                      context.watch<AIIntelligenceController>().isComputing,
                 ),
               ),
             ),
@@ -475,15 +484,17 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
             padding: EdgeInsets.zero,
             minimumSize: Size.zero,
             onPressed: () => Navigator.maybePop(context),
-            child: Icon(CupertinoIcons.chevron_left, size: 20,
-                color: AppStyles.getPrimaryColor(context)),
+            child: Icon(CupertinoIcons.chevron_left,
+                size: 20, color: AppStyles.getPrimaryColor(context)),
           ),
           const SizedBox(width: 8),
           Text(
             'FINANCIAL CALENDAR',
             style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w700,
-              color: AppStyles.getTextColor(context), letterSpacing: 1.1,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppStyles.getTextColor(context),
+              letterSpacing: 1.1,
             ),
           ),
           const Spacer(),
@@ -527,72 +538,89 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
               ? 'Today'
               : i == 1
                   ? 'Tmrw'
-                  : DateFormatter.getMonthName(day.month, short: true).substring(0, 3);
+                  : DateFormatter.getMonthName(day.month, short: true)
+                      .substring(0, 3);
           final accent = AppStyles.teal(context);
 
-          return GestureDetector(
-            onTap: () => _selectDay(day),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              margin: const EdgeInsets.only(right: 8, top: 4, bottom: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? accent
-                    : isDark ? const Color(0xFF111111) : const Color(0xFFF2F2F7),
-                borderRadius: BorderRadius.circular(Radii.lg),
-                border: Border.all(
-                  color: isSelected ? accent : AppStyles.getDividerColor(context),
-                  width: 0.8,
+          final semanticLabel = '${isSelected ? 'Selected, ' : ''}'
+              '$dayLabel ${day.day}'
+              '${events.isNotEmpty ? ', ${events.length} event${events.length == 1 ? '' : 's'}' : ''}';
+          return Semantics(
+            label: semanticLabel,
+            button: true,
+            selected: isSelected,
+            child: GestureDetector(
+              onTap: () => _selectDay(day),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                margin: const EdgeInsets.only(right: 8, top: 4, bottom: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? accent
+                      : isDark
+                          ? const Color(0xFF111111)
+                          : const Color(0xFFF2F2F7),
+                  borderRadius: BorderRadius.circular(Radii.lg),
+                  border: Border.all(
+                    color: isSelected
+                        ? accent
+                        : AppStyles.getDividerColor(context),
+                    width: 0.8,
+                  ),
                 ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${day.day}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: isSelected ? Colors.white : AppStyles.getTextColor(context),
-                      height: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    dayLabel,
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? Colors.white.withValues(alpha: 0.8)
-                          : AppStyles.getSecondaryTextColor(context),
-                    ),
-                  ),
-                  if (events.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${day.day}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
                         color: isSelected
-                            ? Colors.white.withValues(alpha: 0.25)
-                            : accent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
+                            ? Colors.white
+                            : AppStyles.getTextColor(context),
+                        height: 1.0,
                       ),
-                      child: Text(
-                        '${events.length}',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: isSelected ? Colors.white : accent,
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      dayLabel,
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? Colors.white.withValues(alpha: 0.8)
+                            : AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                    if (events.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.25)
+                              : accent.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${events.length}',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: isSelected ? Colors.white : accent,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-          );
+            ), // GestureDetector
+          ); // Semantics
         },
       ),
     );
@@ -601,16 +629,15 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
   // ─── Month header ────────────────────────────────────────────────────────
 
   Widget _buildMonthHeader(BuildContext context) {
-    final monthName = DateFormatter.getMonthName(_focusedMonth.month,
-        short: false);
+    final monthName =
+        DateFormatter.getMonthName(_focusedMonth.month, short: false);
     final year = _focusedMonth.year;
     final now = DateTime.now();
     final isCurrentMonth =
         _focusedMonth.year == now.year && _focusedMonth.month == now.month;
 
     return Padding(
-      padding:
-          const EdgeInsets.fromLTRB(Spacing.lg, Spacing.md, Spacing.md, 0),
+      padding: const EdgeInsets.fromLTRB(Spacing.lg, Spacing.md, Spacing.md, 0),
       child: Row(
         children: [
           Expanded(
@@ -648,8 +675,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                 final now = DateTime.now();
                 setState(() {
                   _focusedMonth = DateTime(now.year, now.month, 1);
-                  _selectedDay =
-                      DateTime(now.year, now.month, now.day);
+                  _selectedDay = DateTime(now.year, now.month, now.day);
                 });
               },
               child: Container(
@@ -746,8 +772,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
     final leadingBlanks = firstWeekday - 1; // 0..6
 
     // Total cells = blanks + days, rounded up to multiple of 7
-    final totalCells =
-        (leadingBlanks + daysInMonth + 6) ~/ 7 * 7;
+    final totalCells = (leadingBlanks + daysInMonth + 6) ~/ 7 * 7;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
@@ -757,42 +782,42 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
           const spacing = 0.0;
           final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
           return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: cols,
-          mainAxisSpacing: 4,
-          crossAxisSpacing: spacing,
-          childAspectRatio: itemW / (itemW / 0.78),
-        ),
-        itemCount: totalCells,
-        itemBuilder: (ctx, index) {
-          if (index < leadingBlanks ||
-              index >= leadingBlanks + daysInMonth) {
-            return const SizedBox.shrink();
-          }
-          final day = index - leadingBlanks + 1;
-          final date =
-              DateTime(_focusedMonth.year, _focusedMonth.month, day);
-          final key = _dateKey(date);
-          final dayEvents = eventsMap[key] ?? [];
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: cols,
+              mainAxisSpacing: 4,
+              crossAxisSpacing: spacing,
+              childAspectRatio: itemW / (itemW / 0.78),
+            ),
+            itemCount: totalCells,
+            itemBuilder: (ctx, index) {
+              if (index < leadingBlanks ||
+                  index >= leadingBlanks + daysInMonth) {
+                return const SizedBox.shrink();
+              }
+              final day = index - leadingBlanks + 1;
+              final date =
+                  DateTime(_focusedMonth.year, _focusedMonth.month, day);
+              final key = _dateKey(date);
+              final dayEvents = eventsMap[key] ?? [];
 
-          final isToday = date == today;
-          final isSelected = _selectedDay != null &&
-              _selectedDay!.year == date.year &&
-              _selectedDay!.month == date.month &&
-              _selectedDay!.day == date.day;
-          final isSunday = date.weekday == 7;
+              final isToday = date == today;
+              final isSelected = _selectedDay != null &&
+                  _selectedDay!.year == date.year &&
+                  _selectedDay!.month == date.month &&
+                  _selectedDay!.day == date.day;
+              final isSunday = date.weekday == 7;
 
-          return _DayCell(
-            day: day,
-            events: dayEvents,
-            isToday: isToday,
-            isSelected: isSelected,
-            isSunday: isSunday,
-            onTap: () => _selectDay(date),
-          );
-        },
+              return _DayCell(
+                day: day,
+                events: dayEvents,
+                isToday: isToday,
+                isSelected: isSelected,
+                isSunday: isSunday,
+                onTap: () => _selectDay(date),
+              );
+            },
           );
         },
       ),
@@ -806,8 +831,18 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
     final dayName =
         ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][refDay.weekday - 1];
     final monthName = [
-      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC'
     ][refDay.month - 1];
     final secondary = AppStyles.getSecondaryTextColor(context);
 
@@ -880,8 +915,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
   // ─── Filter row ──────────────────────────────────────────────────────────
 
-  Widget _buildFilterRow(
-      BuildContext context, List<CalendarEvent> allEvents) {
+  Widget _buildFilterRow(BuildContext context, List<CalendarEvent> allEvents) {
     // Only show types that have events
     final presentTypes = allEvents.map((e) => e.type).toSet().toList()
       ..sort((a, b) => a.index.compareTo(b.index));
@@ -892,8 +926,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
       height: 34,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding:
-            const EdgeInsets.symmetric(horizontal: Spacing.lg),
+        padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
         children: [
           // "All" chip
           _FilterChip(
@@ -909,8 +942,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                   color: type.colorFor(AppStyles.isDarkMode(context)),
                   isSelected: _filterType == type,
                   onTap: () => setState(() {
-                    _filterType =
-                        _filterType == type ? null : type;
+                    _filterType = _filterType == type ? null : type;
                   }),
                 ),
               )),
@@ -958,8 +990,8 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-              Spacing.lg, 0, Spacing.lg, Spacing.sm),
+          padding:
+              const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.sm),
           child: Row(
             children: [
               Text(
@@ -1022,14 +1054,16 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
         Expanded(
           child: isComputingAI
               ? ListView(
-                  padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.massive),
+                  padding: const EdgeInsets.fromLTRB(
+                      Spacing.lg, 0, Spacing.lg, Spacing.massive),
                   children: List.generate(
                     4,
                     (_) => Padding(
                       padding: const EdgeInsets.only(bottom: Spacing.md),
                       child: Row(
                         children: [
-                          SkeletonLoader(width: 44, height: 44, borderRadius: 12),
+                          SkeletonLoader(
+                              width: 44, height: 44, borderRadius: 12),
                           const SizedBox(width: Spacing.md),
                           Expanded(
                             child: Column(
@@ -1042,52 +1076,56 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                             ),
                           ),
                           const SizedBox(width: Spacing.md),
-                          SkeletonLoader(width: 60, height: 20, borderRadius: 6),
+                          SkeletonLoader(
+                              width: 60, height: 20, borderRadius: 6),
                         ],
                       ),
                     ),
                   ),
                 )
               : events.isEmpty
-              ? CustomScrollView(
-                  controller: _eventsScrollCtrl,
-                  physics: const ClampingScrollPhysics(),
-                  slivers: [
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: _buildEmptyEvents(context),
+                  ? CustomScrollView(
+                      controller: _eventsScrollCtrl,
+                      physics: const ClampingScrollPhysics(),
+                      slivers: [
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _buildEmptyEvents(context),
+                        ),
+                      ],
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        final ai = context.read<AIIntelligenceController>();
+                        final txCtrl = context.read<TransactionsController>();
+                        final accounts = context.read<AccountsController>();
+                        final budgetsCtrl = context.read<BudgetsController>();
+                        final goalsCtrl = context.read<GoalsController>();
+                        await ai.refresh(
+                          transactions: txCtrl.transactions,
+                          accountCount: accounts.accounts.length,
+                          accountBalances: {
+                            for (final a in accounts.accounts) a.id: a.balance
+                          },
+                          budgets: budgetsCtrl.budgets
+                              .map((b) => b.toMap())
+                              .toList(),
+                          goals: goalsCtrl.activeGoals,
+                        );
+                        setState(() {});
+                      },
+                      child: ListView.builder(
+                        controller: _eventsScrollCtrl,
+                        padding: const EdgeInsets.fromLTRB(
+                          Spacing.lg,
+                          0,
+                          Spacing.lg,
+                          Spacing.massive,
+                        ),
+                        itemCount: events.length,
+                        itemBuilder: (ctx, i) => _EventTile(event: events[i]),
+                      ),
                     ),
-                  ],
-                )
-              : RefreshIndicator(
-                  onRefresh: () async {
-                    final ai = context.read<AIIntelligenceController>();
-                    final txCtrl = context.read<TransactionsController>();
-                    final accounts = context.read<AccountsController>();
-                    final budgetsCtrl = context.read<BudgetsController>();
-                    final goalsCtrl = context.read<GoalsController>();
-                    await ai.refresh(
-                      transactions: txCtrl.transactions,
-                      accountCount: accounts.accounts.length,
-                      accountBalances: {for (final a in accounts.accounts) a.id: a.balance},
-                      budgets: budgetsCtrl.budgets.map((b) => b.toMap()).toList(),
-                      goals: goalsCtrl.activeGoals,
-                    );
-                    setState(() {});
-                  },
-                  child: ListView.builder(
-                    controller: _eventsScrollCtrl,
-                    padding: const EdgeInsets.fromLTRB(
-                      Spacing.lg,
-                      0,
-                      Spacing.lg,
-                      Spacing.massive,
-                    ),
-                    itemCount: events.length,
-                    itemBuilder: (ctx, i) =>
-                        _EventTile(event: events[i]),
-                  ),
-                ),
         ),
       ],
     );
@@ -1149,8 +1187,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
             ));
           }
         } else if (meta.containsKey('maturityDate')) {
-          final d = DateTime.tryParse(
-              (meta['maturityDate'] as String?) ?? '');
+          final d = DateTime.tryParse((meta['maturityDate'] as String?) ?? '');
           if (d != null && !d.isBefore(today) && d.isBefore(cutoff)) {
             events.add(CalendarEvent(
               id: 'fd_${inv.id}',
@@ -1158,9 +1195,8 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
               subtitle: 'FD Maturity',
               date: d,
               type: CalendarEventType.fd,
-              amount:
-                  (meta['estimatedAccruedValue'] as num?)?.toDouble() ??
-                      inv.amount,
+              amount: (meta['estimatedAccruedValue'] as num?)?.toDouble() ??
+                  inv.amount,
             ));
           }
         }
@@ -1195,8 +1231,8 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
           // Upcoming installment payments
           for (final inst in rd.installments) {
             if (inst.isPaid) continue;
-            final d = DateTime(inst.dueDate.year, inst.dueDate.month,
-                inst.dueDate.day);
+            final d = DateTime(
+                inst.dueDate.year, inst.dueDate.month, inst.dueDate.day);
             if (!d.isBefore(today) && d.isBefore(cutoff)) {
               events.add(CalendarEvent(
                 id: 'rdpay_${inv.id}_${inst.id}',
@@ -1210,8 +1246,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
             }
           }
         } else if (meta.containsKey('maturityDate')) {
-          final d = DateTime.tryParse(
-              (meta['maturityDate'] as String?) ?? '');
+          final d = DateTime.tryParse((meta['maturityDate'] as String?) ?? '');
           if (d != null && !d.isBefore(today) && d.isBefore(cutoff)) {
             events.add(CalendarEvent(
               id: 'rd_${inv.id}',
@@ -1318,10 +1353,11 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
     for (final policy in policies) {
       final effectiveDate = _insuranceEffectiveDate(policy);
       if (effectiveDate == null) continue;
-      final d = DateTime(
-          effectiveDate.year, effectiveDate.month, effectiveDate.day);
+      final d =
+          DateTime(effectiveDate.year, effectiveDate.month, effectiveDate.day);
       if (!d.isBefore(today) && d.isBefore(cutoff)) {
-        final concept = policy.type.dateConcept; // 'Renewal', 'Maturity', 'Trip End'
+        final concept =
+            policy.type.dateConcept; // 'Renewal', 'Maturity', 'Trip End'
         events.add(CalendarEvent(
           id: 'ins_${policy.id}',
           title: policy.name,
@@ -1348,8 +1384,8 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
               amount: policy.premiumAmount,
             ));
           }
-          nextRenewal = DateTime(nextRenewal.year + 1, nextRenewal.month,
-              nextRenewal.day);
+          nextRenewal = DateTime(
+              nextRenewal.year + 1, nextRenewal.month, nextRenewal.day);
           count++;
         }
       }
@@ -1366,8 +1402,8 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
             id: 'emi_${loan.id}_${current.toIso8601String()}',
             title: loan.name,
             subtitle: loan.bankName?.isNotEmpty == true
-                    ? 'Loan EMI · ${loan.bankName}'
-                    : 'Loan EMI',
+                ? 'Loan EMI · ${loan.bankName}'
+                : 'Loan EMI',
             date: d,
             type: CalendarEventType.loanEmi,
             amount: loan.emiAmount,
@@ -1418,8 +1454,8 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
     // Monthly MF SIP: use the explicit day-of-month stored in sipData
     if (freqStr == 'monthly') {
-      final monthDay = (sipData?['monthDay'] as int?) ??
-          (meta['sipMonthDay'] as int?);
+      final monthDay =
+          (sipData?['monthDay'] as int?) ?? (meta['sipMonthDay'] as int?);
       if (monthDay != null && monthDay >= 1 && monthDay <= 31) {
         // Clamp to 28 to avoid month-overflow issues
         final safeDay = monthDay.clamp(1, 28);
@@ -1435,8 +1471,8 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
     // App convention: 0 = Monday … 6 = Sunday
     // DateTime convention: 1 = Monday … 7 = Sunday
     if (freqStr == 'weekly') {
-      final weekdayIdx = (sipData?['weekday'] as int?) ??
-          (meta['sipWeekday'] as int?);
+      final weekdayIdx =
+          (sipData?['weekday'] as int?) ?? (meta['sipWeekday'] as int?);
       if (weekdayIdx != null) {
         final target = weekdayIdx + 1; // convert to DateTime weekday
         var daysAhead = (target - today.weekday + 7) % 7;
@@ -1552,11 +1588,8 @@ class _DayCell extends StatelessWidget {
   Widget build(BuildContext context) {
     // Collect distinct type colors (max 3)
     final isDark = AppStyles.isDarkMode(context);
-    final typeColors = events
-        .map((e) => e.type.colorFor(isDark))
-        .toSet()
-        .take(3)
-        .toList();
+    final typeColors =
+        events.map((e) => e.type.colorFor(isDark)).toSet().take(3).toList();
     final hasMore = events.map((e) => e.type).toSet().length > 3;
 
     Color numberColor;
@@ -1576,75 +1609,73 @@ class _DayCell extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
         child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Day number circle
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isSelected
-                  ? AppStyles.teal(context)
-                  : isToday
-                      ? AppStyles.teal(context).withValues(alpha: 0.15)
-                      : Colors.transparent,
-            ),
-            child: Center(
-              child: Text(
-                '$day',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: isToday || isSelected
-                      ? FontWeight.w800
-                      : FontWeight.w500,
-                  color: numberColor,
-                  height: 1,
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Day number circle
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected
+                    ? AppStyles.teal(context)
+                    : isToday
+                        ? AppStyles.teal(context).withValues(alpha: 0.15)
+                        : Colors.transparent,
+              ),
+              child: Center(
+                child: Text(
+                  '$day',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: isToday || isSelected
+                        ? FontWeight.w800
+                        : FontWeight.w500,
+                    color: numberColor,
+                    height: 1,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 3),
-          // Event dots
-          if (events.isNotEmpty)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ...typeColors.map((c) => Container(
+            const SizedBox(height: 3),
+            // Event dots
+            if (events.isNotEmpty)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ...typeColors.map((c) => Container(
+                        width: 4,
+                        height: 4,
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.9)
+                              : c,
+                          shape: BoxShape.circle,
+                        ),
+                      )),
+                  if (hasMore)
+                    Container(
                       width: 4,
                       height: 4,
-                      margin:
-                          const EdgeInsets.symmetric(horizontal: 1),
+                      margin: const EdgeInsets.symmetric(horizontal: 1),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? Colors.white.withValues(alpha: 0.9)
-                            : c,
+                            ? Colors.white.withValues(alpha: 0.5)
+                            : AppStyles.getSecondaryTextColor(context)
+                                .withValues(alpha: 0.4),
                         shape: BoxShape.circle,
                       ),
-                    )),
-                if (hasMore)
-                  Container(
-                    width: 4,
-                    height: 4,
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 1),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? Colors.white.withValues(alpha: 0.5)
-                          : AppStyles.getSecondaryTextColor(context)
-                              .withValues(alpha: 0.4),
-                      shape: BoxShape.circle,
                     ),
-                  ),
-              ],
-            )
-          else
-            const SizedBox(height: 7), // placeholder to keep row height
-        ],
-      ), // Column
+                ],
+              )
+            else
+              const SizedBox(height: 7), // placeholder to keep row height
+          ],
+        ), // Column
       ), // ConstrainedBox
     );
   }
@@ -1689,11 +1720,9 @@ class _FilterChip extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: TypeScale.caption,
-            fontWeight:
-                isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected
-                ? color
-                : AppStyles.getSecondaryTextColor(context),
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color:
+                isSelected ? color : AppStyles.getSecondaryTextColor(context),
           ),
         ),
       ),
@@ -1782,9 +1811,7 @@ class _EventTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: isPredicted
             ? AppStyles.aetherTeal.withValues(alpha: 0.06)
-            : (isDark
-                ? Colors.white.withValues(alpha: 0.04)
-                : Colors.white),
+            : (isDark ? Colors.white.withValues(alpha: 0.04) : Colors.white),
         borderRadius: BorderRadius.circular(Radii.lg),
         border: isPredicted
             ? null // dashed border drawn by CustomPaint overlay
@@ -1845,8 +1872,7 @@ class _EventTile extends StatelessWidget {
                             event.subtitle,
                             style: TextStyle(
                               fontSize: TypeScale.footnote,
-                              color:
-                                  AppStyles.getSecondaryTextColor(context),
+                              color: AppStyles.getSecondaryTextColor(context),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1866,17 +1892,14 @@ class _EventTile extends StatelessWidget {
                               horizontal: Spacing.sm, vertical: 3),
                           decoration: BoxDecoration(
                             color: color.withValues(alpha: 0.15),
-                            borderRadius:
-                                BorderRadius.circular(Radii.full),
+                            borderRadius: BorderRadius.circular(Radii.full),
                           ),
                           child: Text(
                             isPredicted ? 'Predicted' : event.type.label,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: isPredicted
-                                  ? AppStyles.aetherTeal
-                                  : color,
+                              color: isPredicted ? AppStyles.aetherTeal : color,
                               letterSpacing: 0.2,
                             ),
                           ),
@@ -1920,7 +1943,7 @@ class _EventTile extends StatelessWidget {
           ],
         ),
       ),
-    );   // Container
+    ); // Container
     if (!isPredicted) return card;
     // Wrap predicted events in dashed-border overlay
     return Opacity(

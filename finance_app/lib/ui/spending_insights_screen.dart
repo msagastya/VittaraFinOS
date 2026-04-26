@@ -31,17 +31,20 @@ class SpendingInsightsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return CupertinoPageScaffold(
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text('Spending Intelligence',
-            style: TextStyle(color: AppStyles.getTextColor(context))),
-        backgroundColor: isDark ? AppStyles.darkBackground : AppStyles.lightBackground,
-        border: Border(
-          bottom: BorderSide(
-            color: AppStyles.getDividerColor(context),
-            width: 0.5,
-          ),
-        ),
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text('Spending Intelligence',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
+              backgroundColor:
+                  isDark ? AppStyles.darkBackground : AppStyles.lightBackground,
+              border: Border(
+                bottom: BorderSide(
+                  color: AppStyles.getDividerColor(context),
+                  width: 0.5,
+                ),
+              ),
+            ),
       // Use Selector2 so the body only rebuilds when transaction/budget
       // counts change — avoids full recompute on unrelated state updates.
       child: Selector2<TransactionsController, BudgetsController,
@@ -277,7 +280,8 @@ class _SpendIntelBody extends StatelessWidget {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: opps.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: Spacing.sm),
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(width: Spacing.sm),
                   itemBuilder: (ctx2, i) {
                     final opp = opps[i];
                     return _OpportunityChip(
@@ -369,8 +373,8 @@ class _SpendIntelBody extends StatelessWidget {
                 if (narrative.highlight != null) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFF4CAF50).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
@@ -385,8 +389,8 @@ class _SpendIntelBody extends StatelessWidget {
                 if (narrative.watchOut != null) ...[
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFF6B6B).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
@@ -423,8 +427,7 @@ class _SpendIntelBody extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(Radii.lg)),
+              color: cardBg, borderRadius: BorderRadius.circular(Radii.lg)),
           child: SpendForecastBar(data: data, isDark: isDark),
         ),
         const SizedBox(height: Spacing.lg),
@@ -435,13 +438,15 @@ class _SpendIntelBody extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(Radii.lg)),
-          child: _ExpandableCategoryTable(
-            drifts: data.categoryDrifts,
-            total: data.totalThisMonth,
-            isDark: isDark,
-            transactions: thisMonthExp,
+              color: cardBg, borderRadius: BorderRadius.circular(Radii.lg)),
+          child: Semantics(
+            label: _categoryBreakdownSemantics(data),
+            child: _ExpandableCategoryTable(
+              drifts: data.categoryDrifts,
+              total: data.totalThisMonth,
+              isDark: isDark,
+              transactions: thisMonthExp,
+            ),
           ),
         ),
         const SizedBox(height: Spacing.lg),
@@ -452,12 +457,14 @@ class _SpendIntelBody extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(Radii.lg)),
-          child: _ExpandableRhythm(
-            dowSpend: data.dowSpend,
-            isDark: isDark,
-            transactions: thisMonthExp,
+              color: cardBg, borderRadius: BorderRadius.circular(Radii.lg)),
+          child: Semantics(
+            label: _rhythmChartSemantics(data.dowSpend),
+            child: _ExpandableRhythm(
+              dowSpend: data.dowSpend,
+              isDark: isDark,
+              transactions: thisMonthExp,
+            ),
           ),
         ),
         const SizedBox(height: Spacing.lg),
@@ -468,13 +475,15 @@ class _SpendIntelBody extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(Radii.lg)),
-          child: _ExpandableMerchants(
-            merchants: data.topMerchants,
-            totalThisMonth: data.totalThisMonth,
-            isDark: isDark,
-            transactions: thisMonthExp,
+              color: cardBg, borderRadius: BorderRadius.circular(Radii.lg)),
+          child: Semantics(
+            label: _merchantBreakdownSemantics(data),
+            child: _ExpandableMerchants(
+              merchants: data.topMerchants,
+              totalThisMonth: data.totalThisMonth,
+              isDark: isDark,
+              transactions: thisMonthExp,
+            ),
           ),
         ),
         const SizedBox(height: Spacing.lg),
@@ -499,8 +508,8 @@ class _SpendIntelBody extends StatelessWidget {
 
       Widget sidebarStat(String label, String value, Color color) {
         return Padding(
-          padding: const EdgeInsets.fromLTRB(
-              Spacing.md, Spacing.xs, Spacing.md, 0),
+          padding:
+              const EdgeInsets.fromLTRB(Spacing.md, Spacing.xs, Spacing.md, 0),
           child: Row(
             children: [
               Text(
@@ -544,8 +553,8 @@ class _SpendIntelBody extends StatelessWidget {
                     SizedBox(
                       height: 44,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: Spacing.sm),
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: Spacing.sm),
                         child: Row(
                           children: [
                             CupertinoButton(
@@ -573,15 +582,14 @@ class _SpendIntelBody extends StatelessWidget {
                       ),
                     ),
                     Container(
-                        height: 0.5,
-                        color: AppStyles.getDividerColor(context)),
+                        height: 0.5, color: AppStyles.getDividerColor(context)),
 
                     const SizedBox(height: Spacing.sm),
 
                     // This month stats
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: Spacing.md),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: Spacing.md),
                       child: Text(
                         'THIS MONTH',
                         style: TextStyle(
@@ -612,8 +620,8 @@ class _SpendIntelBody extends StatelessWidget {
 
                     // vs last month
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: Spacing.md),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: Spacing.md),
                       child: Text(
                         'VS LAST MONTH',
                         style: TextStyle(
@@ -624,8 +632,8 @@ class _SpendIntelBody extends StatelessWidget {
                         ),
                       ),
                     ),
-                    sidebarStat('Last month', fmt(data.totalLastMonth),
-                        secondary),
+                    sidebarStat(
+                        'Last month', fmt(data.totalLastMonth), secondary),
                     if (data.momChange != 0)
                       sidebarStat(
                         'Change',
@@ -643,8 +651,8 @@ class _SpendIntelBody extends StatelessWidget {
                               .withValues(alpha: 0.5)),
                       const SizedBox(height: Spacing.sm),
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: Spacing.md),
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: Spacing.md),
                         child: Text(
                           'TOP CATEGORY',
                           style: TextStyle(
@@ -701,7 +709,9 @@ class _SpendIntelBody extends StatelessWidget {
           await ai.refresh(
             transactions: transactions,
             accountCount: accounts.accounts.length,
-            accountBalances: {for (final a in accounts.accounts) a.id: a.balance},
+            accountBalances: {
+              for (final a in accounts.accounts) a.id: a.balance
+            },
             budgets: budgetsCtrl.budgets.map((b) => b.toMap()).toList(),
             goals: goalsCtrl.activeGoals,
           );
@@ -714,6 +724,40 @@ class _SpendIntelBody extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _categoryBreakdownSemantics(SpendIntelData data) {
+    final top = data.categoryDrifts.take(3).map((d) {
+      final share = data.totalThisMonth > 0
+          ? (d.thisMonth / data.totalThisMonth * 100).clamp(0, 100)
+          : 0;
+      return '${d.name} at ${share.toStringAsFixed(0)}%';
+    }).join(', ');
+    return top.isEmpty
+        ? 'Category breakdown chart'
+        : 'Category breakdown chart. Top categories: $top.';
+  }
+
+  String _rhythmChartSemantics(List<double> dowSpend) {
+    if (dowSpend.isEmpty) return 'Spend rhythm bar chart';
+    var peakIndex = 0;
+    for (var i = 1; i < dowSpend.length; i++) {
+      if (dowSpend[i] > dowSpend[peakIndex]) peakIndex = i;
+    }
+    return 'Spend rhythm bar chart. Highest spending day is '
+        '${spendDowName(peakIndex)} at ${spendFmt(dowSpend[peakIndex])}.';
+  }
+
+  String _merchantBreakdownSemantics(SpendIntelData data) {
+    final top = data.topMerchants.take(3).map((m) {
+      final share = data.totalThisMonth > 0
+          ? (m.value / data.totalThisMonth * 100).clamp(0, 100)
+          : 0;
+      return '${m.key} at ${share.toStringAsFixed(0)}%';
+    }).join(', ');
+    return top.isEmpty
+        ? 'Top merchants chart'
+        : 'Top merchants chart. Highest merchants: $top.';
   }
 }
 
@@ -752,9 +796,7 @@ class _IntelligenceHeader extends StatelessWidget {
       } else {
         return (
           'You\'ve spent ${spendFmt(spent)} so far. ${spendFmt(remaining)} remains.',
-          sr >= 0
-              ? '${sr.toStringAsFixed(0)}% savings rate this month.'
-              : null,
+          sr >= 0 ? '${sr.toStringAsFixed(0)}% savings rate this month.' : null,
           SemanticColors.getWarning(context),
           CupertinoIcons.chart_bar_fill,
         );
@@ -801,7 +843,8 @@ class _IntelligenceHeader extends StatelessWidget {
     final (headline, sub, borderColor, icon) = _buildSummary(context);
     final isDark = AppStyles.isDarkMode(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(Spacing.md, Spacing.md, Spacing.md, Spacing.md),
+      padding: const EdgeInsets.fromLTRB(
+          Spacing.md, Spacing.md, Spacing.md, Spacing.md),
       decoration: BoxDecoration(
         color: borderColor.withValues(alpha: isDark ? 0.07 : 0.05),
         borderRadius: BorderRadius.circular(Radii.lg),
@@ -826,7 +869,8 @@ class _IntelligenceHeader extends StatelessWidget {
               children: [
                 Text(
                   headline,
-                  style: AppTypography.headline(color: AppStyles.getTextColor(context))
+                  style: AppTypography.headline(
+                          color: AppStyles.getTextColor(context))
                       .copyWith(height: 1.3),
                 ),
                 if (sub != null) ...[
@@ -855,11 +899,13 @@ class _SummaryRow extends StatelessWidget {
   final bool isDark;
   final Color cardBg;
 
-  const _SummaryRow({required this.data, required this.isDark, required this.cardBg});
+  const _SummaryRow(
+      {required this.data, required this.isDark, required this.cardBg});
 
   @override
   Widget build(BuildContext context) {
-    final momColor = data.momChange > 0 ? AppStyles.loss(context) : AppStyles.gain(context);
+    final momColor =
+        data.momChange > 0 ? AppStyles.loss(context) : AppStyles.gain(context);
     final srColor = data.savingsRate >= 20
         ? AppStyles.gain(context)
         : data.savingsRate >= 5
@@ -881,7 +927,8 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: _StatTile(
             label: 'vs Last Mo',
-            value: '${data.momChange >= 0 ? '+' : ''}${data.momChange.toStringAsFixed(1)}%',
+            value:
+                '${data.momChange >= 0 ? '+' : ''}${data.momChange.toStringAsFixed(1)}%',
             sub: spendFmt(data.totalLastMonth),
             color: momColor,
             cardBg: cardBg,
@@ -922,7 +969,8 @@ class _StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.md),
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.sm, vertical: Spacing.md),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(Radii.lg),
@@ -1044,13 +1092,15 @@ Widget _buildTxRow(BuildContext context, Transaction tx, bool isDark) {
           width: 36,
           child: Text(
             dateStr,
-            style: AppTypography.micro(color: AppStyles.getSecondaryTextColor(context)),
+            style: AppTypography.micro(
+                color: AppStyles.getSecondaryTextColor(context)),
           ),
         ),
         Expanded(
           child: Text(
             tx.description.isNotEmpty ? tx.description : 'Transaction',
-            style: AppTypography.caption(color: AppStyles.getTextColor(context)),
+            style:
+                AppTypography.caption(color: AppStyles.getTextColor(context)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1086,7 +1136,8 @@ class _ExpandableCategoryTable extends StatefulWidget {
   });
 
   @override
-  State<_ExpandableCategoryTable> createState() => _ExpandableCategoryTableState();
+  State<_ExpandableCategoryTable> createState() =>
+      _ExpandableCategoryTableState();
 }
 
 class _ExpandableCategoryTableState extends State<_ExpandableCategoryTable> {
@@ -1166,7 +1217,8 @@ class _ExpandableCategoryTableState extends State<_ExpandableCategoryTable> {
                                         ? CupertinoIcons.chevron_up
                                         : CupertinoIcons.chevron_down,
                                     size: 10,
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                 ],
                               ),
@@ -1252,15 +1304,14 @@ class _ExpandableCategoryTableState extends State<_ExpandableCategoryTable> {
                       final txs = all.take(5).toList();
                       if (txs.isEmpty) return const SizedBox.shrink();
                       return Padding(
-                        padding: const EdgeInsets.only(
-                            left: 28, bottom: Spacing.sm),
+                        padding:
+                            const EdgeInsets.only(left: 28, bottom: Spacing.sm),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Divider(height: 1, color: divColor),
                             const SizedBox(height: Spacing.xs),
-                            ...txs.map(
-                                (t) => _buildTxRow(context, t, isDark)),
+                            ...txs.map((t) => _buildTxRow(context, t, isDark)),
                             if (all.length > 5)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
@@ -1318,9 +1369,8 @@ class _ExpandableRhythmState extends State<_ExpandableRhythm> {
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
-    final maxVal = widget.dowSpend.isEmpty
-        ? 0.0
-        : widget.dowSpend.reduce(math.max);
+    final maxVal =
+        widget.dowSpend.isEmpty ? 0.0 : widget.dowSpend.reduce(math.max);
     if (maxVal == 0) {
       return Text(
         'No spending recorded this month yet.',
@@ -1341,8 +1391,9 @@ class _ExpandableRhythmState extends State<_ExpandableRhythm> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: List.generate(7, (i) {
-            final fraction =
-                maxVal > 0 ? (widget.dowSpend[i] / maxVal).clamp(0.0, 1.0) : 0.0;
+            final fraction = maxVal > 0
+                ? (widget.dowSpend[i] / maxVal).clamp(0.0, 1.0)
+                : 0.0;
             final isPeak = widget.dowSpend[i] == maxVal;
             final isExpanded = _expanded == i;
             final h = fraction * barH;
@@ -1357,8 +1408,7 @@ class _ExpandableRhythmState extends State<_ExpandableRhythm> {
             return Expanded(
               child: GestureDetector(
                 onTap: widget.dowSpend[i] > 0
-                    ? () => setState(
-                        () => _expanded = isExpanded ? null : i)
+                    ? () => setState(() => _expanded = isExpanded ? null : i)
                     : null,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1384,8 +1434,8 @@ class _ExpandableRhythmState extends State<_ExpandableRhythm> {
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
                         color: isExpanded ? peakColor : color,
-                        borderRadius:
-                            const BorderRadius.vertical(top: Radius.circular(3)),
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(3)),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1440,8 +1490,8 @@ class _ExpandableRhythmState extends State<_ExpandableRhythm> {
                               '+${all.length - 5} more',
                               style: TextStyle(
                                   fontSize: 10,
-                                  color: AppStyles.getSecondaryTextColor(
-                                      context)),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context)),
                             ),
                           ),
                       ],
@@ -1511,8 +1561,8 @@ class _ExpandableMerchantsState extends State<_ExpandableMerchants> {
           children: [
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => setState(
-                  () => _expanded = isExpanded ? null : m.key),
+              onTap: () =>
+                  setState(() => _expanded = isExpanded ? null : m.key),
               child: Padding(
                 padding: const EdgeInsets.only(bottom: Spacing.xs),
                 child: Row(
@@ -1642,8 +1692,18 @@ class _MonthlyTrendSection extends StatelessWidget {
   });
 
   static final _monthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
   ];
 
   @override
@@ -1670,139 +1730,155 @@ class _MonthlyTrendSection extends StatelessWidget {
       children: [
         SpendSectionLabel('MONTH COMPARISON'),
         const SizedBox(height: Spacing.sm),
-        Container(
-          padding: const EdgeInsets.all(Spacing.md),
-          decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(Radii.lg),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // Last month bar
-              Expanded(
-                child: Column(
-                  children: [
-                    Text(
-                      spendFmt(data.totalLastMonth),
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        fontWeight: FontWeight.w700,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                    const SizedBox(height: Spacing.xs),
-                    Container(
-                      height: maxBarH * lastFrac + 4,
-                      margin: const EdgeInsets.symmetric(horizontal: Spacing.sm),
-                      decoration: BoxDecoration(
-                        color: AppStyles.accentBlue.withValues(alpha: 0.4),
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                      ),
-                    ),
-                    const SizedBox(height: Spacing.xs),
-                    Text(
-                      lastLabel,
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                    Text(
-                      'Full month',
-                      style: TextStyle(
-                        fontSize: 9,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
+        Semantics(
+          label: 'Monthly comparison chart. $lastLabel spent '
+              '${spendFmt(data.totalLastMonth)}. $thisLabel spent '
+              '${spendFmt(data.totalThisMonth)}'
+              '${data.projectedMonthEnd > 0 ? ', projected ${spendFmt(data.projectedMonthEnd)}' : ''}.',
+          child: ExcludeSemantics(
+            child: Container(
+              padding: const EdgeInsets.all(Spacing.md),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(Radii.lg),
               ),
-              const SizedBox(width: Spacing.sm),
-              // This month bar (current — partial)
-              Expanded(
-                child: Column(
-                  children: [
-                    Column(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Last month bar
+                  Expanded(
+                    child: Column(
                       children: [
                         Text(
-                          spendFmt(data.totalThisMonth),
+                          spendFmt(data.totalLastMonth),
                           style: TextStyle(
                             fontSize: TypeScale.caption,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                        const SizedBox(height: Spacing.xs),
+                        Container(
+                          height: maxBarH * lastFrac + 4,
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: Spacing.sm),
+                          decoration: BoxDecoration(
+                            color: AppStyles.accentBlue.withValues(alpha: 0.4),
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(6)),
+                          ),
+                        ),
+                        const SizedBox(height: Spacing.xs),
+                        Text(
+                          lastLabel,
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                        Text(
+                          'Full month',
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: Spacing.sm),
+                  // This month bar (current — partial)
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              spendFmt(data.totalThisMonth),
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                fontWeight: FontWeight.w800,
+                                color: AppStyles.teal(context),
+                              ),
+                            ),
+                            if (data.projectedMonthEnd > 0)
+                              Text(
+                                '→ ${spendFmt(data.projectedMonthEnd)} projected',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: AppStyles.accentOrange,
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: Spacing.xs),
+                        Stack(
+                          alignment: Alignment.bottomCenter,
+                          children: [
+                            // Projected ghost bar
+                            if (data.projectedMonthEnd > 0)
+                              Container(
+                                height: maxBarH *
+                                        (data.projectedMonthEnd / maxVal)
+                                            .clamp(0.0, 1.0) +
+                                    4,
+                                margin: const EdgeInsets.symmetric(
+                                    horizontal: Spacing.sm),
+                                decoration: BoxDecoration(
+                                  color: AppStyles.teal(context)
+                                      .withValues(alpha: 0.12),
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(6)),
+                                  border: Border.all(
+                                    color: AppStyles.teal(context)
+                                        .withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                            // Actual bar
+                            Container(
+                              height: maxBarH * thisFrac + 4,
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: Spacing.sm),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    AppStyles.teal(context)
+                                        .withValues(alpha: 0.6),
+                                    AppStyles.teal(context),
+                                  ],
+                                ),
+                                borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(6)),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: Spacing.xs),
+                        Text(
+                          thisLabel,
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            fontWeight: FontWeight.w700,
                             color: AppStyles.teal(context),
                           ),
                         ),
-                        if (data.projectedMonthEnd > 0)
-                          Text(
-                            '→ ${spendFmt(data.projectedMonthEnd)} projected',
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: AppStyles.accentOrange,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: Spacing.xs),
-                    Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        // Projected ghost bar
-                        if (data.projectedMonthEnd > 0)
-                          Container(
-                            height: maxBarH *
-                                    (data.projectedMonthEnd / maxVal).clamp(0.0, 1.0) +
-                                4,
-                            margin: const EdgeInsets.symmetric(horizontal: Spacing.sm),
-                            decoration: BoxDecoration(
-                              color: AppStyles.teal(context).withValues(alpha: 0.12),
-                              borderRadius:
-                                  const BorderRadius.vertical(top: Radius.circular(6)),
-                              border: Border.all(
-                                color: AppStyles.teal(context).withValues(alpha: 0.3),
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                        // Actual bar
-                        Container(
-                          height: maxBarH * thisFrac + 4,
-                          margin: const EdgeInsets.symmetric(horizontal: Spacing.sm),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [
-                                AppStyles.teal(context).withValues(alpha: 0.6),
-                                AppStyles.teal(context),
-                              ],
-                            ),
-                            borderRadius:
-                                const BorderRadius.vertical(top: Radius.circular(6)),
+                        Text(
+                          'Day ${data.dayOfMonth}/${data.daysInMonth}',
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: Spacing.xs),
-                    Text(
-                      thisLabel,
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        fontWeight: FontWeight.w700,
-                        color: AppStyles.teal(context),
-                      ),
-                    ),
-                    Text(
-                      'Day ${data.dayOfMonth}/${data.daysInMonth}',
-                      style: TextStyle(
-                        fontSize: 9,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ],
@@ -1973,18 +2049,20 @@ class _TaxSummarySection extends StatelessWidget {
         .fold<double>(0.0, (s, i) => s + i.amount);
 
     // Life insurance premiums from transactions tagged "insurance"
-    final lifeInsuranceAmount = transactions
-        .where((t) {
-          final tags = (t.metadata?['tags'] as List?) ?? [];
-          final desc = (t.metadata?['description'] as String? ?? '').toLowerCase();
-          final merchant = (t.metadata?['merchant'] as String? ?? '').toLowerCase();
-          return t.type == TransactionType.expense &&
-              (tags.any((tag) => tag.toString().toLowerCase().contains('insurance')) ||
-               desc.contains('insurance') || desc.contains('lic') ||
-               merchant.contains('lic') || merchant.contains('hdfc life') ||
-               merchant.contains('sbi life') || merchant.contains('max life'));
-        })
-        .fold<double>(0.0, (s, t) => s + t.amount);
+    final lifeInsuranceAmount = transactions.where((t) {
+      final tags = (t.metadata?['tags'] as List?) ?? [];
+      final desc = (t.metadata?['description'] as String? ?? '').toLowerCase();
+      final merchant = (t.metadata?['merchant'] as String? ?? '').toLowerCase();
+      return t.type == TransactionType.expense &&
+          (tags.any((tag) =>
+                  tag.toString().toLowerCase().contains('insurance')) ||
+              desc.contains('insurance') ||
+              desc.contains('lic') ||
+              merchant.contains('lic') ||
+              merchant.contains('hdfc life') ||
+              merchant.contains('sbi life') ||
+              merchant.contains('max life'));
+    }).fold<double>(0.0, (s, t) => s + t.amount);
 
     final total80c = (elssAmount + npsAmount + fdAmount + lifeInsuranceAmount)
         .clamp(0.0, 150000.0);
@@ -1997,10 +2075,12 @@ class _TaxSummarySection extends StatelessWidget {
       final merchant = (t.metadata?['merchant'] as String? ?? '').toLowerCase();
       return t.type == TransactionType.expense &&
           (tags.any((tag) => tag.toString().toLowerCase().contains('rent')) ||
-           desc.contains('rent') || merchant.contains('rent'));
+              desc.contains('rent') ||
+              merchant.contains('rent'));
     }).toList();
 
-    final annualRent = rentTransactions.fold<double>(0.0, (s, t) => s + t.amount);
+    final annualRent =
+        rentTransactions.fold<double>(0.0, (s, t) => s + t.amount);
 
     // Nothing to show if user has no relevant data
     if (total80c == 0.0 && annualRent == 0.0) return const SizedBox.shrink();
@@ -2130,8 +2210,7 @@ class _TaxRow extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: textColor)),
-            Text(value,
-                style: TextStyle(fontSize: 12, color: secondary)),
+            Text(value, style: TextStyle(fontSize: 12, color: secondary)),
           ],
         ),
         if (progress != null) ...[
@@ -2375,8 +2454,8 @@ class _AnomalyCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: AppStyles.getDividerColor(context)),
+                      border:
+                          Border.all(color: AppStyles.getDividerColor(context)),
                     ),
                     child: Text(
                       'Mark as expected',
