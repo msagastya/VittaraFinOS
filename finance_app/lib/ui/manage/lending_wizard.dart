@@ -176,26 +176,30 @@ class _LendingWizardState extends State<LendingWizard> {
   Widget build(BuildContext context) {
     final isLent = widget.type == LendingType.lent;
     final color = isLent ? AppStyles.accentBlue : AppStyles.loss(context);
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       resizeToAvoidBottomInset: true,
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text(
-          widget.existingRecord != null
-              ? 'Edit Record'
-              : (isLent ? 'Lent Money' : 'Borrowed Money'),
-          style: TextStyle(color: AppStyles.getTextColor(context)),
-        ),
-        leading: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _prevStep,
-          child: Icon(
-              _currentStep == 0 ? CupertinoIcons.xmark : CupertinoIcons.back),
-        ),
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text(
+                widget.existingRecord != null
+                    ? 'Edit Record'
+                    : (isLent ? 'Lent Money' : 'Borrowed Money'),
+                style: TextStyle(color: AppStyles.getTextColor(context)),
+              ),
+              leading: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: _prevStep,
+                child: Icon(_currentStep == 0
+                    ? CupertinoIcons.xmark
+                    : CupertinoIcons.back),
+              ),
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+            ),
       child: SafeArea(
         bottom: false,
         child: Column(
@@ -213,7 +217,10 @@ class _LendingWizardState extends State<LendingWizard> {
                 ],
               ),
             ),
-            SingleChildScrollView(
+            AnimatedPadding(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
+              padding: EdgeInsets.only(bottom: keyboardInset),
               child: _buildFooter(color),
             ),
           ],
@@ -395,8 +402,11 @@ class _LendingWizardState extends State<LendingWizard> {
 
   Widget _buildMyPeopleSelection(
       BuildContext context, List<app_contact.Contact> contacts) {
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(Spacing.xxl),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding:
+          EdgeInsets.fromLTRB(Spacing.xxl, Spacing.xxl, Spacing.xxl, 120 + keyboardInset),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -540,8 +550,10 @@ class _LendingWizardState extends State<LendingWizard> {
                     false))
             .toList();
 
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 200),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 140 + keyboardInset),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -790,8 +802,10 @@ class _LendingWizardState extends State<LendingWizard> {
   }
 
   Widget _buildManualEntrySelection(BuildContext context) {
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 200),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 140 + keyboardInset),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -885,8 +899,10 @@ class _LendingWizardState extends State<LendingWizard> {
   }
 
   Widget _buildAmountStep(BuildContext context) {
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 200),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 140 + keyboardInset),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -953,8 +969,10 @@ class _LendingWizardState extends State<LendingWizard> {
   }
 
   Widget _buildDescriptionDateStep(BuildContext context) {
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 200),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 140 + keyboardInset),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1215,7 +1233,12 @@ class _LendingWizardState extends State<LendingWizard> {
 
   Widget _buildFooter(Color color) {
     return Padding(
-      padding: const EdgeInsets.all(Spacing.xxl),
+      padding: const EdgeInsets.fromLTRB(
+        Spacing.xxl,
+        Spacing.md,
+        Spacing.xxl,
+        Spacing.xxl,
+      ),
       child: Row(
         children: [
           Expanded(

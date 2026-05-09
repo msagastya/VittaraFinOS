@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/backup_restore_service.dart';
 import 'package:vittara_fin_os/logic/pin_recovery_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
@@ -29,10 +32,23 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final AppLogger logger = AppLogger();
   int _selectedSection = 0; // 0=Privacy, 1=Display, 2=Data, 3=About, 4=Danger
+  final TextEditingController _displayNameCtrl = TextEditingController();
+  final FocusNode _displayNameFocus = FocusNode();
+
+  @override
+  void dispose() {
+    _displayNameCtrl.dispose();
+    _displayNameFocus.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsController>(context);
+    if (!_displayNameFocus.hasFocus &&
+        _displayNameCtrl.text != settings.displayName) {
+      _displayNameCtrl.text = settings.displayName;
+    }
 
     final isLandscape = AppStyles.isLandscape(context);
 
@@ -190,6 +206,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: AppStyles.info(context),
               onChanged: (val) => settings.toggleSmsScanning(val),
             ),
+            _buildDivider(context),
+            _buildBackupStatusRow(context),
             _buildDivider(context),
             _buildNavRow(
               context,
@@ -437,7 +455,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Expanded(
             child: CupertinoTextField(
               placeholder: 'Your name (shown in greeting)',
-              controller: TextEditingController(text: settings.displayName),
+              controller: _displayNameCtrl,
+              focusNode: _displayNameFocus,
               onChanged: (v) => settings.setDisplayName(v),
               style: TextStyle(
                   color: AppStyles.getTextColor(context),
@@ -461,7 +480,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final items = <(bool ok, String label)>[
       (true, 'Encrypted database'),
       (settings.isBiometricEnabled, 'Biometric enabled'),
-      (settings.lockOnMinimize, 'Screenshot protection'),
+      (settings.lockOnMinimize, 'Lock on minimize'),
+      (false, 'Screenshots currently allowed'),
       if (dss.isCompromised) (false, 'Rooted device detected'),
     ];
     final teal = AppStyles.gain(context);
@@ -511,6 +531,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       decoration: AppStyles.cardDecoration(context),
       child: Column(children: children),
+    );
+  }
+
+  Widget _buildBackupStatusRow(BuildContext context) {
+    return FutureBuilder<List<File>>(
+      future: BackupRestoreService.listLocalBackups(),
+      builder: (context, snapshot) {
+        final backups = snapshot.data ?? const <File>[];
+        final latest = backups.isNotEmpty ? backups.first : null;
+        final latestName = latest?.path.split(Platform.pathSeparator).last;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(Spacing.sm),
+                decoration: AppStyles.iconBoxDecoration(
+                    context, AppStyles.gold(context)),
+                child: Icon(
+                  backups.isEmpty
+                      ? CupertinoIcons.exclamationmark_triangle_fill
+                      : CupertinoIcons.checkmark_shield_fill,
+                  size: 20,
+                  color: AppStyles.gold(context),
+                ),
+              ),
+              const SizedBox(width: Spacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      backups.isEmpty
+                          ? 'No Local Backup Found'
+                          : 'Backup Status',
+                      style: AppTypography.callout(
+                          color: AppStyles.getTextColor(context)),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      backups.isEmpty
+                          ? 'Create and export a backup before uninstalling or changing phones.'
+                          : '${backups.length} local backup${backups.length == 1 ? '' : 's'} stored. Latest: ${latestName ?? 'backup file'}. Export one so it survives uninstall.',
+                      style: AppTypography.footnote(
+                          color: AppStyles.getSecondaryTextColor(context)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

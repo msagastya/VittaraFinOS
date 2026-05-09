@@ -18,7 +18,6 @@ import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.da
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
 import 'package:vittara_fin_os/ui/manage/reports_analysis_screen.dart';
-import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
 import 'package:vittara_fin_os/ui/settings/csv_import_screen.dart';
 import 'package:vittara_fin_os/ui/engagement/achievements_screen.dart';
 import 'package:vittara_fin_os/ui/widgets/monthly_statement_sheet.dart';
@@ -26,9 +25,6 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
-import 'package:vittara_fin_os/services/usage_tracker_service.dart';
-import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
-import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
 
 // ---------------------------------------------------------------------------
 // EngagementStripWidget — single compact row replacing the two tall cards.
@@ -49,8 +45,8 @@ class EngagementStripWidget extends StatelessWidget {
         BudgetsController,
         GoalsController,
         InvestmentsController>(
-      builder: (context, eng, accCtrl, txCtrl, budgetCtrl, goalCtrl,
-          invCtrl, _) {
+      builder:
+          (context, eng, accCtrl, txCtrl, budgetCtrl, goalCtrl, invCtrl, _) {
         final showOnboarding = eng.isOnboardingVisible;
         final move = _computeNextMove(
           context: context,
@@ -61,36 +57,30 @@ class EngagementStripWidget extends StatelessWidget {
           transactions: txCtrl.transactions,
         );
         final showNextMove = move != null;
-        // Only show Quick Access when there's room — max 2 pills at once
-        final showQuickAccess = !(showOnboarding && showNextMove);
 
-        if (!showOnboarding && !showNextMove && !showQuickAccess) {
-          return const SizedBox.shrink();
-        }
+        final pills = <Widget>[
+          if (showOnboarding)
+            Expanded(
+              child: _OnboardingPill(
+                  eng: eng,
+                  txCtrl: txCtrl,
+                  budgetCtrl: budgetCtrl,
+                  goalCtrl: goalCtrl,
+                  accCtrl: accCtrl),
+            ),
+          if (showNextMove) Expanded(child: _NextMovePill(move: move)),
+          const Expanded(child: _QuickAccessPill()),
+        ];
 
         return Padding(
-          padding: const EdgeInsets.fromLTRB(
-              Spacing.lg, Spacing.sm, Spacing.lg, 0),
+          padding:
+              const EdgeInsets.fromLTRB(Spacing.lg, Spacing.xs, Spacing.lg, 0),
           child: Row(
             children: [
-              if (showOnboarding) ...[
-                Expanded(
-                  child: _OnboardingPill(eng: eng, txCtrl: txCtrl,
-                      budgetCtrl: budgetCtrl, goalCtrl: goalCtrl,
-                      accCtrl: accCtrl),
-                ),
-                const SizedBox(width: Spacing.sm),
+              for (var i = 0; i < pills.length; i++) ...[
+                pills[i],
+                if (i != pills.length - 1) const SizedBox(width: Spacing.sm),
               ],
-              if (showNextMove) ...[
-                Expanded(
-                  child: _NextMovePill(move: move),
-                ),
-                if (showQuickAccess) const SizedBox(width: Spacing.sm),
-              ],
-              if (showQuickAccess)
-                Expanded(
-                  child: const _QuickAccessPill(),
-                ),
             ],
           ),
         );
@@ -128,14 +118,13 @@ class _OnboardingPill extends StatelessWidget {
       onPressed: () => _showSetupSheet(context),
       child: Container(
         height: 36,
-        padding: const EdgeInsets.symmetric(
-            horizontal: Spacing.md, vertical: 0),
+        padding:
+            const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 0),
         decoration: BoxDecoration(
           color: AppStyles.aetherTeal.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(Radii.full),
           border: Border.all(
-              color: AppStyles.aetherTeal.withValues(alpha: 0.22),
-              width: 0.8),
+              color: AppStyles.aetherTeal.withValues(alpha: 0.22), width: 0.8),
         ),
         child: Row(
           children: [
@@ -174,8 +163,7 @@ class _OnboardingPill extends StatelessWidget {
                               height: 3,
                               decoration: BoxDecoration(
                                 color: AppStyles.aetherTeal,
-                                borderRadius:
-                                    BorderRadius.circular(Radii.full),
+                                borderRadius: BorderRadius.circular(Radii.full),
                               ),
                             ),
                           ),
@@ -188,8 +176,7 @@ class _OnboardingPill extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Icon(CupertinoIcons.chevron_right,
-                size: 10,
-                color: AppStyles.aetherTeal.withValues(alpha: 0.5)),
+                size: 10, color: AppStyles.aetherTeal.withValues(alpha: 0.5)),
           ],
         ),
       ),
@@ -224,16 +211,13 @@ class _SetupSheet extends StatelessWidget {
   final BuildContext parentContext;
 
   static const _steps = [
-    _StepDef('account', 'Add a bank account',
-        CupertinoIcons.building_2_fill),
+    _StepDef('account', 'Add a bank account', CupertinoIcons.building_2_fill),
     _StepDef('transaction', 'Log your first transaction',
         CupertinoIcons.arrow_right_arrow_left_circle_fill),
-    _StepDef('income', 'Record your income',
-        CupertinoIcons.arrow_down_circle_fill),
-    _StepDef('budget', 'Create a budget',
-        CupertinoIcons.chart_pie_fill),
-    _StepDef('goal', 'Set a financial goal',
-        CupertinoIcons.flag_fill),
+    _StepDef(
+        'income', 'Record your income', CupertinoIcons.arrow_down_circle_fill),
+    _StepDef('budget', 'Create a budget', CupertinoIcons.chart_pie_fill),
+    _StepDef('goal', 'Set a financial goal', CupertinoIcons.flag_fill),
   ];
 
   const _SetupSheet({required this.eng, required this.parentContext});
@@ -315,8 +299,7 @@ class _SetupSheet extends StatelessWidget {
                   children: [
                     Container(
                         height: 5,
-                        color: AppStyles.aetherTeal
-                            .withValues(alpha: 0.12)),
+                        color: AppStyles.aetherTeal.withValues(alpha: 0.12)),
                     FractionallySizedBox(
                       widthFactor: frac,
                       child: Container(
@@ -425,8 +408,7 @@ class _SetupSheet extends StatelessWidget {
   void _handleStep(BuildContext ctx, _StepDef step) {
     switch (step.id) {
       case 'account':
-        showCupertinoModalPopup(
-            context: ctx, builder: (_) => AccountWizard());
+        showCupertinoModalPopup(context: ctx, builder: (_) => AccountWizard());
         break;
       case 'budget':
         showCupertinoModalPopup(
@@ -487,8 +469,7 @@ class _QuickAccessPill extends StatelessWidget {
               ),
             ),
             Icon(CupertinoIcons.chevron_right,
-                size: 10,
-                color: AppStyles.novaPurple.withValues(alpha: 0.5)),
+                size: 10, color: AppStyles.novaPurple.withValues(alpha: 0.5)),
           ],
         ),
       ),
@@ -531,43 +512,67 @@ class _QuickAccessSheet extends StatefulWidget {
 
 class _QuickAccessSheetState extends State<_QuickAccessSheet> {
   static const _defaultRoutes = [
-    '/transactions', '/budgets', '/calendar', '/investments'
+    '/settings',
+    '/manage',
+    '/import',
+    '/statement',
+    '/reports',
+    '/achievements',
+    '/investments',
   ];
 
   List<_QAItem> _allItems(BuildContext context) => [
-    _QAItem('Transactions', CupertinoIcons.arrow_right_arrow_left_circle_fill, SemanticColors.info,
-        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const TransactionHistoryScreen()))),
-    _QAItem('Budgets', CupertinoIcons.chart_bar_fill, AppStyles.novaPurple,
-        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const BudgetsScreen()))),
-    _QAItem('Calendar', CupertinoIcons.calendar_badge_plus, AppStyles.aetherTeal,
-        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const FinancialCalendarScreen()))),
-    _QAItem('Investments', CupertinoIcons.graph_square_fill, SemanticColors.investments,
-        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const InvestmentsScreen()))),
-    _QAItem('Manage', CupertinoIcons.square_grid_2x2_fill, SemanticColors.accounts,
-        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const ManageScreen()))),
-    _QAItem('Settings', CupertinoIcons.settings_solid, SemanticColors.tags,
-        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const SettingsScreen()))),
-    _QAItem('Reports', CupertinoIcons.chart_bar_square_fill, SemanticColors.info,
-        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const ReportsAnalysisScreen()))),
-    _QAItem('Statement', CupertinoIcons.doc_text_fill, SemanticColors.primary,
-        () => showMonthlyStatementSheet(widget.parentContext)),
-    _QAItem('Import', CupertinoIcons.arrow_down_doc_fill, AppStyles.accentTeal,
-        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const CsvImportScreen()))),
-    _QAItem('Achievements', CupertinoIcons.star_fill, AppStyles.solarGold,
-        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const AchievementsScreen()))),
-  ];
+        _QAItem(
+            'Settings',
+            CupertinoIcons.settings_solid,
+            SemanticColors.tags,
+            () => Navigator.of(widget.parentContext)
+                .push(FadeScalePageRoute(page: const SettingsScreen()))),
+        _QAItem(
+            'Manage',
+            CupertinoIcons.square_grid_2x2_fill,
+            SemanticColors.accounts,
+            () => Navigator.of(widget.parentContext)
+                .push(FadeScalePageRoute(page: const ManageScreen()))),
+        _QAItem(
+            'Import Bank Statement',
+            CupertinoIcons.arrow_down_doc_fill,
+            AppStyles.accentTeal,
+            () => Navigator.of(widget.parentContext)
+                .push(FadeScalePageRoute(page: const CsvImportScreen()))),
+        _QAItem(
+            'Monthly Statement',
+            CupertinoIcons.doc_text_fill,
+            SemanticColors.primary,
+            () => showMonthlyStatementSheet(widget.parentContext)),
+        _QAItem(
+            'Report & Analysis',
+            CupertinoIcons.chart_bar_square_fill,
+            SemanticColors.info,
+            () => Navigator.of(widget.parentContext)
+                .push(FadeScalePageRoute(page: const ReportsAnalysisScreen()))),
+        _QAItem(
+            'Achievements',
+            CupertinoIcons.star_fill,
+            AppStyles.solarGold,
+            () => Navigator.of(widget.parentContext)
+                .push(FadeScalePageRoute(page: const AchievementsScreen()))),
+        _QAItem(
+            'Investments',
+            CupertinoIcons.graph_square_fill,
+            SemanticColors.investments,
+            () => Navigator.of(widget.parentContext)
+                .push(FadeScalePageRoute(page: const InvestmentsScreen()))),
+      ];
 
   static const _labelToRoute = {
-    'Transactions': '/transactions',
-    'Budgets': '/budgets',
-    'Calendar': '/calendar',
-    'Investments': '/investments',
-    'Manage': '/manage',
     'Settings': '/settings',
-    'Reports': '/reports',
-    'Statement': '/statement',
-    'Import': '/import',
+    'Manage': '/manage',
+    'Import Bank Statement': '/import',
+    'Monthly Statement': '/statement',
+    'Report & Analysis': '/reports',
     'Achievements': '/achievements',
+    'Investments': '/investments',
   };
 
   @override
@@ -585,37 +590,18 @@ class _QuickAccessSheetState extends State<_QuickAccessSheet> {
   }
 
   Future<_QuickItemResult> _resolveItems(BuildContext context) async {
-    final days = await UsageTrackerService.instance.daysSinceFirstUse();
-    if (days < 7) {
-      return _QuickItemResult(items: _fallbackItems(context), isDynamic: false);
-    }
-    final topRoutes = await UsageTrackerService.instance.topRoutes(4);
-    final all = _allItems(context);
-    final routeToItem = {
-      for (final item in all)
-        _labelToRoute[item.label] ?? '': item,
-    };
-    final dynamic = topRoutes
-        .map((r) => routeToItem[r])
-        .whereType<_QAItem>()
-        .toList();
-    if (dynamic.length < 4) {
-      // pad with defaults not already included
-      for (final item in _fallbackItems(context)) {
-        if (!dynamic.any((i) => i.label == item.label)) dynamic.add(item);
-        if (dynamic.length >= 4) break;
-      }
-    }
-    return _QuickItemResult(items: dynamic.take(4).toList(), isDynamic: true);
+    return _QuickItemResult(items: _fallbackItems(context), isDynamic: false);
   }
 
   List<_QAItem> _fallbackItems(BuildContext context) {
     final all = _allItems(context);
-    return all.where((i) => _defaultRoutes.contains(_labelToRoute[i.label])).toList();
+    return all
+        .where((i) => _defaultRoutes.contains(_labelToRoute[i.label]))
+        .toList();
   }
 
-  Widget _buildSheet(BuildContext context, bool isDark, List<_QAItem> items, bool isDynamic) {
-
+  Widget _buildSheet(
+      BuildContext context, bool isDark, List<_QAItem> items, bool isDynamic) {
     Widget sheetContent = Padding(
       padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
@@ -839,13 +825,13 @@ class _NextMovePill extends StatelessWidget {
       onPressed: move.onAction,
       child: Container(
         height: 36,
-        padding: const EdgeInsets.symmetric(
-            horizontal: Spacing.md, vertical: 0),
+        padding:
+            const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 0),
         decoration: BoxDecoration(
           color: move.color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(Radii.full),
-          border: Border.all(
-              color: move.color.withValues(alpha: 0.22), width: 0.8),
+          border:
+              Border.all(color: move.color.withValues(alpha: 0.22), width: 0.8),
         ),
         child: Row(
           children: [
@@ -864,8 +850,7 @@ class _NextMovePill extends StatelessWidget {
               ),
             ),
             Icon(CupertinoIcons.chevron_right,
-                size: 10,
-                color: move.color.withValues(alpha: 0.5)),
+                size: 10, color: move.color.withValues(alpha: 0.5)),
           ],
         ),
       ),
@@ -1004,8 +989,8 @@ _NextMoveItem? _computeNextMove({
     );
   }
 
-  final exceededBudgets = (budgets as List<Budget>)
-      .where((b) => b.status == BudgetStatus.exceeded);
+  final exceededBudgets =
+      (budgets as List<Budget>).where((b) => b.status == BudgetStatus.exceeded);
   if (exceededBudgets.isNotEmpty) {
     final b = exceededBudgets.first;
     final overBy = b.spentAmount - b.limitAmount;
@@ -1019,14 +1004,15 @@ _NextMoveItem? _computeNextMove({
     );
   }
 
-  final offTrackGoals = (goals as List<Goal>)
-      .where((g) => !g.isOnTrack && !g.isCompleted);
+  final offTrackGoals =
+      (goals as List<Goal>).where((g) => !g.isOnTrack && !g.isCompleted);
   if (offTrackGoals.isNotEmpty) {
     final g = offTrackGoals.first;
     return _NextMoveItem(
       shortTitle: '"${g.name}" off-track',
       title: 'Goal "${g.name}" is off-track',
-      body: '${CurrencyFormatter.format(g.remainingAmount, decimals: 0)} remaining.',
+      body:
+          '${CurrencyFormatter.format(g.remainingAmount, decimals: 0)} remaining.',
       icon: CupertinoIcons.time_solid,
       color: SemanticColors.warning,
       onAction: () {},

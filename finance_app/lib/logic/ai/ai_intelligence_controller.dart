@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'device_intelligence_tier.dart';
 import 'merchant_normalizer.dart';
@@ -37,11 +38,15 @@ class AIDataProviders {
   /// Returns current account count.
   final int Function() accountCount;
 
+  /// Returns direct portfolio holdings added from Manage -> Investments.
+  final List<Investment> Function() investments;
+
   const AIDataProviders({
     required this.accountBalances,
     required this.budgets,
     required this.goals,
     required this.accountCount,
+    required this.investments,
   });
 }
 
@@ -86,8 +91,7 @@ class AIIntelligenceController extends ChangeNotifier {
 
   List<OpportunityTip> _opportunities = [];
   List<OpportunityTip> get opportunities => _opportunities;
-  List<OpportunityTip> get topOpportunities =>
-      _opportunities.take(3).toList();
+  List<OpportunityTip> get topOpportunities => _opportunities.take(3).toList();
 
   // Phase 2 — goal timelines + predicted calendar
   List<GoalTimelineAnalysis> _goalTimelines = [];
@@ -155,12 +159,17 @@ class AIIntelligenceController extends ChangeNotifier {
     // Pull real balances/budgets/goals from wired providers if available.
     TransactionsController.onDataChanged = (txs) {
       final p = _providers;
+      final holdings = p?.investments() ?? const <Investment>[];
       refresh(
-        transactions: txs,
+        transactions: TransactionFeedBuilder.buildUnifiedFeed(
+          transactions: txs,
+          investments: holdings,
+        ),
         accountCount: p != null ? p.accountCount() : 1,
         budgets: p?.budgets(),
         accountBalances: p?.accountBalances(),
         goals: p?.goals(),
+        investments: holdings,
       );
     };
 
@@ -173,12 +182,17 @@ class AIIntelligenceController extends ChangeNotifier {
     final existing = TransactionsController.lastKnownTransactions;
     if (existing != null && existing.isNotEmpty) {
       final p = _providers;
+      final holdings = p?.investments() ?? const <Investment>[];
       refresh(
-        transactions: existing,
+        transactions: TransactionFeedBuilder.buildUnifiedFeed(
+          transactions: existing,
+          investments: holdings,
+        ),
         accountCount: p != null ? p.accountCount() : 1,
         budgets: p?.budgets(),
         accountBalances: p?.accountBalances(),
         goals: p?.goals(),
+        investments: holdings,
       );
     }
   }
@@ -229,7 +243,9 @@ class AIIntelligenceController extends ChangeNotifier {
       }
 
       // Phase 2b: cashflow forecast
-      if (_readiness.canForecast && accountBalances != null && _patterns != null) {
+      if (_readiness.canForecast &&
+          accountBalances != null &&
+          _patterns != null) {
         _cashflowForecast = CashflowForecaster.forecast(
           transactions: transactions,
           patterns: _patterns!,
@@ -307,17 +323,21 @@ class AIIntelligenceController extends ChangeNotifier {
           transactions: transactions,
           accountBalances: accountBalances,
           goals: goals ?? [],
-          predictedCalendar: _predictedCalendar.isNotEmpty ? _predictedCalendar : null,
+          investments: investments ?? const [],
+          predictedCalendar:
+              _predictedCalendar.isNotEmpty ? _predictedCalendar : null,
         );
       }
 
       // Reload persisted habits and compute nudges + weekly progress
       _activeHabits = await HabitConstructor.loadAll();
+      _removeActiveHabitOpportunities();
       if (_activeHabits.isNotEmpty) {
         _habitNudges = BehavioralNudgeEngine.compute(
           habits: _activeHabits,
           transactions: transactions,
-          currentStreakDays: 0, // wired to TransactionsController.loggingStreakDays separately
+          currentStreakDays:
+              0, // wired to TransactionsController.loggingStreakDays separately
         );
         // T-105: Weekly habit progress for dashboard check-in widget
         _habitProgress = await HabitWeeklyChecker.check(
@@ -368,18 +388,16 @@ class AIIntelligenceController extends ChangeNotifier {
   // ── Convenience accessors ─────────────────────────────────────────────────
 
   /// True when at least one budget is predicted to exhaust before month end.
-  bool get hasBudgetWarnings =>
-      _budgetPredictions.any((p) => p.daysUntilExhaustion != null &&
-          p.daysUntilExhaustion! <= 7);
+  bool get hasBudgetWarnings => _budgetPredictions
+      .any((p) => p.daysUntilExhaustion != null && p.daysUntilExhaustion! <= 7);
 
   /// The single most urgent budget warning, or null.
   BudgetPrediction? get mostUrgentBudgetWarning {
     final warnings = _budgetPredictions
         .where((p) => p.daysUntilExhaustion != null)
         .toList()
-      ..sort((a, b) =>
-          (a.daysUntilExhaustion ?? 999)
-              .compareTo(b.daysUntilExhaustion ?? 999));
+      ..sort((a, b) => (a.daysUntilExhaustion ?? 999)
+          .compareTo(b.daysUntilExhaustion ?? 999));
     return warnings.isEmpty ? null : warnings.first;
   }
 
@@ -396,6 +414,7 @@ class AIIntelligenceController extends ChangeNotifier {
   Future<void> addHabit(HabitContract contract) async {
     await HabitConstructor.save(contract);
     _activeHabits = await HabitConstructor.loadAll();
+    _removeActiveHabitOpportunities();
     notifyListeners();
   }
 
@@ -403,7 +422,25 @@ class AIIntelligenceController extends ChangeNotifier {
   Future<void> updateHabit(HabitContract updated) async {
     await HabitConstructor.update(updated);
     _activeHabits = await HabitConstructor.loadAll();
+    _removeActiveHabitOpportunities();
     notifyListeners();
+  }
+
+  void _removeActiveHabitOpportunities() {
+    if (_activeHabits.isEmpty || _habitOpportunities.isEmpty) return;
+
+    final activeCategories = _activeHabits
+        .where((habit) => habit.isActive)
+        .map((habit) => habit.category.trim().toLowerCase())
+        .where((category) => category.isNotEmpty)
+        .toSet();
+
+    if (activeCategories.isEmpty) return;
+
+    _habitOpportunities = _habitOpportunities
+        .where((opp) =>
+            !activeCategories.contains(opp.category.trim().toLowerCase()))
+        .toList();
   }
 
   /// Monthly narrative for a specific month (useful for history view).

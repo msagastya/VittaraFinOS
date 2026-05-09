@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
+import 'package:vittara_fin_os/services/ai_voice_command_service.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/settings/csv_import_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -39,8 +40,8 @@ class OnboardingActivationScreen extends StatefulWidget {
       _OnboardingActivationScreenState();
 }
 
-class _OnboardingActivationScreenState
-    extends State<OnboardingActivationScreen> with SingleTickerProviderStateMixin {
+class _OnboardingActivationScreenState extends State<OnboardingActivationScreen>
+    with SingleTickerProviderStateMixin {
   int _step = 0; // 0-3 = steps, 4 = completion
   bool _showConfetti = false;
 
@@ -279,8 +280,7 @@ class _Step1AccountState extends State<_Step1Account> {
                     ),
                     Icon(CupertinoIcons.chevron_right,
                         size: 16,
-                        color:
-                            AppStyles.aetherTeal.withValues(alpha: 0.6)),
+                        color: AppStyles.aetherTeal.withValues(alpha: 0.6)),
                   ],
                 ),
               ),
@@ -446,8 +446,7 @@ class _ImportCard extends StatelessWidget {
 class _Step3Goal extends StatefulWidget {
   final VoidCallback onComplete;
   final VoidCallback onSkip;
-  const _Step3Goal(
-      {super.key, required this.onComplete, required this.onSkip});
+  const _Step3Goal({super.key, required this.onComplete, required this.onSkip});
 
   @override
   State<_Step3Goal> createState() => _Step3GoalState();
@@ -527,34 +526,36 @@ class _Step3GoalState extends State<_Step3Goal> {
           Wrap(
             spacing: Spacing.sm,
             runSpacing: Spacing.sm,
-            children: _suggestions.map((s) => GestureDetector(
-              onTap: () => setState(() => _nameCtrl.text = s),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: Spacing.md, vertical: Spacing.xs),
-                decoration: BoxDecoration(
-                  color: _nameCtrl.text == s
-                      ? AppStyles.novaPurple.withValues(alpha: 0.15)
-                      : AppStyles.novaPurple.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(Radii.full),
-                  border: Border.all(
-                    color: AppStyles.novaPurple.withValues(
-                        alpha: _nameCtrl.text == s ? 0.5 : 0.18),
-                  ),
-                ),
-                child: Text(
-                  s,
-                  style: TextStyle(
-                    fontSize: TypeScale.caption,
-                    fontWeight: FontWeight.w600,
-                    color: _nameCtrl.text == s
-                        ? AppStyles.novaPurple
-                        : AppStyles.getSecondaryTextColor(context),
-                  ),
-                ),
-              ),
-            )).toList(),
+            children: _suggestions
+                .map((s) => GestureDetector(
+                      onTap: () => setState(() => _nameCtrl.text = s),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: Spacing.md, vertical: Spacing.xs),
+                        decoration: BoxDecoration(
+                          color: _nameCtrl.text == s
+                              ? AppStyles.novaPurple.withValues(alpha: 0.15)
+                              : AppStyles.novaPurple.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(Radii.full),
+                          border: Border.all(
+                            color: AppStyles.novaPurple.withValues(
+                                alpha: _nameCtrl.text == s ? 0.5 : 0.18),
+                          ),
+                        ),
+                        child: Text(
+                          s,
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            fontWeight: FontWeight.w600,
+                            color: _nameCtrl.text == s
+                                ? AppStyles.novaPurple
+                                : AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ),
+                    ))
+                .toList(),
           ),
           const SizedBox(height: Spacing.xl),
           _OnboardingField(
@@ -579,9 +580,10 @@ class _Step3GoalState extends State<_Step3Goal> {
           ] else ...[
             _PrimaryButton(
               label: 'Set Goal',
-              onPressed: _nameCtrl.text.isNotEmpty && _amountCtrl.text.isNotEmpty
-                  ? _save
-                  : null,
+              onPressed:
+                  _nameCtrl.text.isNotEmpty && _amountCtrl.text.isNotEmpty
+                      ? _save
+                      : null,
             ),
             const SizedBox(height: Spacing.md),
             Row(
@@ -633,7 +635,7 @@ class _Step4AIState extends State<_Step4AI> {
           _StepLabel(index: 4),
           const SizedBox(height: Spacing.sm),
           Text(
-            'Enable AI insights',
+            'Set up your AI assistant',
             style: TextStyle(
               fontSize: TypeScale.largeTitle,
               fontWeight: FontWeight.w800,
@@ -643,7 +645,7 @@ class _Step4AIState extends State<_Step4AI> {
           ),
           const SizedBox(height: Spacing.sm),
           Text(
-            'VittaraFinOS learns your patterns and surfaces money opportunities — all on-device, never uploaded.',
+            'Use voice to add transactions, navigate, read summaries, switch theme, and export statements. Double-press volume down anytime while the app is open.',
             style: TextStyle(
               fontSize: TypeScale.body,
               color: AppStyles.getSecondaryTextColor(context),
@@ -661,23 +663,40 @@ class _Step4AIState extends State<_Step4AI> {
             child: Column(
               children: [
                 _AIBullet(
-                  icon: CupertinoIcons.chart_pie_fill,
+                  icon: CupertinoIcons.mic_fill,
                   color: AppStyles.aetherTeal,
-                  text: 'Detects unusual spending spikes and opportunities to save',
+                  text:
+                      'Say “add 500 food”, “open investments”, or “today summary”',
+                ),
+                const SizedBox(height: Spacing.md),
+                _AIBullet(
+                  icon: CupertinoIcons.device_phone_portrait,
+                  color: AppStyles.aetherTeal,
+                  text:
+                      'Double-press volume down to open the assistant instantly',
                 ),
                 const SizedBox(height: Spacing.md),
                 _AIBullet(
                   icon: CupertinoIcons.lock_fill,
                   color: AppStyles.aetherTeal,
-                  text: 'Everything runs on-device — your data never leaves your phone',
-                ),
-                const SizedBox(height: Spacing.md),
-                _AIBullet(
-                  icon: CupertinoIcons.lightbulb_fill,
-                  color: AppStyles.aetherTeal,
-                  text: 'Improves after 7 days of transactions',
+                  text:
+                      'Command parsing runs on-device for fast private actions',
                 ),
                 const SizedBox(height: Spacing.xl),
+                CupertinoButton(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  color: AppStyles.aetherTeal,
+                  borderRadius: BorderRadius.circular(14),
+                  onPressed: () => AIVoiceCommandService.openAssistant(context),
+                  child: const Text(
+                    'Try Voice Assistant',
+                    style: TextStyle(
+                      color: CupertinoColors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: Spacing.lg),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -835,8 +854,8 @@ class _CompletionViewState extends State<_CompletionView>
             animation: _ctrl,
             builder: (context, _) => Stack(
               children: _particles.map((p) {
-                final progress = ((_ctrl.value - p.delay) / (1 - p.delay))
-                    .clamp(0.0, 1.0);
+                final progress =
+                    ((_ctrl.value - p.delay) / (1 - p.delay)).clamp(0.0, 1.0);
                 if (progress == 0) return const SizedBox.shrink();
                 return Positioned(
                   left: MediaQuery.of(context).size.width * p.x,

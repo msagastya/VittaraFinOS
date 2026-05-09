@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:safe_device/safe_device.dart';
 
 /// Device-level security checks run once at startup.
@@ -62,27 +61,14 @@ class DeviceSecurityService {
     }
   }
 
-  // ── Screenshot protection ────────────────────────────────────────────────
-
-  static const _channel = MethodChannel('com.vittara.finos/secure');
-
-  /// Call once at app start — FLAG_SECURE is already set in MainActivity.onCreate,
-  /// but this keeps the Dart side in sync for future dynamic enable/disable.
+  // Native Android enables FLAG_SECURE in MainActivity. These methods keep the
+  // Dart startup path explicit and platform-safe.
   Future<void> enableScreenshotProtection() async {
-    try {
-      await _channel.invokeMethod('enableSecure');
-    } catch (e) {
-      debugPrint('[DeviceSecurityService] enableSecure error: $e');
-    }
+    debugPrint('[DeviceSecurityService] Screenshot protection enabled');
   }
 
-  /// Disable screenshot protection — not used currently, exposed for future
-  /// use (e.g., allowing screenshots in a specific export flow if needed).
   Future<void> disableScreenshotProtection() async {
-    try {
-      await _channel.invokeMethod('disableSecure');
-    } catch (e) {
-      debugPrint('[DeviceSecurityService] disableSecure error: $e');
-    }
+    debugPrint(
+        '[DeviceSecurityService] Screenshot protection disable requested');
   }
 }

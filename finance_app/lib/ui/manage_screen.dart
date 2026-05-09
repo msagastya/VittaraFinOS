@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
@@ -10,6 +9,7 @@ import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
 import 'package:vittara_fin_os/ui/manage/categories_screen.dart';
 import 'package:vittara_fin_os/ui/manage/lending_borrowing_screen.dart';
 import 'package:vittara_fin_os/ui/manage/loans/loan_tracker_screen.dart';
+import 'package:vittara_fin_os/ui/manage/smart_budget_calculator_screen.dart';
 import 'package:vittara_fin_os/ui/manage/insurance/insurance_screen.dart';
 import 'package:vittara_fin_os/ui/manage/contacts_screen.dart';
 import 'package:vittara_fin_os/ui/manage/tags_screen.dart';
@@ -19,7 +19,6 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
-import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -88,9 +87,9 @@ class _ManageScreenState extends State<ManageScreen> {
     _Section(
       id: 'control',
       title: 'Control',
-      subtitle: 'Categories, tags & archive',
+      subtitle: 'Planning, categories, tags & archive',
       color: SemanticColors.categories,
-      itemIds: ['cats', 'contacts', 'tags', 'archived'],
+      itemIds: ['calculator', 'cats', 'contacts', 'tags', 'archived'],
     ),
   ];
 
@@ -143,6 +142,13 @@ class _ManageScreenState extends State<ManageScreen> {
       'subtitle': 'Health, life & general policies',
       'icon': CupertinoIcons.shield_fill,
       'color': SemanticColors.info,
+    },
+    {
+      'id': 'calculator',
+      'title': 'Smart Budget Calculator',
+      'subtitle': 'Plan daily, weekly, monthly or custom scenarios',
+      'icon': CupertinoIcons.function,
+      'color': AppStyles.aetherTeal,
     },
     {
       'id': 'cats',
@@ -312,11 +318,10 @@ class _ManageScreenState extends State<ManageScreen> {
       suffix: _query.isNotEmpty
           ? CupertinoButton(
               padding: const EdgeInsets.only(right: 8),
-              minSize: 0,
+              minimumSize: Size.zero,
               onPressed: () => _searchCtrl.clear(),
               child: Icon(CupertinoIcons.xmark_circle_fill,
-                  size: 16,
-                  color: AppStyles.getSecondaryTextColor(context)),
+                  size: 16, color: AppStyles.getSecondaryTextColor(context)),
             )
           : null,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
@@ -331,8 +336,7 @@ class _ManageScreenState extends State<ManageScreen> {
     );
   }
 
-  SliverList _buildSearchResults(
-      BuildContext context, Set<String> visibleIds) {
+  SliverList _buildSearchResults(BuildContext context, Set<String> visibleIds) {
     final q = _query;
     final matches = _items.where((item) {
       if (!visibleIds.contains(item['id'])) return false;
@@ -376,7 +380,9 @@ class _ManageScreenState extends State<ManageScreen> {
           .map((id) => _items.firstWhere((i) => i['id'] == id))
           .toList();
 
-      if (sectionItems.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+      if (sectionItems.isEmpty) {
+        return const SliverToBoxAdapter(child: SizedBox.shrink());
+      }
 
       final collapsed = _collapsed[section.id] ?? false;
 
@@ -529,8 +535,7 @@ class _ManageScreenState extends State<ManageScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: Spacing.sm, vertical: 2),
                         decoration: BoxDecoration(
-                          color:
-                              SemanticColors.warning.withValues(alpha: 0.15),
+                          color: SemanticColors.warning.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
@@ -717,6 +722,9 @@ class _ManageScreenState extends State<ManageScreen> {
         break;
       case 'insurance':
         page = const InsuranceScreen();
+        break;
+      case 'calculator':
+        page = const SmartBudgetCalculatorScreen();
         break;
       case 'cats':
         page = const CategoriesScreen();

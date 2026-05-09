@@ -6,11 +6,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/ai/statement_ocr_parser.dart';
-import 'package:vittara_fin_os/logic/ai/voice_transaction_handler.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_account_adjuster.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/services/ai_voice_command_service.dart';
 import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/ui/ocr/receipt_scanner_screen.dart';
 import 'package:vittara_fin_os/ui/ocr/screenshot_import_sheet.dart';
@@ -78,7 +78,8 @@ class _AITraySheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = AppStyles.isDarkMode(context);
-    final bg = isDark ? const Color(0xFF0D0D0D) : CupertinoColors.systemBackground;
+    final bg =
+        isDark ? const Color(0xFF0D0D0D) : CupertinoColors.systemBackground;
 
     return Container(
       decoration: BoxDecoration(
@@ -127,12 +128,15 @@ class _AITraySheet extends StatelessWidget {
             icon: CupertinoIcons.mic_fill,
             color: AppStyles.aetherTeal,
             label: 'Voice',
-            subtitle: 'Say "₹500 for coffee" to log instantly',
+            subtitle: 'Say it → review in Quick Entry',
             onTap: () async {
               Navigator.pop(context);
-              final result = await VoiceOverlayWidget.show(rootContext);
+              final result = await VoiceOverlayWidget.show(
+                rootContext,
+                showConfirmation: false,
+              );
               if (result != null && rootContext.mounted) {
-                await VoiceTransactionHandler.handle(rootContext, result);
+                await AIVoiceCommandService.handleResult(rootContext, result);
               }
             },
           ),
@@ -168,8 +172,8 @@ class _AITraySheet extends StatelessWidget {
               );
               if (xfile == null) return;
               if (!rootContext.mounted) return;
-              final data =
-                  await ScreenshotImportSheet.show(rootContext, File(xfile.path));
+              final data = await ScreenshotImportSheet.show(
+                  rootContext, File(xfile.path));
               if (data != null && rootContext.mounted) {
                 showQuickEntrySheet(
                   rootContext,
@@ -217,8 +221,8 @@ class _AITraySheet extends StatelessWidget {
             : (isCredit ? 'Credit' : 'Debit'),
         amount: amount,
         type: isCredit ? TransactionType.income : TransactionType.expense,
-        dateTime: row.date.copyWith(
-            hour: 23, minute: 59, second: i.clamp(0, 59)),
+        dateTime:
+            row.date.copyWith(hour: 23, minute: 59, second: i.clamp(0, 59)),
       );
     }).toList();
 
@@ -280,8 +284,7 @@ class _AITrayRow extends StatelessWidget {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             child: Row(
               children: [
                 Container(

@@ -26,7 +26,7 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:intl/intl.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
-import 'package:vittara_fin_os/logic/ai/voice_controller.dart';
+import 'package:vittara_fin_os/logic/ai/voice_fill_engine.dart';
 import 'package:vittara_fin_os/logic/ai/behaviour_predictor.dart';
 import 'package:vittara_fin_os/main.dart' show dashboardSavedSignal;
 import 'package:vittara_fin_os/ui/voice/voice_overlay_widget.dart';
@@ -41,7 +41,8 @@ void showQuickEntrySheet(BuildContext context,
     String? initialMerchant,
     String? initialDescription,
     DateTime? initialDate,
-    String? initialAccountId}) {
+    String? initialAccountId,
+    String? initialCategoryName}) {
   showCupertinoModalPopup<void>(
     context: context,
     builder: (ctx) => RLayout.tabletConstrain(
@@ -54,6 +55,7 @@ void showQuickEntrySheet(BuildContext context,
         initialDescription: initialDescription,
         initialDate: initialDate,
         initialAccountId: initialAccountId,
+        initialCategoryName: initialCategoryName,
       ),
     ),
   );
@@ -69,6 +71,7 @@ class _QuickEntrySheet extends StatefulWidget {
   final String? initialDescription;
   final DateTime? initialDate;
   final String? initialAccountId;
+  final String? initialCategoryName;
   const _QuickEntrySheet({
     required this.initialBranch,
     this.existingTransaction,
@@ -77,6 +80,7 @@ class _QuickEntrySheet extends StatefulWidget {
     this.initialDescription,
     this.initialDate,
     this.initialAccountId,
+    this.initialCategoryName,
   });
 
   @override
@@ -299,10 +303,19 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         _selectedDate = widget.initialDate!;
       }
       if (widget.initialAccountId != null) {
-        final acc = accounts.getAccountById(widget.initialAccountId!);
+        final acc = _resolveAccountRef(accounts, widget.initialAccountId!);
         if (acc != null) {
           _selectedAccountId = acc.id;
           _selectedAccountName = acc.name;
+        }
+      }
+      if (widget.initialCategoryName != null &&
+          widget.initialCategoryName!.trim().isNotEmpty) {
+        final category =
+            _resolveCategoryRef(categories, widget.initialCategoryName!);
+        if (category != null) {
+          _selectedCategory = category;
+          _categoryAutoSuggested = false;
         }
       }
     }
@@ -423,6 +436,19 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
       _selectedCategory != null &&
       _selectedAccountId != null;
 
+  String? get _validationMessage {
+    final amount = double.tryParse(_amountCtrl.text.trim()) ?? 0;
+    if (amount <= 0) return 'Enter a valid amount to save';
+    if (_selectedCategory == null) return 'Choose a category to save';
+    final hasAccount = context
+        .read<AccountsController>()
+        .accounts
+        .any((a) => !a.isHidden && a.type != AccountType.investment);
+    if (!hasAccount) return 'Add an account before saving';
+    if (_selectedAccountId == null) return 'Choose an account to save';
+    return null;
+  }
+
   void _markDirty() {
     if (!_isDirty) setState(() => _isDirty = true);
   }
@@ -484,6 +510,46 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     return (app?['hasWallet'] as bool?) ?? false;
   }
 
+  String _normaliseVoiceRef(String value) => value
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+
+  Account? _resolveAccountRef(AccountsController accounts, String ref) {
+    final trimmed = ref.trim();
+    if (trimmed.isEmpty) return null;
+    final byId = accounts.getAccountById(trimmed);
+    if (byId != null) return byId;
+    final normalised = _normaliseVoiceRef(trimmed);
+    for (final account in accounts.accounts) {
+      final accountName = _normaliseVoiceRef(account.name);
+      if (accountName == normalised ||
+          accountName.contains(normalised) ||
+          normalised.contains(accountName)) {
+        return account;
+      }
+    }
+    return null;
+  }
+
+  Category? _resolveCategoryRef(
+    CategoriesController categories,
+    String ref,
+  ) {
+    final normalised = _normaliseVoiceRef(ref);
+    if (normalised.isEmpty) return null;
+    for (final category in categories.categories) {
+      final categoryName = _normaliseVoiceRef(category.name);
+      if (categoryName == normalised ||
+          categoryName.contains(normalised) ||
+          normalised.contains(categoryName)) {
+        return category;
+      }
+    }
+    return null;
+  }
+
   /// Merchants sorted by how often they've been used (most-used first).
   List<String> get _rankedMerchants =>
       TransactionSuggestionEngine.rankedMerchants(
@@ -514,8 +580,12 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
 
   Future<void> _save() async {
     if (_isSaving) return;
+    final validationMessage = _validationMessage;
+    if (validationMessage != null) {
+      await _triggerErrorFlash();
+      return;
+    }
     final amount = double.tryParse(_amountCtrl.text.trim()) ?? 0;
-    if (amount <= 0 || _selectedCategory == null) return;
     setState(() => _isSaving = true);
     try {
       final accountsCtrl = context.read<AccountsController>();
@@ -670,10 +740,26 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     if (mounted) setState(() => _saveFlash = false);
   }
 
-  /// Phase 10C — shake amount field + flash button red on failed save tap.
+  /// Phase 10C — show exact failed-save reason and reveal hidden required fields.
   Future<void> _triggerErrorFlash() async {
-    _amountShakeKey.currentState?.shake(); // also fires Haptics.error()
-    setState(() => _errorFlash = true);
+    final message = _validationMessage ?? 'Complete required details to save';
+    final amount = double.tryParse(_amountCtrl.text.trim()) ?? 0;
+    if (amount <= 0) {
+      _amountShakeKey.currentState?.shake(); // also fires Haptics.error()
+    } else {
+      Haptics.error();
+    }
+    final shouldRevealDetails =
+        _selectedCategory == null || _selectedAccountId == null;
+    setState(() {
+      _errorFlash = true;
+      if (shouldRevealDetails) _tier2Expanded = true;
+    });
+    if (shouldRevealDetails) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('quick_entry_expanded', true);
+    }
+    toast_lib.toast.showError(message);
     await Future.delayed(const Duration(milliseconds: 200));
     if (mounted) setState(() => _errorFlash = false);
   }
@@ -1289,12 +1375,20 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 6),
                               onPressed: () async {
-                                final result =
-                                    await VoiceOverlayWidget.show(context);
+                                final result = await VoiceOverlayWidget.show(
+                                  context,
+                                  showConfirmation: false,
+                                  autoStart: true,
+                                );
                                 if (result != null && context.mounted) {
                                   final amount = result.fields['amount'];
                                   final merchant =
                                       result.fields['merchant'] as String?;
+                                  final category =
+                                      result.fields['category'] as String?;
+                                  final accountRef =
+                                      result.fields['account'] as String?;
+                                  final dateRaw = result.fields['date'];
                                   if (amount != null) {
                                     _amountCtrl.text =
                                         (amount as num).toStringAsFixed(2);
@@ -1304,6 +1398,49 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                                     _merchantCtrl.text = merchant;
                                     _showMerchantField = true;
                                     _isDirty = true;
+                                  }
+                                  if (category != null &&
+                                      category.trim().isNotEmpty) {
+                                    final categories = context
+                                        .read<CategoriesController>()
+                                        .categories;
+                                    final match = categories.where((c) =>
+                                        c.name.toLowerCase() ==
+                                        category.trim().toLowerCase());
+                                    if (match.isNotEmpty) {
+                                      _selectedCategory = match.first;
+                                      _categoryAutoSuggested = false;
+                                    }
+                                  }
+                                  if (accountRef != null &&
+                                      accountRef.trim().isNotEmpty) {
+                                    final accounts =
+                                        context.read<AccountsController>();
+                                    final byId =
+                                        accounts.getAccountById(accountRef);
+                                    final byName = accounts.accounts
+                                        .where((a) =>
+                                            a.name.toLowerCase().trim() ==
+                                            accountRef.toLowerCase().trim())
+                                        .firstOrNull;
+                                    final account = byId ?? byName;
+                                    if (account != null) {
+                                      _selectedAccountId = account.id;
+                                      _selectedAccountName = account.name;
+                                    }
+                                  }
+                                  if (dateRaw is DateTime) {
+                                    _selectedDate = dateRaw;
+                                  } else if (dateRaw is String) {
+                                    _selectedDate =
+                                        DateTime.tryParse(dateRaw) ??
+                                            _selectedDate;
+                                  }
+                                  if (result.intent == VoiceIntent.addIncome) {
+                                    _branch = TransactionWizardBranch.income;
+                                  } else if (result.intent ==
+                                      VoiceIntent.addExpense) {
+                                    _branch = TransactionWizardBranch.expense;
                                   }
                                   setState(() {});
                                 }

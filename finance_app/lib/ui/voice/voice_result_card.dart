@@ -13,8 +13,8 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 /// User can tap any field to type-correct it, or tap "Try Again" to re-speak.
 class VoiceResultCard extends StatefulWidget {
   final VoiceResult result;
-  final VoidCallback onConfirm;
-  final VoidCallback onEdit;   // "Try Again" — re-opens voice overlay
+  final ValueChanged<VoiceResult> onConfirm;
+  final VoidCallback onEdit; // "Try Again" — re-opens voice overlay
   final VoidCallback? onRetry; // re-speaks from scratch
 
   const VoiceResultCard({
@@ -81,7 +81,8 @@ class _VoiceResultCardState extends State<VoiceResultCard> {
                         color: intentColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(_intentIcon(_intent), color: intentColor, size: 18),
+                      child: Icon(_intentIcon(_intent),
+                          color: intentColor, size: 18),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -100,7 +101,8 @@ class _VoiceResultCardState extends State<VoiceResultCard> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF9500).withValues(alpha: 0.15),
+                          color:
+                              const Color(0xFFFF9500).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Row(
@@ -179,10 +181,26 @@ class _VoiceResultCardState extends State<VoiceResultCard> {
                             borderRadius: BorderRadius.circular(12),
                             onPressed: () {
                               HapticFeedback.mediumImpact();
-                              // Push updated fields back before confirming
-                              widget.result.fields.addAll(_fields);
-                              widget.result.fields['_intent'] = _intent;
-                              widget.onConfirm();
+                              widget.onConfirm(
+                                VoiceResult(
+                                  intent: _intent,
+                                  fields: {
+                                    ...Map<String, dynamic>.from(_fields),
+                                    if (widget.result.fields['rawText'] != null)
+                                      'rawText':
+                                          widget.result.fields['rawText'],
+                                    if (widget.result.fields['aiCommand'] !=
+                                        null)
+                                      'aiCommand':
+                                          widget.result.fields['aiCommand'],
+                                  },
+                                  confirmationText:
+                                      widget.result.confirmationText,
+                                  isComplete: true,
+                                  uncertainFields:
+                                      widget.result.uncertainFields,
+                                ),
+                              );
                             },
                             child: const Text('Save',
                                 style: TextStyle(
@@ -214,9 +232,8 @@ class _VoiceResultCardState extends State<VoiceResultCard> {
         value: displayVal,
         isUncertain: uncertain,
         editable: editable,
-        onEdit: editable
-            ? () => _editField(context, key, label, displayVal)
-            : null,
+        onEdit:
+            editable ? () => _editField(context, key, label, displayVal) : null,
       ));
     }
 
@@ -257,9 +274,11 @@ class _VoiceResultCardState extends State<VoiceResultCard> {
     return rows;
   }
 
-  void _editField(BuildContext context, String key, String label, String current) {
+  void _editField(
+      BuildContext context, String key, String label, String current) {
     HapticFeedback.selectionClick();
-    final ctrl = TextEditingController(text: current.replaceAll('₹', '').replaceAll(',', ''));
+    final ctrl = TextEditingController(
+        text: current.replaceAll('₹', '').replaceAll(',', ''));
     showCupertinoDialog(
       context: context,
       builder: (_) => CupertinoAlertDialog(
@@ -288,7 +307,8 @@ class _VoiceResultCardState extends State<VoiceResultCard> {
               if (val.isNotEmpty) {
                 setState(() {
                   if (key == 'amount') {
-                    _fields['amount'] = double.tryParse(val) ?? _fields['amount'];
+                    _fields['amount'] =
+                        double.tryParse(val) ?? _fields['amount'];
                   } else {
                     _fields[key] = val;
                   }
@@ -310,43 +330,77 @@ class _VoiceResultCardState extends State<VoiceResultCard> {
   }
 
   String _fmtDate(DateTime d) {
-    const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const m = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${d.day} ${m[d.month - 1]} ${d.year}';
   }
 
   Color _intentColor(VoiceIntent i) {
     switch (i) {
-      case VoiceIntent.addExpense: return const Color(0xFFFF6B6B);
-      case VoiceIntent.addIncome: return const Color(0xFF4CAF50);
-      case VoiceIntent.addTransfer: return CupertinoColors.systemBlue;
-      case VoiceIntent.addInvestment: return const Color(0xFF6C63FF);
-      case VoiceIntent.setBudget: return const Color(0xFFFF9800);
-      case VoiceIntent.setGoal: return const Color(0xFF00BCD4);
-      default: return const Color(0xFF9E9E9E);
+      case VoiceIntent.addExpense:
+        return const Color(0xFFFF6B6B);
+      case VoiceIntent.addIncome:
+        return const Color(0xFF4CAF50);
+      case VoiceIntent.addTransfer:
+        return CupertinoColors.systemBlue;
+      case VoiceIntent.addInvestment:
+        return const Color(0xFF6C63FF);
+      case VoiceIntent.setBudget:
+        return const Color(0xFFFF9800);
+      case VoiceIntent.setGoal:
+        return const Color(0xFF00BCD4);
+      default:
+        return const Color(0xFF9E9E9E);
     }
   }
 
   IconData _intentIcon(VoiceIntent i) {
     switch (i) {
-      case VoiceIntent.addExpense: return CupertinoIcons.arrow_down_circle_fill;
-      case VoiceIntent.addIncome: return CupertinoIcons.arrow_up_circle_fill;
-      case VoiceIntent.addTransfer: return CupertinoIcons.arrow_right_arrow_left;
-      case VoiceIntent.addInvestment: return CupertinoIcons.chart_bar_square_fill;
-      case VoiceIntent.setBudget: return CupertinoIcons.gauge;
-      case VoiceIntent.setGoal: return CupertinoIcons.flag_fill;
-      default: return CupertinoIcons.question_circle;
+      case VoiceIntent.addExpense:
+        return CupertinoIcons.arrow_down_circle_fill;
+      case VoiceIntent.addIncome:
+        return CupertinoIcons.arrow_up_circle_fill;
+      case VoiceIntent.addTransfer:
+        return CupertinoIcons.arrow_right_arrow_left;
+      case VoiceIntent.addInvestment:
+        return CupertinoIcons.chart_bar_square_fill;
+      case VoiceIntent.setBudget:
+        return CupertinoIcons.gauge;
+      case VoiceIntent.setGoal:
+        return CupertinoIcons.flag_fill;
+      default:
+        return CupertinoIcons.question_circle;
     }
   }
 
   String _intentLabel(VoiceIntent i) {
     switch (i) {
-      case VoiceIntent.addExpense: return 'Expense';
-      case VoiceIntent.addIncome: return 'Income';
-      case VoiceIntent.addTransfer: return 'Transfer';
-      case VoiceIntent.addInvestment: return 'Investment';
-      case VoiceIntent.setBudget: return 'Set Budget';
-      case VoiceIntent.setGoal: return 'New Goal';
-      default: return 'Transaction';
+      case VoiceIntent.addExpense:
+        return 'Expense';
+      case VoiceIntent.addIncome:
+        return 'Income';
+      case VoiceIntent.addTransfer:
+        return 'Transfer';
+      case VoiceIntent.addInvestment:
+        return 'Investment';
+      case VoiceIntent.setBudget:
+        return 'Set Budget';
+      case VoiceIntent.setGoal:
+        return 'New Goal';
+      default:
+        return 'Transaction';
     }
   }
 }
@@ -469,7 +523,8 @@ class _IntentSwitchRow extends StatelessWidget {
               },
               child: Container(
                 margin: const EdgeInsets.only(right: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: selected
                       ? opt.$3.withValues(alpha: 0.15)
@@ -487,7 +542,9 @@ class _IntentSwitchRow extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                    color: selected ? opt.$3 : AppStyles.getSecondaryTextColor(context),
+                    color: selected
+                        ? opt.$3
+                        : AppStyles.getSecondaryTextColor(context),
                   ),
                 ),
               ),

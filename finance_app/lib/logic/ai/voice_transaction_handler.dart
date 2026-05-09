@@ -63,9 +63,10 @@ class VoiceTransactionHandler {
     final paymentApps = context.read<PaymentAppsController>();
     final txController = context.read<TransactionsController>();
 
-    final accountId = result.fields['account'] as String?;
-    final account = accountId != null ? accounts.getAccountById(accountId) : null;
+    final accountRef = result.fields['account'] as String?;
+    final account = _resolveAccount(accounts, accountRef);
     final merchant = result.fields['merchant'] as String?;
+    final category = result.fields['category'] as String?;
     final description =
         merchant ?? (type == TransactionType.expense ? 'Expense' : 'Income');
     final date = _date(result);
@@ -78,7 +79,11 @@ class VoiceTransactionHandler {
       dateTime: date,
       sourceAccountId: account?.id,
       sourceAccountName: account?.name,
-      metadata: merchant != null ? {'merchant': merchant} : null,
+      metadata: {
+        if (merchant != null) 'merchant': merchant,
+        if (category != null) 'categoryName': category,
+        if (account != null) 'accountId': account.id,
+      },
     );
 
     await txController.addTransaction(tx);
@@ -86,7 +91,8 @@ class VoiceTransactionHandler {
         accounts, tx, paymentApps);
 
     final label = type == TransactionType.expense ? 'Expense' : 'Income';
-    ToastController().showSuccess('$label of ₹${amount.toStringAsFixed(0)} saved');
+    ToastController()
+        .showSuccess('$label of ₹${amount.toStringAsFixed(0)} saved');
     return true;
   }
 
@@ -104,10 +110,10 @@ class VoiceTransactionHandler {
     final paymentApps = context.read<PaymentAppsController>();
     final txController = context.read<TransactionsController>();
 
-    final fromId = result.fields['account'] as String?;
-    final toId = result.fields['toAccount'] as String?;
-    final from = fromId != null ? accounts.getAccountById(fromId) : null;
-    final to = toId != null ? accounts.getAccountById(toId) : null;
+    final fromRef = result.fields['account'] as String?;
+    final toRef = result.fields['toAccount'] as String?;
+    final from = _resolveAccount(accounts, fromRef);
+    final to = _resolveAccount(accounts, toRef);
     final date = _date(result);
 
     final tx = Transaction(
@@ -123,9 +129,11 @@ class VoiceTransactionHandler {
     );
 
     await txController.addTransaction(tx);
-    await TransactionAccountAdjuster.applyTransaction(accounts, tx, paymentApps);
+    await TransactionAccountAdjuster.applyTransaction(
+        accounts, tx, paymentApps);
 
-    ToastController().showSuccess('Transfer of ₹${amount.toStringAsFixed(0)} saved');
+    ToastController()
+        .showSuccess('Transfer of ₹${amount.toStringAsFixed(0)} saved');
     return true;
   }
 
@@ -159,9 +167,8 @@ class VoiceTransactionHandler {
     await invController.addInvestment(investment);
 
     // Record a transaction for cash flow tracking
-    final accountId = result.fields['account'] as String?;
-    final account =
-        accountId != null ? accounts.getAccountById(accountId) : null;
+    final accountRef = result.fields['account'] as String?;
+    final account = _resolveAccount(accounts, accountRef);
     final tx = Transaction(
       id: IdGenerator.next(),
       description: 'Investment: $name',
@@ -172,16 +179,18 @@ class VoiceTransactionHandler {
       sourceAccountName: account?.name,
     );
     await txController.addTransaction(tx);
-    await TransactionAccountAdjuster.applyTransaction(accounts, tx, paymentApps);
+    await TransactionAccountAdjuster.applyTransaction(
+        accounts, tx, paymentApps);
 
-    ToastController().showSuccess('Investment of ₹${amount.toStringAsFixed(0)} saved');
+    ToastController()
+        .showSuccess('Investment of ₹${amount.toStringAsFixed(0)} saved');
     return true;
   }
 
   // ── Navigate ──────────────────────────────────────────────────────────────
 
   static bool _navigate(VoiceResult result) {
-    final target = result.fields['navTarget'];
+    final target = result.fields['navTarget'] ?? result.fields['target'];
     if (target is! NavTarget) return false;
     appNavigatorKey.currentState?.pushNamed(target.routeHint);
     return false;
@@ -201,6 +210,21 @@ class VoiceTransactionHandler {
     if (raw is DateTime) return raw;
     if (raw is String) return DateTime.tryParse(raw) ?? DateTime.now();
     return DateTime.now();
+  }
+
+  static dynamic _resolveAccount(AccountsController accounts, String? ref) {
+    if (ref == null || ref.trim().isEmpty) return null;
+    final byId = accounts.getAccountById(ref);
+    if (byId != null) return byId;
+    final needle = ref.toLowerCase().trim();
+    for (final account in accounts.accounts) {
+      if (account.name.toLowerCase().trim() == needle) return account;
+    }
+    for (final account in accounts.accounts) {
+      final name = account.name.toLowerCase().trim();
+      if (name.contains(needle) || needle.contains(name)) return account;
+    }
+    return null;
   }
 
   static String _invTypeName(InvestmentType t) {

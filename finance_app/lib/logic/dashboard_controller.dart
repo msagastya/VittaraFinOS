@@ -30,7 +30,7 @@ class DashboardController with ChangeNotifier {
     notifyListeners();
   }
 
-  static const int _currentConfigVersion = 9;
+  static const int _currentConfigVersion = 10;
 
   Future<void> _loadConfig() async {
     final configJson = _prefs.getString('dashboard_config');
@@ -88,6 +88,11 @@ class DashboardController with ChangeNotifier {
           changed = _migrateToV9() || changed;
         }
 
+        // v10 migration: remove upcoming events card from dashboard.
+        if (_config.configVersion < 10) {
+          changed = _migrateToV10() || changed;
+        }
+
         if (changed) {
           await saveConfig();
           return;
@@ -112,7 +117,10 @@ class DashboardController with ChangeNotifier {
       if (w.id == 'health_score' && !w.isVisible) {
         // Place after the last currently-visible widget
         final lastRow = _config.getVisibleWidgets().fold<int>(
-            0, (max, v) => v.gridRow + v.rowSpan - 1 > max ? v.gridRow + v.rowSpan - 1 : max);
+            0,
+            (max, v) => v.gridRow + v.rowSpan - 1 > max
+                ? v.gridRow + v.rowSpan - 1
+                : max);
         return w.copyWith(isVisible: true, gridRow: lastRow + 1);
       }
       return w;
@@ -121,8 +129,10 @@ class DashboardController with ChangeNotifier {
     // Place spending_insights after health_score
     final withSpending = updatedWidgets.map((w) {
       if (w.id == 'spending_insights' && !w.isVisible) {
-        final hsRow = updatedWidgets.firstWhere((x) => x.id == 'health_score').gridRow;
-        final hsSpan = updatedWidgets.firstWhere((x) => x.id == 'health_score').rowSpan;
+        final hsRow =
+            updatedWidgets.firstWhere((x) => x.id == 'health_score').gridRow;
+        final hsSpan =
+            updatedWidgets.firstWhere((x) => x.id == 'health_score').rowSpan;
         return w.copyWith(isVisible: true, gridRow: hsRow + hsSpan);
       }
       return w;
@@ -158,7 +168,8 @@ class DashboardController with ChangeNotifier {
   bool _migrateToV8() {
     final updatedWidgets = _config.widgets
         .where((w) => w.id != 'budgets_overview')
-        .map((w) => w.id == 'sip_tracker' ? w.copyWith(title: 'Finance Pulse') : w)
+        .map((w) =>
+            w.id == 'sip_tracker' ? w.copyWith(title: 'Finance Pulse') : w)
         .toList();
     _config = _config.copyWith(widgets: updatedWidgets, configVersion: 8);
     return true;
@@ -166,9 +177,8 @@ class DashboardController with ChangeNotifier {
 
   /// v7: ai_planner widget removed — navigate directly from Manage screen.
   bool _migrateToV7() {
-    final updatedWidgets = _config.widgets
-        .where((w) => w.id != 'ai_planner')
-        .toList();
+    final updatedWidgets =
+        _config.widgets.where((w) => w.id != 'ai_planner').toList();
     _config = _config.copyWith(widgets: updatedWidgets, configVersion: 7);
     return true;
   }
@@ -182,9 +192,8 @@ class DashboardController with ChangeNotifier {
       'notifications_and_actions',
       'savings_planners',
     };
-    final updatedWidgets = _config.widgets
-        .where((w) => !removedIds.contains(w.id))
-        .toList();
+    final updatedWidgets =
+        _config.widgets.where((w) => !removedIds.contains(w.id)).toList();
     _config = _config.copyWith(widgets: updatedWidgets, configVersion: 6);
     return true;
   }
@@ -194,7 +203,10 @@ class DashboardController with ChangeNotifier {
     final updatedWidgets = _config.widgets.map((w) {
       if (w.id == 'ai_planner' && !w.isVisible) {
         final lastRow = _config.getVisibleWidgets().fold<int>(
-            0, (max, v) => v.gridRow + v.rowSpan - 1 > max ? v.gridRow + v.rowSpan - 1 : max);
+            0,
+            (max, v) => v.gridRow + v.rowSpan - 1 > max
+                ? v.gridRow + v.rowSpan - 1
+                : max);
         return w.copyWith(isVisible: true, gridRow: lastRow + 1);
       }
       return w;
@@ -215,6 +227,15 @@ class DashboardController with ChangeNotifier {
     return true;
   }
 
+  /// v10: financial calendar/upcoming events stays available from navigation,
+  /// but is no longer a dashboard card.
+  bool _migrateToV10() {
+    final updatedWidgets =
+        _config.widgets.where((w) => w.id != 'financial_calendar').toList();
+    _config = _config.copyWith(widgets: updatedWidgets, configVersion: 10);
+    return true;
+  }
+
   /// v3: health_score content merged into net_worth widget — hide it.
   bool _migrateToV3() {
     final updatedWidgets = _config.widgets.map((w) {
@@ -229,7 +250,7 @@ class DashboardController with ChangeNotifier {
 
   DashboardConfig _getDefaultConfig() {
     return DashboardConfig(
-      configVersion: 9,
+      configVersion: 10,
       widgets: [
         DashboardWidgetConfig(
           id: 'net_worth',
@@ -271,16 +292,6 @@ class DashboardController with ChangeNotifier {
           columnSpan: 3,
           rowSpan: 1,
         ),
-        DashboardWidgetConfig(
-          id: 'financial_calendar',
-          type: DashboardWidgetType.financialCalendar,
-          title: 'Upcoming Events',
-          isVisible: true,
-          gridRow: 9,
-          gridColumn: 1,
-          columnSpan: 3,
-          rowSpan: 1,
-        ),
       ],
     );
   }
@@ -289,10 +300,9 @@ class DashboardController with ChangeNotifier {
     bool changed = false;
     final existingIds = _config.widgets.map((w) => w.id).toSet();
     final updatedWidgets = [..._config.widgets];
-    final defaults = _getDefaultConfig().widgets.where((w) =>
-        w.id == 'sip_tracker' ||
-        w.id == 'spending_insights' ||
-        w.id == 'financial_calendar');
+    final defaults = _getDefaultConfig()
+        .widgets
+        .where((w) => w.id == 'sip_tracker' || w.id == 'spending_insights');
 
     for (final optional in defaults) {
       if (!existingIds.contains(optional.id)) {

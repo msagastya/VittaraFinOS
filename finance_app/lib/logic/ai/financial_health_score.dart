@@ -1,4 +1,5 @@
 import 'package:vittara_fin_os/logic/goal_model.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'predicted_calendar.dart';
 
@@ -14,6 +15,7 @@ class HealthDimension {
   final String actionSentence; // single actionable suggestion
   /// T-096: 2-3 specific data-driven reasons for this score.
   final List<String> reasons;
+
   /// T-096: One concrete improvement tip.
   final String improvementTip;
 
@@ -103,21 +105,24 @@ class FinancialHealthScorer {
     required List<Transaction> transactions,
     required Map<String, double> accountBalances,
     required List<Goal> goals,
+    List<Investment> investments = const [],
     List<PredictedTransaction>? predictedCalendar,
   }) {
     final now = DateTime.now();
     final cut3 = now.subtract(const Duration(days: 90));
     final cut6 = now.subtract(const Duration(days: 180));
 
-    final recent3 = transactions.where((t) => t.dateTime.isAfter(cut3)).toList();
-    final recent6 = transactions.where((t) => t.dateTime.isAfter(cut6)).toList();
+    final recent3 =
+        transactions.where((t) => t.dateTime.isAfter(cut3)).toList();
+    final recent6 =
+        transactions.where((t) => t.dateTime.isAfter(cut6)).toList();
 
     return FinancialHealthScore(
       cashFlow: _scoreCashFlow(recent3, recent6, predictedCalendar),
       savingsDiscipline: _scoreSavings(recent6),
       debtPosture: _scoreDebt(recent3),
       goalMomentum: _scoreGoals(goals),
-      investmentConsistency: _scoreInvestments(recent6),
+      investmentConsistency: _scoreInvestments(recent6, investments),
       emergencyBuffer: _scoreEmergencyBuffer(accountBalances, recent3),
       computedAt: now,
     );
@@ -156,17 +161,25 @@ class FinancialHealthScorer {
       final key = t.dateTime.year * 12 + t.dateTime.month;
       monthlyIncome[key] = (monthlyIncome[key] ?? 0) + t.amount;
     }
-    final incomeVariance = _coefficientOfVariation(monthlyIncome.values.toList());
+    final incomeVariance =
+        _coefficientOfVariation(monthlyIncome.values.toList());
 
     double score = 50;
-    if (ratio >= 1.5) score += 30;
-    else if (ratio >= 1.2) score += 20;
-    else if (ratio >= 1.0) score += 10;
-    else score -= 20;
+    if (ratio >= 1.5)
+      score += 30;
+    else if (ratio >= 1.2)
+      score += 20;
+    else if (ratio >= 1.0)
+      score += 10;
+    else
+      score -= 20;
 
-    if (incomeVariance < 0.1) score += 20;
-    else if (incomeVariance < 0.25) score += 10;
-    else score -= 10;
+    if (incomeVariance < 0.1)
+      score += 20;
+    else if (incomeVariance < 0.25)
+      score += 10;
+    else
+      score -= 10;
 
     score = score.clamp(0.0, 100.0);
 
@@ -186,7 +199,9 @@ class FinancialHealthScorer {
       reasons: [
         'Income/expense ratio: ${ratioStr}x over the last 3 months',
         'Income variance: ${varianceStr}% — ${incomeVariance < 0.15 ? 'very consistent' : incomeVariance < 0.3 ? 'moderate variability' : 'high variability'}',
-        ratio >= 1.3 ? 'Comfortable buffer — income well above expenses' : 'Buffer is thin — income and expenses are close',
+        ratio >= 1.3
+            ? 'Comfortable buffer — income well above expenses'
+            : 'Buffer is thin — income and expenses are close',
       ],
       improvementTip: ratio < 1.1
           ? 'Expenses are close to income — aim to keep a 20% buffer.'
@@ -204,8 +219,7 @@ class FinancialHealthScorer {
     for (int i = 0; i < 6; i++) {
       final month = DateTime(now.year, now.month - i, 1);
       final monthTx = recent6.where((t) =>
-          t.dateTime.year == month.year &&
-          t.dateTime.month == month.month);
+          t.dateTime.year == month.year && t.dateTime.month == month.month);
       final inc = monthTx
           .where((t) => t.type == TransactionType.income)
           .fold(0.0, (s, t) => s + t.amount);
@@ -222,7 +236,8 @@ class FinancialHealthScorer {
         description: 'Savings rate consistency over 6 months',
         score: 30,
         trend: ScoreTrend.stable,
-        actionSentence: 'Log income and expenses consistently to track savings.',
+        actionSentence:
+            'Log income and expenses consistently to track savings.',
       );
     }
 
@@ -230,14 +245,20 @@ class FinancialHealthScorer {
     final cv = _coefficientOfVariation(monthRates);
 
     double score = 0;
-    if (avgRate >= 30) score = 90;
-    else if (avgRate >= 20) score = 75;
-    else if (avgRate >= 10) score = 55;
-    else if (avgRate >= 0) score = 35;
-    else score = 10;
+    if (avgRate >= 30)
+      score = 90;
+    else if (avgRate >= 20)
+      score = 75;
+    else if (avgRate >= 10)
+      score = 55;
+    else if (avgRate >= 0)
+      score = 35;
+    else
+      score = 10;
 
     // Consistency bonus/penalty
-    if (cv < 0.2) score += 10;
+    if (cv < 0.2)
+      score += 10;
     else if (cv > 0.5) score -= 10;
 
     // Trend: last 2 months vs first 2 months
@@ -245,7 +266,8 @@ class FinancialHealthScorer {
     if (monthRates.length >= 4) {
       final recent = (monthRates[0] + monthRates[1]) / 2;
       final older = (monthRates[2] + monthRates[3]) / 2;
-      if (recent > older + 3) trend = ScoreTrend.improving;
+      if (recent > older + 3)
+        trend = ScoreTrend.improving;
       else if (recent < older - 3) trend = ScoreTrend.declining;
     }
 
@@ -264,7 +286,9 @@ class FinancialHealthScorer {
       reasons: [
         'Average savings rate: ${avgRate.toStringAsFixed(0)}% over last ${monthRates.length} months',
         'Saved in $positiveMonths of ${monthRates.length} months',
-        cv < 0.2 ? 'Very consistent savings pattern' : 'Savings rate varies month to month',
+        cv < 0.2
+            ? 'Very consistent savings pattern'
+            : 'Savings rate varies month to month',
       ],
       improvementTip: avgRate < 10
           ? 'Aim to save at least 10% of income each month as a baseline.'
@@ -291,7 +315,8 @@ class FinancialHealthScorer {
         description: 'Borrowing and obligations as a ratio of income',
         score: 60,
         trend: ScoreTrend.stable,
-        actionSentence: 'No debt data available — score will improve as you log.',
+        actionSentence:
+            'No debt data available — score will improve as you log.',
       );
     }
 
@@ -389,15 +414,48 @@ class FinancialHealthScorer {
 
   // ── Investment Consistency ────────────────────────────────────────────────
 
-  static HealthDimension _scoreInvestments(List<Transaction> recent6) {
+  static HealthDimension _scoreInvestments(
+    List<Transaction> recent6,
+    List<Investment> investments,
+  ) {
     final income = recent6
         .where((t) => t.type == TransactionType.income)
         .fold(0.0, (s, t) => s + t.amount);
     final invested = recent6
         .where((t) => t.type == TransactionType.investment)
         .fold(0.0, (s, t) => s + t.amount.abs());
+    final currentInvestmentValue =
+        investments.fold(0.0, (sum, inv) => sum + inv.currentValue);
+    final investedPrincipal =
+        investments.fold(0.0, (sum, inv) => sum + inv.amount);
+    final investmentTypes = investments.map((inv) => inv.type).toSet().length;
 
     if (income == 0) {
+      if (currentInvestmentValue > 0 || invested > 0) {
+        final score =
+            (45.0 + (investmentTypes.clamp(1, 4).toDouble() * 8)).clamp(
+          0.0,
+          75.0,
+        );
+        return HealthDimension(
+          id: 'investments',
+          name: 'Investment Consistency',
+          description: 'SIP regularity and portfolio contributions',
+          score: score,
+          trend: invested > 0 ? ScoreTrend.improving : ScoreTrend.stable,
+          actionSentence:
+              'Investments are tracked. Log income to calculate investment rate accurately.',
+          reasons: [
+            'Current portfolio value: ₹${_fmt(currentInvestmentValue)}',
+            'Tracked investment types: $investmentTypes',
+            invested > 0
+                ? 'Recent investment activity found in portfolio history'
+                : 'No recent investment contribution found in the last 6 months',
+          ],
+          improvementTip:
+              'Log monthly income so this score can compare investments against earnings.',
+        );
+      }
       return const HealthDimension(
         id: 'investments',
         name: 'Investment Consistency',
@@ -424,14 +482,28 @@ class FinancialHealthScorer {
     final consistency = monthsWithInvestment / 6.0;
 
     double score = 0;
-    if (rate >= 0.20) score = 85;
-    else if (rate >= 0.15) score = 72;
-    else if (rate >= 0.10) score = 58;
-    else if (rate >= 0.05) score = 40;
-    else score = 20;
+    if (rate >= 0.20)
+      score = 85;
+    else if (rate >= 0.15)
+      score = 72;
+    else if (rate >= 0.10)
+      score = 58;
+    else if (rate >= 0.05)
+      score = 40;
+    else
+      score = 20;
 
     // Consistency modifier
     score += (consistency - 0.5) * 20;
+    if (currentInvestmentValue > 0) {
+      score += 8;
+    }
+    if (investmentTypes >= 2) {
+      score += 5;
+    }
+    if (investmentTypes >= 4) {
+      score += 5;
+    }
     score = score.clamp(0.0, 100.0);
 
     return HealthDimension(
@@ -443,10 +515,16 @@ class FinancialHealthScorer {
       reasons: [
         'Invested in $monthsWithInvestment of last 6 months',
         'Investment rate: ${(rate * 100).toStringAsFixed(0)}% of income over 6 months',
+        currentInvestmentValue > 0
+            ? 'Current portfolio value: ₹${_fmt(currentInvestmentValue)} across $investmentTypes type${investmentTypes == 1 ? '' : 's'}'
+            : 'No current investment holdings found',
+        investedPrincipal > 0 && currentInvestmentValue != investedPrincipal
+            ? 'Invested principal: ₹${_fmt(investedPrincipal)}'
+            : null,
         consistency >= 0.8
             ? 'Strong habit — investing regularly every month'
             : 'Inconsistent — missing some months breaks compound growth',
-      ],
+      ].whereType<String>().toList(),
       improvementTip: rate < 0.10
           ? 'Start a SIP of even ₹500/month — consistency matters more than amount.'
           : consistency < 0.7
@@ -466,8 +544,7 @@ class FinancialHealthScorer {
     Map<String, double> accountBalances,
     List<Transaction> recent3,
   ) {
-    final totalLiquid =
-        accountBalances.values.fold(0.0, (s, v) => s + v);
+    final totalLiquid = accountBalances.values.fold(0.0, (s, v) => s + v);
     final monthlyExpense = recent3
             .where((t) => t.type == TransactionType.expense)
             .fold(0.0, (s, t) => s + t.amount.abs()) /
@@ -486,13 +563,19 @@ class FinancialHealthScorer {
 
     final monthsCovered = totalLiquid / monthlyExpense;
     double score;
-    if (monthsCovered >= 6) score = 95;
-    else if (monthsCovered >= 3) score = 75;
-    else if (monthsCovered >= 2) score = 55;
-    else if (monthsCovered >= 1) score = 35;
-    else score = 15;
+    if (monthsCovered >= 6)
+      score = 95;
+    else if (monthsCovered >= 3)
+      score = 75;
+    else if (monthsCovered >= 2)
+      score = 55;
+    else if (monthsCovered >= 1)
+      score = 35;
+    else
+      score = 15;
 
-    final gap = ((3 - monthsCovered) * monthlyExpense).clamp(0.0, double.infinity);
+    final gap =
+        ((3 - monthsCovered) * monthlyExpense).clamp(0.0, double.infinity);
 
     return HealthDimension(
       id: 'emergency',
@@ -522,7 +605,9 @@ class FinancialHealthScorer {
     if (values.length < 2) return 0;
     final mean = values.fold(0.0, (s, v) => s + v) / values.length;
     if (mean == 0) return 0;
-    final variance = values.map((v) => (v - mean) * (v - mean)).fold(0.0, (s, v) => s + v) / values.length;
+    final variance =
+        values.map((v) => (v - mean) * (v - mean)).fold(0.0, (s, v) => s + v) /
+            values.length;
     return (variance < 1e-9 ? 0.0 : variance / (mean * mean));
   }
 

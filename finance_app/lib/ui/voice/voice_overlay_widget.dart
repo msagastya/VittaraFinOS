@@ -2,7 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/ai/device_intelligence_tier.dart';
 import 'package:vittara_fin_os/logic/ai/voice_controller.dart';
+import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'voice_result_card.dart';
@@ -10,10 +13,21 @@ import 'voice_result_card.dart';
 /// Full-screen voice interaction overlay.
 /// Show via [VoiceOverlayWidget.show].
 class VoiceOverlayWidget extends StatefulWidget {
-  const VoiceOverlayWidget({super.key});
+  final bool showConfirmation;
+  final bool autoStart;
+
+  const VoiceOverlayWidget({
+    super.key,
+    this.showConfirmation = true,
+    this.autoStart = false,
+  });
 
   /// Shows the voice overlay and returns the confirmed [VoiceResult] or null.
-  static Future<VoiceResult?> show(BuildContext context) async {
+  static Future<VoiceResult?> show(
+    BuildContext context, {
+    bool showConfirmation = true,
+    bool autoStart = false,
+  }) async {
     // Lock to portrait so orientation changes cannot interrupt an active
     // voice session mid-utterance or cause the overlay to misbehave.
     await SystemChrome.setPreferredOrientations([
@@ -21,12 +35,30 @@ class VoiceOverlayWidget extends StatefulWidget {
       DeviceOrientation.portraitDown,
     ]);
     final voice = context.read<VoiceController>();
+    final accounts = context.read<AccountsController>().accounts;
+    final categories = context.read<CategoriesController>().categories;
+    final accountNames = accounts.map((a) => a.name).toList();
+    final categoryNames = categories.map((c) => c.name).toList();
+
+    await voice.init(
+      tier: DeviceIntelligenceTier.current,
+      accountNames: accountNames,
+      categoryNames: categoryNames,
+    );
+    voice.updateContext(
+      accountNames: accountNames,
+      categoryNames: categoryNames,
+    );
+
     final result = await showCupertinoModalPopup<VoiceResult?>(
       context: context,
       barrierColor: Colors.black87,
       builder: (_) => ChangeNotifierProvider.value(
         value: voice,
-        child: const VoiceOverlayWidget(),
+        child: VoiceOverlayWidget(
+          showConfirmation: showConfirmation,
+          autoStart: autoStart,
+        ),
       ),
     );
     // Restore all orientations after the overlay is dismissed.
@@ -42,6 +74,27 @@ class VoiceOverlayWidget extends StatefulWidget {
 
 class _VoiceOverlayWidgetState extends State<VoiceOverlayWidget> {
   VoiceState? _prevState;
+  final TextEditingController _typedCtrl = TextEditingController();
+  bool _autoReturned = false;
+  bool _autoStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autoStart) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted || _autoStarted) return;
+        _autoStarted = true;
+        await context.read<VoiceController>().startListening();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _typedCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,16 +110,28 @@ class _VoiceOverlayWidgetState extends State<VoiceOverlayWidget> {
         // Show result card when confirming
         if (voice.state == VoiceState.confirming &&
             voice.pendingResult != null) {
+          if (!widget.showConfirmation) {
+            if (!_autoReturned) {
+              _autoReturned = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                final result = voice.pendingResult;
+                voice.confirm();
+                Navigator.of(context).pop(result);
+              });
+            }
+            return _buildAutoReturnCard(context);
+          }
           return VoiceResultCard(
             result: voice.pendingResult!,
-            onConfirm: () {
+            onConfirm: (result) {
               HapticFeedback.heavyImpact();
               Future.delayed(const Duration(milliseconds: 120),
                   () => HapticFeedback.lightImpact());
               Future.delayed(const Duration(milliseconds: 240),
                   () => HapticFeedback.lightImpact());
               voice.confirm();
-              Navigator.of(context).pop(voice.pendingResult);
+              Navigator.of(context).pop(result);
             },
             onEdit: () {
               voice.cancel();
@@ -86,94 +151,99 @@ class _VoiceOverlayWidgetState extends State<VoiceOverlayWidget> {
             alignment: Alignment.bottomCenter,
             child: SafeArea(
               top: false,
-              child: Container(
-                margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                padding: const EdgeInsets.all(Spacing.xxl),
-                decoration: BoxDecoration(
-                  color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: AppStyles.aetherTeal.withValues(alpha: 0.3),
+              child: GestureDetector(
+                onTap: () {},
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  padding: const EdgeInsets.all(Spacing.xxl),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: AppStyles.aetherTeal.withValues(alpha: 0.3),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppStyles.aetherTeal.withValues(alpha: 0.15),
+                        blurRadius: 32,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppStyles.aetherTeal.withValues(alpha: 0.15),
-                      blurRadius: 32,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildWaveform(voice),
-                    const SizedBox(height: Spacing.xl),
-                    _buildStatusText(voice, context),
-                    if (voice.transcript.isNotEmpty) ...[
-                      const SizedBox(height: Spacing.md),
-                      _buildTranscript(voice.transcript, context),
-                    ],
-                    if (voice.currentQuestion != null) ...[
-                      const SizedBox(height: Spacing.md),
-                      _buildQuestion(voice.currentQuestion!, context),
-                      // Countdown + auto-listen indicator
-                      if (voice.autoListenCountdown != null) ...[
-                        const SizedBox(height: Spacing.sm),
-                        _buildCountdown(voice.autoListenCountdown!, context),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildWaveform(voice),
+                      const SizedBox(height: Spacing.xl),
+                      _buildStatusText(voice, context),
+                      if (voice.transcript.isNotEmpty) ...[
+                        const SizedBox(height: Spacing.md),
+                        _buildTranscript(voice.transcript, context),
                       ],
-                    ],
-                    if (voice.errorMessage != null) ...[
+                      if (voice.currentQuestion != null) ...[
+                        const SizedBox(height: Spacing.md),
+                        _buildQuestion(voice.currentQuestion!, context),
+                        // Countdown + auto-listen indicator
+                        if (voice.autoListenCountdown != null) ...[
+                          const SizedBox(height: Spacing.sm),
+                          _buildCountdown(voice.autoListenCountdown!, context),
+                        ],
+                      ],
+                      if (voice.errorMessage != null) ...[
+                        const SizedBox(height: Spacing.md),
+                        _buildError(voice.errorMessage!, context),
+                      ],
+                      const SizedBox(height: Spacing.xl),
+                      _buildMicButton(voice, context),
+                      const SizedBox(height: Spacing.lg),
+                      _buildTypedFallback(voice, context),
+                      // Manual fallback: "Tap to answer" shown only if countdown finished
+                      // but user didn't speak and mic went idle (e.g. cancelled)
+                      if (voice.state == VoiceState.filling &&
+                          voice.autoListenCountdown == null) ...[
+                        const SizedBox(height: Spacing.md),
+                        CupertinoButton.filled(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 10),
+                          onPressed: () => voice.listenForAnswer(),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(CupertinoIcons.mic_fill,
+                                  size: 16, color: CupertinoColors.white),
+                              SizedBox(width: 8),
+                              Text('Tap to answer',
+                                  style: TextStyle(fontSize: 15)),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: Spacing.md),
-                      _buildError(voice.errorMessage!, context),
-                    ],
-                    const SizedBox(height: Spacing.xl),
-                    _buildMicButton(voice, context),
-                    // Manual fallback: "Tap to answer" shown only if countdown finished
-                    // but user didn't speak and mic went idle (e.g. cancelled)
-                    if (voice.state == VoiceState.filling &&
-                        voice.autoListenCountdown == null) ...[
-                      const SizedBox(height: Spacing.md),
-                      CupertinoButton.filled(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 10),
-                        onPressed: () => voice.listenForAnswer(),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(CupertinoIcons.mic_fill,
-                                size: 16, color: CupertinoColors.white),
-                            SizedBox(width: 8),
-                            Text('Tap to answer',
-                                style: TextStyle(fontSize: 15)),
-                          ],
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          voice.cancel();
+                          Navigator.of(context).pop(null);
+                        },
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
                         ),
                       ),
-                    ],
-                    const SizedBox(height: Spacing.md),
-                    CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () {
-                        voice.cancel();
-                        Navigator.of(context).pop(null);
-                      },
-                      child: Text(
-                        'Cancel',
+                      const SizedBox(height: Spacing.sm),
+                      Text(
+                        'Tap outside the card to dismiss',
                         style: TextStyle(
-                          fontSize: 15,
-                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: 12,
+                          color: AppStyles.getSecondaryTextColor(context)
+                              .withValues(alpha: 0.5),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: Spacing.sm),
-                    Text(
-                      'Tap anywhere outside to dismiss',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppStyles.getSecondaryTextColor(context)
-                            .withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -188,14 +258,51 @@ class _VoiceOverlayWidgetState extends State<VoiceOverlayWidget> {
     return _WaveformIndicator(isAnimating: isListening);
   }
 
+  Widget _buildAutoReturnCard(BuildContext context) {
+    return Container(
+      color: Colors.transparent,
+      alignment: Alignment.bottomCenter,
+      child: SafeArea(
+        top: false,
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          padding: const EdgeInsets.all(Spacing.xl),
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppStyles.aetherTeal.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CupertinoActivityIndicator(radius: 9),
+              const SizedBox(width: Spacing.md),
+              Text(
+                'Opening Quick Entry...',
+                style: TextStyle(
+                  color: AppStyles.getTextColor(context),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildStatusText(VoiceController voice, BuildContext context) {
     String text;
     switch (voice.state) {
       case VoiceState.idle:
-        text = 'Tap mic and speak';
+        text = widget.autoStart ? 'Ready to listen' : 'Tap mic and speak';
         break;
       case VoiceState.listening:
-        text = voice.currentQuestion != null ? 'Speak your answer' : 'Listening...';
+        text = voice.currentQuestion != null
+            ? 'Speak your answer'
+            : 'Listening... pause 3 seconds or tap mic to finish';
         break;
       case VoiceState.processing:
         text = 'Understanding...';
@@ -233,9 +340,7 @@ class _VoiceOverlayWidgetState extends State<VoiceOverlayWidget> {
         const CupertinoActivityIndicator(radius: 7),
         const SizedBox(width: 6),
         Text(
-          seconds > 0
-              ? 'Mic opens in $seconds...'
-              : 'Opening mic...',
+          seconds > 0 ? 'Mic opens in $seconds...' : 'Opening mic...',
           style: TextStyle(
             fontSize: 13,
             color: AppStyles.getSecondaryTextColor(context),
@@ -302,7 +407,9 @@ class _VoiceOverlayWidgetState extends State<VoiceOverlayWidget> {
         await voice.stopListening();
       },
       onTap: () async {
-        if (voice.state == VoiceState.idle) {
+        if (voice.state == VoiceState.listening) {
+          await voice.stopListening();
+        } else if (voice.state == VoiceState.idle) {
           HapticFeedback.mediumImpact();
           await voice.startListening();
         }
@@ -333,16 +440,81 @@ class _VoiceOverlayWidgetState extends State<VoiceOverlayWidget> {
         child: isProcessing
             ? const CupertinoActivityIndicator()
             : Icon(
-                isListening
-                    ? CupertinoIcons.mic_fill
-                    : CupertinoIcons.mic,
-                color: isListening
-                    ? CupertinoColors.white
-                    : AppStyles.aetherTeal,
+                isListening ? CupertinoIcons.mic_fill : CupertinoIcons.mic,
+                color:
+                    isListening ? CupertinoColors.white : AppStyles.aetherTeal,
                 size: 28,
               ),
       ),
     );
+  }
+
+  Widget _buildTypedFallback(VoiceController voice, BuildContext context) {
+    final busy = voice.state == VoiceState.listening ||
+        voice.state == VoiceState.processing ||
+        voice.state == VoiceState.speaking;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Or type the sentence',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            color: AppStyles.getSecondaryTextColor(context),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: Spacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: CupertinoTextField(
+                controller: _typedCtrl,
+                enabled: !busy,
+                placeholder: '500 on Swiggy yesterday',
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _submitTyped(voice),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Spacing.md,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: AppStyles.l3(context),
+                  borderRadius: BorderRadius.circular(Radii.md),
+                  border: Border.all(
+                    color: AppStyles.getDividerColor(context),
+                  ),
+                ),
+                style: TextStyle(color: AppStyles.getTextColor(context)),
+              ),
+            ),
+            const SizedBox(width: Spacing.sm),
+            CupertinoButton(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Spacing.md,
+                vertical: 11,
+              ),
+              color: AppStyles.aetherTeal,
+              borderRadius: BorderRadius.circular(Radii.md),
+              onPressed: busy ? null : () => _submitTyped(voice),
+              child: const Icon(
+                CupertinoIcons.arrow_right,
+                size: 18,
+                color: CupertinoColors.white,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _submitTyped(VoiceController voice) {
+    final text = _typedCtrl.text.trim();
+    if (text.isEmpty) return;
+    HapticFeedback.selectionClick();
+    voice.submitText(text);
   }
 }
 

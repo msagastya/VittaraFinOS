@@ -38,6 +38,22 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     super.dispose();
   }
 
+  void _selectTab(int tab) {
+    if (tab == _selectedTab || tab < 0 || tab > 2) return;
+    HapticFeedback.selectionClick();
+    setState(() => _selectedTab = tab);
+  }
+
+  void _handleHorizontalTabSwipe(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity.abs() < 250) return;
+    if (velocity < 0) {
+      _selectTab((_selectedTab + 1).clamp(0, 2).toInt());
+    } else {
+      _selectTab((_selectedTab - 1).clamp(0, 2).toInt());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -145,10 +161,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                 '₹${controller.getTotalLent().toStringAsFixed(0)}',
                             selected: _selectedTab == 0,
                             color: AppStyles.accentBlue,
-                            onTap: () {
-                              HapticFeedback.selectionClick();
-                              setState(() => _selectedTab = 0);
-                            }),
+                            onTap: () => _selectTab(0)),
                       ),
                       const SizedBox(width: Spacing.md),
                       Expanded(
@@ -158,10 +171,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                 '₹${controller.getTotalBorrowed().toStringAsFixed(0)}',
                             selected: _selectedTab == 1,
                             color: AppStyles.loss(context),
-                            onTap: () {
-                              HapticFeedback.selectionClick();
-                              setState(() => _selectedTab = 1);
-                            }),
+                            onTap: () => _selectTab(1)),
                       ),
                       const SizedBox(width: Spacing.md),
                       Expanded(
@@ -170,10 +180,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                             subtitle: '${settledRecords.length}',
                             selected: _selectedTab == 2,
                             color: SemanticColors.success,
-                            onTap: () {
-                              HapticFeedback.selectionClick();
-                              setState(() => _selectedTab = 2);
-                            }),
+                            onTap: () => _selectTab(2)),
                       ),
                     ],
                   ),
@@ -367,13 +374,17 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
           return Stack(
             children: [
               SafeArea(
-                child: isLandscape
-                    ? LandscapeScaffold(
-                        railWidth: 210,
-                        leftRail: landscapeRail,
-                        body: recordsList,
-                      )
-                    : recordsList,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onHorizontalDragEnd: _handleHorizontalTabSwipe,
+                  child: isLandscape
+                      ? LandscapeScaffold(
+                          railWidth: 210,
+                          leftRail: landscapeRail,
+                          body: recordsList,
+                        )
+                      : recordsList,
+                ),
               ),
               // Add Button (portrait only — landscape has it in the rail)
               if (!isLandscape)
@@ -397,10 +408,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
       String label, String sub, int tabIndex, Color color) {
     final isSelected = _selectedTab == tabIndex;
     return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        setState(() => _selectedTab = tabIndex);
-      },
+      onTap: () => _selectTab(tabIndex),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
@@ -808,13 +816,23 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
       builder: (BuildContext modalContext) => RLayout.tabletConstrain(
         modalContext,
         StatefulBuilder(
-        builder: (BuildContext context, StateSetter setModalState) {
-          return Container(
-            height: 350,
-            color: AppStyles.getCardColor(context),
-            child: SafeArea(
-              child: Column(
-                children: [
+          builder: (BuildContext context, StateSetter setModalState) {
+            final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
+            return AnimatedPadding(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
+              padding: EdgeInsets.only(bottom: keyboardInset),
+              child: Container(
+                color: AppStyles.getCardColor(context),
+                child: SafeArea(
+                  top: false,
+                  child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.only(bottom: Spacing.lg),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                   const ModalHandle(),
                   const SizedBox(height: Spacing.md),
                   Text(
@@ -977,7 +995,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                       ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(height: Spacing.xxl),
                   ActionButtonRow(
                     primaryLabel: 'Save',
                     onPrimaryPressed: () {
@@ -1001,13 +1019,14 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                     secondaryLabel: 'Cancel',
                     onSecondaryPressed: () => Navigator.pop(modalContext),
                   ),
-                  const SizedBox(height: Spacing.lg),
-                ],
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
-          );
-        },
-      ),
+            );
+          },
+        ),
       ),
     ).whenComplete(amountController.dispose);
   }
@@ -1526,6 +1545,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
         StatefulBuilder(
         builder: (ctx, setS) {
           final isDark = AppStyles.isDarkMode(ctx);
+          final keyboardInset = MediaQuery.of(ctx).viewInsets.bottom;
           final monthly = double.tryParse(monthlyController.text) ?? 0;
           final annualRate = double.tryParse(rateController.text) ?? 0;
           final outstanding = record.amount;
@@ -1576,14 +1596,18 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
             );
           }
 
-          return Container(
-            height: AppStyles.sheetMaxHeight(ctx),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: SafeArea(
+          return AnimatedPadding(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            padding: EdgeInsets.only(bottom: keyboardInset),
+            child: Container(
+              height: AppStyles.sheetMaxHeight(ctx),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: SafeArea(
               child: Column(
                 children: [
                   const SizedBox(height: 12),
@@ -1622,6 +1646,8 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                   const SizedBox(height: 20),
                   Expanded(
                     child: SingleChildScrollView(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1751,6 +1777,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                   ),
                 ],
               ),
+            ),
             ),
           );
         },

@@ -13,8 +13,8 @@ enum VoiceState {
   listening,
   processing,
   confirming, // showing parsed intent to user
-  filling,    // asking follow-up question
-  speaking,   // TTS playing
+  filling, // asking follow-up question
+  speaking, // TTS playing
   error,
 }
 
@@ -23,6 +23,7 @@ class VoiceResult {
   final Map<String, dynamic> fields;
   final String confirmationText;
   final bool isComplete;
+
   /// Fields the engine is uncertain about — UI highlights these for user review.
   final List<String> uncertainFields;
 
@@ -82,6 +83,7 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
 
   late VoiceFillEngine _fillEngine;
   bool _initialized = false;
+  String? _lastProcessedTranscript;
 
   // ── App lifecycle ─────────────────────────────────────────────────────────
 
@@ -114,13 +116,7 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
 
     final available = await _stt.initialize(
       onError: (e) => _onSttError(e.errorMsg),
-      onStatus: (status) {
-        // If STT reports it stopped listening while our state still thinks
-        // it's active, sync up so the UI doesn't show a stuck mic indicator.
-        if (status == 'notListening' && _state == VoiceState.listening) {
-          _setState(VoiceState.idle);
-        }
-      },
+      onStatus: _handleSttStatus,
     );
     if (!available) {
       debugPrint('[VoiceController] STT not available on this device');
@@ -157,7 +153,10 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
     if (_state != VoiceState.idle) return;
     _setError(null);
 
-    final available = await _stt.initialize();
+    final available = await _stt.initialize(
+      onError: (e) => _onSttError(e.errorMsg),
+      onStatus: _handleSttStatus,
+    );
     if (!available) {
       _setError('Microphone not available');
       return;
@@ -165,6 +164,7 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
 
     _setState(VoiceState.listening);
     _transcript = '';
+    _lastProcessedTranscript = null;
     notifyListeners();
     HapticFeedback.lightImpact(); // signal mic is open
     _resetSessionTimeout(); // start 45s hard kill timer
@@ -178,7 +178,7 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
         }
       },
       listenFor: const Duration(seconds: 30),
-      pauseFor: const Duration(milliseconds: 2500),
+      pauseFor: const Duration(seconds: 3),
       cancelOnError: true,
       localeId: 'en_IN',
     );
@@ -206,44 +206,92 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
 
   // ── Fill-engine loop ──────────────────────────────────────────────────────
 
+  /// Manual fallback for the voice overlay. This uses the exact same parser as
+  /// speech input, so a user can type "500 on Swiggy" if STT is unavailable.
+  Future<void> submitText(String text) async {
+    final cleanText = text.trim();
+    if (cleanText.isEmpty) {
+      _setError('Type something like "500 on Swiggy"');
+      return;
+    }
+    _cancelCountdown();
+    await _stt.stop();
+    _currentQuestion = null;
+    _transcript = cleanText;
+    _lastProcessedTranscript = null;
+    notifyListeners();
+    _resetSessionTimeout();
+    _onTranscriptFinal(cleanText);
+  }
+
   void _onTranscriptFinal(String text) async {
-    if (text.trim().isEmpty) {
+    final cleanText = text.trim();
+    if (cleanText.isEmpty) {
       _setState(VoiceState.idle);
       return;
     }
+    if (_lastProcessedTranscript == cleanText &&
+        (_state == VoiceState.processing ||
+            _state == VoiceState.confirming ||
+            _state == VoiceState.filling)) {
+      return;
+    }
+    _lastProcessedTranscript = cleanText;
 
     _setState(VoiceState.processing);
 
-    // Check for navigation intent first
-    final navTarget = VoiceNavigator.resolve(text);
-    if (navTarget != null) {
-      _pendingResult = VoiceResult(
-        intent: VoiceIntent.navigate,
-        fields: {'target': navTarget},
-        confirmationText: 'Opening ${navTarget.label}.',
-        isComplete: true,
-      );
-      _setState(VoiceState.confirming);
-      return; // No TTS here — UI shows the confirmation card
-    }
+    try {
+      final systemCommand = _resolveSystemCommand(cleanText);
+      if (systemCommand != null) {
+        _pendingResult = VoiceResult(
+          intent: VoiceIntent.query,
+          fields: {
+            'aiCommand': systemCommand.$1,
+            'rawText': cleanText,
+          },
+          confirmationText: systemCommand.$2,
+          isComplete: true,
+        );
+        _setState(VoiceState.confirming);
+        return;
+      }
 
-    // Parse + fill — ML Kit runs async on-device, ~100ms
-    final step = await _fillEngine.processAsync(text);
-    if (step.isComplete) {
-      _pendingResult = VoiceResult(
-        intent: step.intent,
-        fields: step.fields,
-        confirmationText: step.confirmationText,
-        isComplete: true,
-        uncertainFields: step.uncertainFields,
-      );
-      _setState(VoiceState.confirming);
-    } else if (step.followUpQuestion != null) {
-      _currentQuestion = step.followUpQuestion;
-      _setState(VoiceState.filling);
-      _startAutoListenCountdown();
-    } else {
-      _setError("Didn't catch that — try: \"500 on Swiggy\" or just say the amount.");
+      // Check for navigation intent first
+      final navTarget = VoiceNavigator.resolve(cleanText);
+      if (navTarget != null) {
+        _pendingResult = VoiceResult(
+          intent: VoiceIntent.navigate,
+          fields: {'navTarget': navTarget, 'rawText': cleanText},
+          confirmationText: 'Opening ${navTarget.label}.',
+          isComplete: true,
+        );
+        _setState(VoiceState.confirming);
+        return; // No TTS here — UI shows the confirmation card
+      }
+
+      // Parse + fill — ML Kit runs async on-device, ~100ms
+      final step = await _fillEngine.processAsync(cleanText);
+      if (step.isComplete) {
+        _pendingResult = VoiceResult(
+          intent: step.intent,
+          fields: {...step.fields, 'rawText': cleanText},
+          confirmationText: step.confirmationText,
+          isComplete: true,
+          uncertainFields: step.uncertainFields,
+        );
+        _setState(VoiceState.confirming);
+      } else if (step.followUpQuestion != null) {
+        _currentQuestion = step.followUpQuestion;
+        _setState(VoiceState.filling);
+        _startAutoListenCountdown();
+      } else {
+        _setError(
+            "Didn't catch that — try: \"500 on Swiggy\" or just say the amount.");
+        _setState(VoiceState.idle);
+      }
+    } catch (e) {
+      debugPrint('[VoiceController] Parse failed: $e');
+      _setError('Could not understand that — try again');
       _setState(VoiceState.idle);
     }
   }
@@ -255,8 +303,18 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _listenForAnswer() async {
     // Small gap so the question text is visible before the mic opens
     await Future.delayed(const Duration(milliseconds: 300));
+    final available = await _stt.initialize(
+      onError: (e) => _onSttError(e.errorMsg),
+      onStatus: _handleSttStatus,
+    );
+    if (!available) {
+      _setError('Microphone not available');
+      _setState(VoiceState.filling);
+      return;
+    }
     _setState(VoiceState.listening);
     _transcript = '';
+    _lastProcessedTranscript = null;
     notifyListeners();
     HapticFeedback.lightImpact(); // signal mic is open
     _resetSessionTimeout(); // restart 45s hard kill timer for follow-up
@@ -270,32 +328,43 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
         }
       },
       listenFor: const Duration(seconds: 20),
-      pauseFor: const Duration(milliseconds: 2500),
+      pauseFor: const Duration(seconds: 3),
       cancelOnError: true,
       localeId: 'en_IN',
     );
   }
 
   void _onAnswerReceived(String answer) {
-    _setState(VoiceState.processing);
-    final step = _fillEngine.processAnswer(answer);
-    if (step.isComplete) {
-      _currentQuestion = null;
-      _pendingResult = VoiceResult(
-        intent: step.intent,
-        fields: step.fields,
-        confirmationText: step.confirmationText,
-        isComplete: true,
-        uncertainFields: step.uncertainFields,
-      );
-      _setState(VoiceState.confirming);
-    } else if (step.followUpQuestion != null) {
-      _currentQuestion = step.followUpQuestion;
+    final cleanAnswer = answer.trim();
+    if (cleanAnswer.isEmpty) {
       _setState(VoiceState.filling);
-      _startAutoListenCountdown();
-    } else {
+      return;
+    }
+    _setState(VoiceState.processing);
+    try {
+      final step = _fillEngine.processAnswer(cleanAnswer);
+      if (step.isComplete) {
+        _currentQuestion = null;
+        _pendingResult = VoiceResult(
+          intent: step.intent,
+          fields: {...step.fields, 'rawText': cleanAnswer},
+          confirmationText: step.confirmationText,
+          isComplete: true,
+          uncertainFields: step.uncertainFields,
+        );
+        _setState(VoiceState.confirming);
+      } else if (step.followUpQuestion != null) {
+        _currentQuestion = step.followUpQuestion;
+        _setState(VoiceState.filling);
+        _startAutoListenCountdown();
+      } else {
+        _setError("Still couldn't get that — try just saying the amount.");
+        _setState(VoiceState.idle);
+      }
+    } catch (e) {
+      debugPrint('[VoiceController] Follow-up parse failed: $e');
       _setError("Still couldn't get that — try just saying the amount.");
-      _setState(VoiceState.idle);
+      _setState(VoiceState.filling);
     }
   }
 
@@ -359,6 +428,7 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
     _cancelSessionTimeout();
     _fillEngine.reset();
     _currentQuestion = null;
+    _lastProcessedTranscript = null;
     _setState(VoiceState.idle);
     // The UI reads pendingResult and executes the action.
   }
@@ -372,6 +442,7 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
     _fillEngine.reset();
     _currentQuestion = null;
     _pendingResult = null;
+    _lastProcessedTranscript = null;
     _setState(VoiceState.idle);
   }
 
@@ -384,6 +455,83 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
     // TTS is fire-and-forget — we don't wait for completion
   }
 
+  (String, String)? _resolveSystemCommand(String text) {
+    final lower = text.toLowerCase().trim();
+    bool any(List<String> words) => words.any(lower.contains);
+
+    if (any([
+      'dark mode',
+      'night mode',
+      'turn dark',
+      'make dark',
+      'theme dark',
+      'black mode',
+      'dark karo',
+    ])) {
+      return ('themeDark', 'Turning dark mode on.');
+    }
+    if (any([
+      'light mode',
+      'day mode',
+      'turn light',
+      'make light',
+      'theme light',
+      'light karo',
+    ])) {
+      return ('themeLight', 'Turning light mode on.');
+    }
+    if (any(['system theme', 'auto theme', 'device theme'])) {
+      return ('themeSystem', 'Using the system theme.');
+    }
+    if (any([
+      'today summary',
+      'todays summary',
+      "today's summary",
+      'read summary',
+      'read today',
+      'aaj ka summary',
+      'aaj ka hisaab',
+    ])) {
+      return ('summaryToday', "Reading today's summary.");
+    }
+    if (any([
+      'month summary',
+      'monthly summary',
+      'this month summary',
+      'mahine ka summary',
+      'mahine ka hisaab',
+    ])) {
+      return ('summaryMonth', 'Reading this month summary.');
+    }
+    if (any([
+      'monthly statement',
+      'export statement',
+      'statement export',
+      'generate statement',
+      'download statement',
+      'month statement',
+    ])) {
+      return ('monthlyStatement', 'Opening monthly statement export.');
+    }
+    if (any([
+      'import statement',
+      'bank statement import',
+      'import bank statement',
+    ])) {
+      return ('importStatement', 'Opening bank statement import.');
+    }
+    if (any([
+      'report analysis',
+      'reports analysis',
+      'report and analysis',
+      'analytics',
+      'analysis page',
+    ])) {
+      return ('reports', 'Opening reports and analysis.');
+    }
+    return null;
+  }
+
   void setTtsEnabled(bool v) {
     _ttsEnabled = v;
     notifyListeners();
@@ -394,6 +542,22 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
   void _setState(VoiceState s) {
     _state = s;
     notifyListeners();
+  }
+
+  void _handleSttStatus(String status) {
+    if (status != 'notListening' || _state != VoiceState.listening) return;
+
+    final captured = _transcript.trim();
+    if (captured.isEmpty) {
+      _setState(VoiceState.idle);
+      return;
+    }
+
+    if (_currentQuestion != null) {
+      _onAnswerReceived(captured);
+    } else {
+      _onTranscriptFinal(captured);
+    }
   }
 
   void _setError(String? msg) {

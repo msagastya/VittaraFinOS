@@ -47,14 +47,15 @@ import 'package:vittara_fin_os/logic/recurring_template_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/services/usage_tracker_service.dart';
 import 'package:vittara_fin_os/services/usage_timing_service.dart';
+import 'package:vittara_fin_os/services/ai_voice_command_service.dart';
 import 'package:vittara_fin_os/ui/onboarding/onboarding_activation_screen.dart';
 import 'package:vittara_fin_os/services/tooltip_service.dart';
-import 'package:vittara_fin_os/ui/widgets/coach_mark.dart';
 import 'package:vittara_fin_os/ui/styles/app_springs.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_action_sheet.dart';
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/ui/dashboard/ai_tray_sheet.dart';
 import 'package:vittara_fin_os/ui/notifications_page.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -102,10 +103,6 @@ final AppLogger logger = AppLogger();
 /// sheet. The dashboard FAB listens to this and plays its checkmark morph.
 final dashboardSavedSignal = ValueNotifier<int>(0);
 
-// Temporary implementation-mode switch: keep screenshots enabled until the
-// remaining plan work is complete and security hardening is re-enabled.
-const bool kAllowScreenshotsDuringImplementation = true;
-
 /// Hard-stop scroll physics applied to every scrollable in the app.
 /// ClampingScrollPhysics prevents lists from drifting past top/bottom
 /// boundaries and getting stuck — consistent Android scroll behaviour.
@@ -119,14 +116,10 @@ void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Device security checks run before UI renders. Screenshot protection is
-    // temporarily disabled so builds can be captured during implementation.
+    // Device security checks run before UI renders. Screenshot blocking is
+    // enabled by the native Android activity for finance-app release posture.
     unawaited(DeviceSecurityService.instance.check());
-    if (kAllowScreenshotsDuringImplementation) {
-      unawaited(DeviceSecurityService.instance.disableScreenshotProtection());
-    } else {
-      unawaited(DeviceSecurityService.instance.enableScreenshotProtection());
-    }
+    unawaited(DeviceSecurityService.instance.enableScreenshotProtection());
 
     // Open encrypted SQLite DB and run one-time SharedPreferences migration
     // BEFORE any controller initializes so load() calls find data in SQLite.
@@ -293,6 +286,29 @@ void main() {
                       Provider.of<BudgetsController>(ctx, listen: false);
                   final goalsCtrl =
                       Provider.of<GoalsController>(ctx, listen: false);
+                  final investmentsCtrl =
+                      Provider.of<InvestmentsController>(ctx, listen: false);
+                  final transactionsCtrl =
+                      Provider.of<TransactionsController>(ctx, listen: false);
+                  void refreshAi() {
+                    final transactions = transactionsCtrl.transactions;
+                    final investments = investmentsCtrl.investments;
+                    ctrl.refresh(
+                      transactions: TransactionFeedBuilder.buildUnifiedFeed(
+                        transactions: transactions,
+                        investments: investments,
+                      ),
+                      accountCount: accounts.accounts.length,
+                      accountBalances: {
+                        for (final a in accounts.accounts) a.id: a.balance,
+                      },
+                      budgets:
+                          budgetsCtrl.budgets.map((b) => b.toMap()).toList(),
+                      goals: goalsCtrl.activeGoals,
+                      investments: investments,
+                    );
+                  }
+
                   ctrl.wireProviders(AIDataProviders(
                     accountCount: () => accounts.accounts.length,
                     accountBalances: () => {
@@ -301,7 +317,10 @@ void main() {
                     budgets: () =>
                         budgetsCtrl.budgets.map((b) => b.toMap()).toList(),
                     goals: () => goalsCtrl.activeGoals,
+                    investments: () => investmentsCtrl.investments,
                   ));
+                  investmentsCtrl.addListener(refreshAi);
+                  refreshAi();
                 } catch (e) {
                   logger.error('AIDataProviders wiring failed', error: e);
                 }
@@ -341,6 +360,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      AIVoiceCommandService.registerHardwareButton(context);
+    });
   }
 
   @override
@@ -1447,89 +1470,22 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenOuterState extends State<DashboardScreen> {
-  // GlobalKeys for coach mark targeting
-  final GlobalKey _searchIconKey = GlobalKey();
-  final GlobalKey _calendarIconKey = GlobalKey();
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scheduleCoachMarks());
-  }
-
-  Future<void> _scheduleCoachMarks() async {
-    final session = await TooltipService.instance.sessionCount();
-    if (!mounted) return;
-    // Session 2: search coach mark
-    if (session == 2 && await TooltipService.instance.shouldShow(1)) {
-      await Future.delayed(const Duration(seconds: 1));
-      if (!mounted) return;
-      await CoachMark.show(
-        context: context,
-        targetKey: _searchIconKey,
-        title: 'Search with natural language',
-        body:
-            "Try 'food last week', 'coffee this month', or 'show savings'. Works in English and Hinglish.",
-      );
-      await TooltipService.instance.markShown(1);
-    }
-    // Session 3: voice mic coach mark
-    if (session == 3 && await TooltipService.instance.shouldShow(2)) {
-      await Future.delayed(const Duration(seconds: 1));
-      if (!mounted) return;
-      await CoachMark.show(
-        context: context,
-        targetKey: _searchIconKey, // fallback — ideally mic key
-        title: 'Add transactions by voice',
-        body:
-            "Tap the + button and hold the mic. Say '500 on Swiggy' or '₹1200 salary credited'. Hindi and Hinglish work too.",
-      );
-      await TooltipService.instance.markShown(2);
-    }
-    // Session 4: calendar coach mark
-    if (session == 4 && await TooltipService.instance.shouldShow(3)) {
-      await Future.delayed(const Duration(seconds: 1));
-      if (!mounted) return;
-      await CoachMark.show(
-        context: context,
-        targetKey: _calendarIconKey,
-        title: 'Your financial calendar',
-        body:
-            'This shows when your FDs mature, SIPs are due, and bills are coming — all in one timeline.',
-      );
-      await TooltipService.instance.markShown(3);
-    }
-    // Session 5: voice navigation banner
-    if (session == 5 && await TooltipService.instance.shouldShow(4)) {
-      await Future.delayed(const Duration(seconds: 1));
-      if (!mounted) return;
-      await CoachMark.show(
-        context: context,
-        targetKey: _searchIconKey, // fallback key
-        title: 'Navigate by voice',
-        body:
-            "Say 'goals dikhao', 'show my budget', or 'open investments' to jump anywhere in the app.",
-      );
-      await TooltipService.instance.markShown(4);
-    }
+    // Do not attach coach-mark GlobalKeys to CupertinoNavigationBar actions.
+    // Cupertino clones nav-bar children during route transitions; keyed actions
+    // were disappearing after returning to the dashboard.
   }
 
   @override
   Widget build(BuildContext context) {
-    return _DashboardScreenContent(
-      searchIconKey: _searchIconKey,
-      calendarIconKey: _calendarIconKey,
-    );
+    return const _DashboardScreenContent();
   }
 }
 
 class _DashboardScreenContent extends StatelessWidget {
-  final GlobalKey searchIconKey;
-  final GlobalKey calendarIconKey;
-  const _DashboardScreenContent({
-    required this.searchIconKey,
-    required this.calendarIconKey,
-  });
+  const _DashboardScreenContent();
 
   @override
   Widget build(BuildContext context) {
@@ -1577,15 +1533,6 @@ class _DashboardScreenContent extends StatelessWidget {
 
         // AU6-02 — Use cached getter instead of recomputing on every build
         final visibleWidgets = dashboardController.visibleWidgets;
-
-        // Debug: Print visible widgets count
-        if (kDebugMode) {
-          print(
-              'Dashboard: ${visibleWidgets.length} visible widgets out of ${dashboardController.config.widgets.length} total');
-          for (var w in dashboardController.config.widgets) {
-            print('  - ${w.id}: visible=${w.isVisible}');
-          }
-        }
 
         return CupertinoPageScaffold(
           // Hide nav bar in landscape — replaced by compact inline bar in body
@@ -1637,84 +1584,85 @@ class _DashboardScreenContent extends StatelessWidget {
                     ),
                   ),
                   middle: const Text('VittaraFinOS'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Semantics(
-                        label: 'Command bar',
-                        child: BouncyButton(
-                          onPressed: () => CommandBar.show(context),
-                          child: Icon(
-                            CupertinoIcons.square_grid_2x2,
-                            size: IconSizes.navIcon,
-                            color: AppStyles.getTextColor(context),
+                  trailing: SizedBox(
+                    width: 160,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Semantics(
+                          label: 'Command bar',
+                          child: BouncyButton(
+                            onPressed: () => CommandBar.show(context),
+                            child: Icon(
+                              CupertinoIcons.square_grid_2x2,
+                              size: IconSizes.navIcon,
+                              color: AppStyles.getTextColor(context),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: Spacing.xl),
-                      Semantics(
-                        label: 'Search',
-                        child: BouncyButton(
-                          key: searchIconKey,
-                          onPressed: () => showGlobalSearch(context),
-                          child: Icon(
-                            CupertinoIcons.search,
-                            size: IconSizes.navIcon,
-                            color: AppStyles.getTextColor(context),
+                        const SizedBox(width: Spacing.md),
+                        Semantics(
+                          label: 'Search',
+                          child: BouncyButton(
+                            onPressed: () => showGlobalSearch(context),
+                            child: Icon(
+                              CupertinoIcons.search,
+                              size: IconSizes.navIcon,
+                              color: AppStyles.getTextColor(context),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: Spacing.xl),
-                      Semantics(
-                        label: 'Dashboard layout',
-                        child: BouncyButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              FadeScalePageRoute(
-                                  page: const DashboardSettingsModal()),
-                            );
-                          },
-                          child: Icon(
-                            CupertinoIcons.slider_horizontal_3,
-                            size: IconSizes.navIcon,
-                            color: AppStyles.getTextColor(context),
+                        const SizedBox(width: Spacing.md),
+                        Semantics(
+                          label: 'Dashboard layout',
+                          child: BouncyButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                FadeScalePageRoute(
+                                    page: const DashboardSettingsModal()),
+                              );
+                            },
+                            child: Icon(
+                              CupertinoIcons.slider_horizontal_3,
+                              size: IconSizes.navIcon,
+                              color: AppStyles.getTextColor(context),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: Spacing.xl),
-                      Semantics(
-                        label: 'Financial calendar',
-                        child: BouncyButton(
-                          key: calendarIconKey,
-                          onPressed: () => Navigator.of(context).push(
-                              FadeScalePageRoute(
-                                  page: const FinancialCalendarScreen())),
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Icon(
-                                CupertinoIcons.calendar,
-                                size: IconSizes.navIcon,
-                                color: AppStyles.getTextColor(context),
-                              ),
-                              if (hasDue)
-                                Positioned(
-                                  top: -2,
-                                  right: -2,
-                                  child: Container(
-                                    width: 7,
-                                    height: 7,
-                                    decoration: const BoxDecoration(
-                                      color: AppStyles.plasmaRed,
-                                      shape: BoxShape.circle,
+                        const SizedBox(width: Spacing.md),
+                        Semantics(
+                          label: 'Financial calendar',
+                          child: BouncyButton(
+                            onPressed: () => Navigator.of(context).push(
+                                FadeScalePageRoute(
+                                    page: const FinancialCalendarScreen())),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.calendar,
+                                  size: IconSizes.navIcon,
+                                  color: AppStyles.getTextColor(context),
+                                ),
+                                if (hasDue)
+                                  Positioned(
+                                    top: -2,
+                                    right: -2,
+                                    child: Container(
+                                      width: 7,
+                                      height: 7,
+                                      decoration: const BoxDecoration(
+                                        color: AppStyles.plasmaRed,
+                                        shape: BoxShape.circle,
+                                      ),
                                     ),
                                   ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   backgroundColor:
                       AppStyles.getCardColor(context).withValues(alpha: 0.90),
@@ -1776,9 +1724,6 @@ class _DashboardScreenContent extends StatelessWidget {
                                 const SizedBox(height: Spacing.sm),
                                 CupertinoButton(
                                   onPressed: () async {
-                                    if (kDebugMode) {
-                                      print('Resetting dashboard to default');
-                                    }
                                     await dashboardController.resetToDefault();
                                     if (context.mounted) {
                                       toast.showSuccess(
@@ -1999,14 +1944,9 @@ class _DashboardScreenContent extends StatelessWidget {
     // ── PORTRAIT: original layout ────────────────────────────────────────────
     return Column(
       children: [
-        // PROFESSIONAL HEADER — capped so CardDeck always gets enough space
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight:
-                (MediaQuery.of(context).size.height * 0.22).clamp(100.0, 160.0),
-          ),
-          child: _buildHeaderSection(context),
-        ),
+        // PROFESSIONAL HEADER — natural height so no artificial gap opens
+        // between the hero and engagement row.
+        _buildHeaderSection(context),
 
         // ENGAGEMENT: compact strip
         const EngagementStripWidget(),
@@ -2126,8 +2066,8 @@ class _DashboardScreenContent extends StatelessWidget {
   /// FAB with checkmark morph — listens to [dashboardSavedSignal].
   Widget _buildMorphFAB(BuildContext context) {
     return _MorphFAB(
-      onPressed: () => showDashboardActionSheet(context),
-      onLongPress: () => CommandBar.show(context),
+      onPressed: () => showQuickEntrySheet(context),
+      onLongPress: () => showDashboardActionSheet(context),
     );
   }
 
@@ -2432,7 +2372,9 @@ class _DashboardScreenContent extends StatelessWidget {
     return GestureDetector(
       onLongPress: () {
         HapticFeedback.mediumImpact();
-        _showReorderSheet(context);
+        Navigator.of(context).push(
+          FadeScalePageRoute(page: const DashboardSettingsModal()),
+        );
       },
       child: BouncyButton(
         onPressed: () => _handleWidgetTap(context, widgetConfig),
@@ -2663,7 +2605,7 @@ class _DashboardScreenContent extends StatelessWidget {
                   // Content
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
-                        Spacing.lg, Spacing.xl, Spacing.lg, Spacing.lg),
+                        Spacing.lg, Spacing.sm, Spacing.lg, Spacing.sm),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -2690,7 +2632,7 @@ class _DashboardScreenContent extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 2),
                                   _FadeSlideIn(
                                     delay: const Duration(milliseconds: 80),
                                     child: Text(
@@ -2754,7 +2696,7 @@ class _DashboardScreenContent extends StatelessWidget {
                           ],
                         ),
 
-                        const SizedBox(height: Spacing.xl),
+                        const SizedBox(height: Spacing.xs),
 
                         // Hero balance — total across all accounts
                         Consumer<AccountsController>(
@@ -2773,128 +2715,54 @@ class _DashboardScreenContent extends StatelessWidget {
                               return sum + a.balance;
                             });
                             final count = visibleAccounts.length;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                AnimatedCounter(
-                                  value: total,
-                                  prefix: '₹',
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w800,
-                                    color: isDark
-                                        ? Colors.white
-                                        : AppStyles.getTextColor(context),
-                                    letterSpacing: -1.0,
-                                    fontFamily: 'SpaceGrotesk',
-                                    fontFeatures: const [
-                                      FontFeature.tabularFigures(),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      AnimatedCounter(
+                                        value: total,
+                                        prefix: '₹',
+                                        style: TextStyle(
+                                          fontSize: 31,
+                                          fontWeight: FontWeight.w800,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppStyles.getTextColor(context),
+                                          letterSpacing: -1.0,
+                                          fontFamily: 'SpaceGrotesk',
+                                          fontFeatures: const [
+                                            FontFeature.tabularFigures(),
+                                          ],
+                                        ),
+                                        duration:
+                                            const Duration(milliseconds: 700),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Across $count account${count == 1 ? '' : 's'}',
+                                        style: TextStyle(
+                                          fontSize: TypeScale.caption,
+                                          color: isDark
+                                              ? Colors.white
+                                                  .withValues(alpha: 0.55)
+                                              : AppStyles.getSecondaryTextColor(
+                                                  context),
+                                          fontWeight: FontWeight.w500,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
                                     ],
                                   ),
-                                  duration: const Duration(milliseconds: 700),
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Across $count account${count == 1 ? '' : 's'}',
-                                  style: TextStyle(
-                                    fontSize: TypeScale.caption,
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.55)
-                                        : AppStyles.getSecondaryTextColor(
-                                            context),
-                                    fontWeight: FontWeight.w500,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
+                                const SizedBox(width: Spacing.sm),
+                                _buildHeroQuickActionGrid(context),
                               ],
                             );
                           },
-                        ),
-
-                        const SizedBox(height: Spacing.lg),
-
-                        // Divider line
-                        Container(
-                          height: 0.6,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: isDark
-                                  ? [
-                                      Colors.white.withValues(alpha: 0.00),
-                                      Colors.white.withValues(alpha: 0.18),
-                                      Colors.white.withValues(alpha: 0.00),
-                                    ]
-                                  : [
-                                      AppStyles.aetherTeal
-                                          .withValues(alpha: 0.00),
-                                      AppStyles.aetherTeal
-                                          .withValues(alpha: 0.25),
-                                      AppStyles.aetherTeal
-                                          .withValues(alpha: 0.00),
-                                    ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: Spacing.lg),
-
-                        // Quick action pills — frequency descending: History first
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          physics: const ClampingScrollPhysics(),
-                          child: Row(
-                            children: [
-                              _FadeSlideIn(
-                                delay: const Duration(milliseconds: 200),
-                                child: _buildQuickActionPill(
-                                  context,
-                                  'History',
-                                  CupertinoIcons.clock_fill,
-                                  SemanticColors.info,
-                                ),
-                              ),
-                              const SizedBox(width: Spacing.sm),
-                              _FadeSlideIn(
-                                delay: const Duration(milliseconds: 240),
-                                child: _buildQuickActionPill(
-                                  context,
-                                  'Budgets',
-                                  CupertinoIcons.chart_pie_fill,
-                                  AppStyles.accentCoral,
-                                ),
-                              ),
-                              const SizedBox(width: Spacing.sm),
-                              _FadeSlideIn(
-                                delay: const Duration(milliseconds: 280),
-                                child: _buildQuickActionPill(
-                                  context,
-                                  'Goals',
-                                  CupertinoIcons.checkmark_seal_fill,
-                                  AppStyles.aetherTeal,
-                                ),
-                              ),
-                              const SizedBox(width: Spacing.sm),
-                              _FadeSlideIn(
-                                delay: const Duration(milliseconds: 320),
-                                child: _buildQuickActionPill(
-                                  context,
-                                  'Savings',
-                                  CupertinoIcons.heart_fill,
-                                  AppStyles.accentGreen,
-                                ),
-                              ),
-                              const SizedBox(width: Spacing.sm),
-                              _FadeSlideIn(
-                                delay: const Duration(milliseconds: 360),
-                                child: _buildQuickActionPill(
-                                  context,
-                                  'AI Plan',
-                                  CupertinoIcons.sparkles,
-                                  AppStyles.accentOrange,
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
                       ],
                     ),
@@ -2904,71 +2772,101 @@ class _DashboardScreenContent extends StatelessWidget {
             ),
           ), // ClipRRect / Container
         ), // Padding
-        // T-072: "Edit layout" hint — visible after 3 sessions, hides once user has reordered
-        FutureBuilder<bool>(
-          future: _shouldShowEditLayoutHint(),
-          builder: (_, snap) {
-            if (snap.data != true) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.only(top: 4, right: Spacing.lg),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: GestureDetector(
-                  onTap: () => _showReorderSheet(context),
-                  child: Text(
-                    'Edit layout',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppStyles.getSecondaryTextColor(context),
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
       ], // Column children
     ); // Column
   }
 
-  Future<bool> _shouldShowEditLayoutHint() async {
-    final prefs = await sp.SharedPreferences.getInstance();
-    final sessions = prefs.getInt('app_session_count') ?? 1;
-    final hasReordered = prefs.getBool('dashboard_reordered') ?? false;
-    return sessions >= 3 && !hasReordered;
+  Widget _buildHeroQuickActionGrid(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final gridWidth = (screenWidth * 0.42).clamp(162.0, 243.0);
+    const gridGap = 6.0;
+    final tileWidth = (gridWidth - gridGap) / 2;
+    final actions = [
+      (
+        label: 'Budget',
+        action: 'Budgets',
+        icon: CupertinoIcons.chart_pie_fill,
+        color: AppStyles.accentCoral,
+      ),
+      (
+        label: 'Goals',
+        action: 'Goals',
+        icon: CupertinoIcons.checkmark_seal_fill,
+        color: AppStyles.aetherTeal,
+      ),
+      (
+        label: 'Save',
+        action: 'Savings',
+        icon: CupertinoIcons.heart_fill,
+        color: AppStyles.accentGreen,
+      ),
+      (
+        label: 'AI',
+        action: 'AI Plan',
+        icon: CupertinoIcons.sparkles,
+        color: AppStyles.accentOrange,
+      ),
+    ];
+
+    return SizedBox(
+      width: gridWidth,
+      child: Wrap(
+        spacing: gridGap,
+        runSpacing: gridGap,
+        children: actions
+            .map(
+              (item) => _buildHeroQuickActionTile(
+                context,
+                width: tileWidth,
+                label: item.label,
+                action: item.action,
+                icon: item.icon,
+                color: item.color,
+              ),
+            )
+            .toList(),
+      ),
+    );
   }
 
-  Widget _buildQuickActionPill(
-    BuildContext context,
-    String label,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildHeroQuickActionTile(
+    BuildContext context, {
+    required double width,
+    required String label,
+    required String action,
+    required IconData icon,
+    required Color color,
+  }) {
     return BouncyButton(
-      onPressed: () => _handleQuickActionTap(context, label),
+      onPressed: () => _handleQuickActionTap(context, action),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        width: width,
+        height: 28,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.16),
+          color: color.withValues(alpha: 0.14),
           borderRadius: BorderRadius.circular(Radii.full),
           border: Border.all(
-            color: color.withValues(alpha: 0.50),
-            width: 1.1,
+            color: color.withValues(alpha: 0.42),
+            width: 1.0,
           ),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 13, color: color),
-            const SizedBox(width: 5),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: TypeScale.footnote,
-                fontWeight: FontWeight.w700,
-                color: color,
-                letterSpacing: 0.1,
+            Icon(icon, size: 11, color: color),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                  letterSpacing: 0.05,
+                ),
               ),
             ),
           ],
@@ -3669,89 +3567,10 @@ class _DashboardScreenContent extends StatelessWidget {
     );
   }
 
-  void _showReorderSheet(BuildContext context) {
-    final dashCtrl = context.read<DashboardController>();
-    final widgets = [...dashCtrl.visibleWidgets];
-    showCupertinoModalPopup(
-      context: context,
-      builder: (sheetCtx) {
-        final items = [...widgets];
-        return StatefulBuilder(builder: (ctx, setModalState) {
-          return Container(
-            height: MediaQuery.of(ctx).size.height * 0.6,
-            decoration: AppStyles.bottomSheetDecoration(ctx),
-            child: Column(
-              children: [
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    margin: const EdgeInsets.only(top: 12, bottom: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-                  child: Row(
-                    children: [
-                      Text('Reorder Widgets',
-                          style: TextStyle(
-                              fontSize: TypeScale.headline,
-                              fontWeight: FontWeight.w700,
-                              color: AppStyles.getTextColor(ctx))),
-                      const Spacer(),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () => Navigator.pop(sheetCtx),
-                        child: const Text('Done'),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ReorderableListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                    itemCount: items.length,
-                    onReorder: (oldIdx, newIdx) {
-                      setModalState(() {
-                        if (newIdx > oldIdx) newIdx--;
-                        final moved = items.removeAt(oldIdx);
-                        items.insert(newIdx, moved);
-                      });
-                      final ids = items.map((w) => w.id).toList();
-                      dashCtrl.reorderWidgets(ids);
-                      sp.SharedPreferences.getInstance()
-                          .then((p) => p.setBool('dashboard_reordered', true));
-                    },
-                    itemBuilder: (_, i) {
-                      final w = items[i];
-                      return ListTile(
-                        key: ValueKey(w.id),
-                        leading: Icon(_widgetIcon(w.type),
-                            color: _widgetAccentColor(w.type), size: 20),
-                        title: Text(w.title,
-                            style: TextStyle(
-                                fontSize: TypeScale.body,
-                                color: AppStyles.getTextColor(ctx))),
-                        trailing: const Icon(CupertinoIcons.line_horizontal_3,
-                            size: 18, color: Colors.grey),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        });
-      },
-    );
-  }
-
   void _handleWidgetTap(
-      BuildContext context, DashboardWidgetConfig widgetConfig) {
+    BuildContext context,
+    DashboardWidgetConfig widgetConfig,
+  ) {
     // T-140: record widget tap for usage-based reorder
     UsageTrackerService.instance.recordWidgetTap(widgetConfig.id);
     switch (widgetConfig.type) {

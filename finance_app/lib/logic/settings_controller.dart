@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,7 +13,6 @@ import 'package:vittara_fin_os/utils/logger.dart';
 class SettingsController with ChangeNotifier {
   final AppLogger logger = AppLogger();
   final LocalAuthentication auth = LocalAuthentication();
-  static const platform = MethodChannel('com.vittara.finos/secure');
   late SharedPreferences _prefs;
 
   // Secure storage for PIN hash and recovery code (Android Keystore / iOS Keychain)
@@ -38,7 +36,8 @@ class SettingsController with ChangeNotifier {
   String? _defaultAccountId;
   String? _defaultPaymentAppName;
   String? _pinHash; // SHA-256 of the PIN
-  String? _pinSalt; // Per-user random salt (base64, v2+). Null for legacy users.
+  String?
+      _pinSalt; // Per-user random salt (base64, v2+). Null for legacy users.
   bool _showPinFallback = false; // set to true after biometric fails
   bool _isAuthenticating = false; // guard against concurrent auth calls
   bool _requireBiometricForSensitiveScreens = true; // T-137
@@ -64,7 +63,8 @@ class SettingsController with ChangeNotifier {
   String get displayName => _displayName;
   int? get accentColorValue => _accentColorValue;
   bool get numberFormatIndian => _numberFormatIndian;
-  String get greetingName => _displayName.trim().isEmpty ? 'there' : _displayName.trim();
+  String get greetingName =>
+      _displayName.trim().isEmpty ? 'there' : _displayName.trim();
 
   void setAppLoaded() {
     _appLoaded = true;
@@ -119,9 +119,6 @@ class SettingsController with ChangeNotifier {
 
     // Skip biometric setup on web
     if (!kIsWeb) {
-      // Apply Secure Flag based on settings
-      _updateSecureFlag();
-
       if (_isBiometricEnabled || isPinEnabled) {
         logger.info(
             'Startup: Security enabled (biometric=$_isBiometricEnabled, pin=$isPinEnabled), locking app.',
@@ -165,7 +162,6 @@ class SettingsController with ChangeNotifier {
       _lockOnMinimize = false;
       await _prefs.setBool('isBiometricEnabled', false);
       await _prefs.setBool('lockOnMinimize', false);
-      _updateSecureFlag();
     }
     notifyListeners();
   }
@@ -270,7 +266,6 @@ class SettingsController with ChangeNotifier {
 
     _lockOnMinimize = value;
     await _prefs.setBool('lockOnMinimize', value);
-    _updateSecureFlag();
     notifyListeners();
   }
 
@@ -278,21 +273,6 @@ class SettingsController with ChangeNotifier {
     _lockTimeoutSeconds = seconds;
     await _prefs.setInt('lockTimeoutSeconds', seconds);
     notifyListeners();
-  }
-
-  Future<void> _updateSecureFlag() async {
-    if (kIsWeb) return; // Skip on web
-
-    try {
-      if (_lockOnMinimize) {
-        await platform.invokeMethod('enableSecure');
-      } else {
-        await platform.invokeMethod('disableSecure');
-      }
-    } catch (e) {
-      logger.error('Failed to update secure flag',
-          error: e, context: 'SettingsController');
-    }
   }
 
   void appPaused() {
@@ -347,7 +327,8 @@ class SettingsController with ChangeNotifier {
   /// Generate a cryptographically random base64 salt (16 bytes = 128 bits).
   static String _generateSalt() {
     final rng = Random.secure();
-    final bytes = Uint8List.fromList(List.generate(16, (_) => rng.nextInt(256)));
+    final bytes =
+        Uint8List.fromList(List.generate(16, (_) => rng.nextInt(256)));
     return base64Encode(bytes);
   }
 

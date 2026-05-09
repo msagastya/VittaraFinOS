@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:google_mlkit_entity_extraction/google_mlkit_entity_extraction.dart';
 import 'device_intelligence_tier.dart';
 
@@ -22,6 +25,7 @@ class FillStep {
   final bool isComplete;
   final String? followUpQuestion;
   final String confirmationText;
+
   /// Fields that are uncertain — UI should highlight these for user review.
   final List<String> uncertainFields;
 
@@ -80,7 +84,15 @@ class VoiceFillEngine {
   }
 
   void dispose() {
-    _extractor?.close();
+    final extractor = _extractor;
+    _extractor = null;
+    _extractorReady = false;
+    if (extractor != null) {
+      unawaited(extractor.close().catchError((_) {
+        // ML Kit platform channels are not available in unit tests and may be
+        // unavailable on unsupported devices. Disposal should never crash.
+      }));
+    }
   }
 
   void reset() {
@@ -118,7 +130,13 @@ class VoiceFillEngine {
 
     // Pass 2 — ML Kit entity extraction (fast, ~50–150ms on-device)
     if (_extractorReady && _extractor != null) {
-      await _applyMlKit(normalized);
+      try {
+        await _applyMlKit(normalized)
+            .timeout(const Duration(milliseconds: 1200));
+      } catch (_) {
+        // Rule-based extraction already has enough data for a response.
+        _extractorReady = false;
+      }
     }
 
     // Unknown intent with amount → default to expense
@@ -170,7 +188,7 @@ class VoiceFillEngine {
     var s = raw;
 
     // Devanagari digits → ASCII
-    const devanagari = ['०','१','२','३','४','५','६','७','८','९'];
+    const devanagari = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
     for (int i = 0; i < devanagari.length; i++) {
       s = s.replaceAll(devanagari[i], '$i');
     }
@@ -180,16 +198,22 @@ class VoiceFillEngine {
     s = s.replaceAll(RegExp(r'\s*\+\s*'), ' and ');
 
     // Common alternate spellings
+    s = s.replaceAll(RegExp(r'\bpaytm\b', caseSensitive: false), 'Paytm');
+    s = s.replaceAll(RegExp(r'\bgpay\b', caseSensitive: false), 'Google Pay');
+    s = s.replaceAll(
+        RegExp(r'\bphone\s*pe\b', caseSensitive: false), 'PhonePe');
     s = s.replaceAll(RegExp(r'\brupees?\b', caseSensitive: false), 'rupees');
     s = s.replaceAll(RegExp(r'\brupaye\b', caseSensitive: false), 'rupees');
     s = s.replaceAll(RegExp(r'\brupaiye\b', caseSensitive: false), 'rupees');
     s = s.replaceAll(RegExp(r'\brupaye\b', caseSensitive: false), 'rupees');
-    s = s.replaceAll(RegExp(r'\bpaise\b', caseSensitive: false), 'rupees');   // "paise" = small amount context
+    s = s.replaceAll(RegExp(r'\bpaise\b', caseSensitive: false),
+        'rupees'); // "paise" = small amount context
     s = s.replaceAll(RegExp(r'\bpaisa\b', caseSensitive: false), 'rupees');
     s = s.replaceAll(RegExp(r'\brupe\b', caseSensitive: false), 'rupees');
 
     // "k" after numbers = thousand (already handled in extraction but normalise here too)
-    s = s.replaceAll(RegExp(r'(\d)\s*k\b', caseSensitive: false), r'\1 thousand');
+    s = s.replaceAll(
+        RegExp(r'(\d)\s*k\b', caseSensitive: false), r'\1 thousand');
 
     return s;
   }
@@ -274,9 +298,26 @@ class VoiceFillEngine {
 
     // Intent uncertain if we defaulted without a strong signal
     const expenseSignals = [
-      'paid', 'spent', 'spend', 'expense', 'kharcha', 'kharch', 'diya',
-      'diye', 'liya', 'bought', 'order', 'bill', 'charged', 'deducted',
-      'kat gaya', 'kata', 'gaya', 'gaye', 'nikla', 'nikle',
+      'paid',
+      'spent',
+      'spend',
+      'expense',
+      'kharcha',
+      'kharch',
+      'diya',
+      'diye',
+      'liya',
+      'bought',
+      'order',
+      'bill',
+      'charged',
+      'deducted',
+      'kat gaya',
+      'kata',
+      'gaya',
+      'gaye',
+      'nikla',
+      'nikle',
     ];
     if (_intent == VoiceIntent.addExpense && !_anyOf(lower, expenseSignals)) {
       _uncertainFields.add('intent');
@@ -332,9 +373,19 @@ class VoiceFillEngine {
   VoiceIntent _detectIntent(String lower, String raw) {
     // Transfer — check first because "sent" can appear in income context too
     if (_anyOf(lower, [
-      'transfer', 'transferred', 'send', 'sent to', 'moved to',
-      'bheja', 'bhej', 'bhejo', 'bhej diya', 'transfer kiya',
-      'move kiya', 'dal diya', 'daal diya',
+      'transfer',
+      'transferred',
+      'send',
+      'sent to',
+      'moved to',
+      'bheja',
+      'bhej',
+      'bhejo',
+      'bhej diya',
+      'transfer kiya',
+      'move kiya',
+      'dal diya',
+      'daal diya',
     ])) return VoiceIntent.addTransfer;
 
     // Income — active, passive, Hinglish
@@ -355,64 +406,155 @@ class VoiceFillEngine {
 
     // Investment
     if (_anyOf(lower, [
-      'invest', 'invested', 'investing', 'sip', 'mutual fund', 'mf',
-      'share', 'stock', 'equity', 'fd', 'fixed deposit', 'rd', 'recurring deposit',
-      'nps', 'gold', 'crypto', 'bitcoin', 'ppf', 'elss', 'ulip',
-      'nivesh kiya', 'invest kiya', 'lagaya', 'lagaye',
+      'invest',
+      'invested',
+      'investing',
+      'sip',
+      'mutual fund',
+      'mf',
+      'share',
+      'stock',
+      'equity',
+      'fd',
+      'fixed deposit',
+      'rd',
+      'recurring deposit',
+      'nps',
+      'gold',
+      'crypto',
+      'bitcoin',
+      'ppf',
+      'elss',
+      'ulip',
+      'nivesh kiya',
+      'invest kiya',
+      'lagaya',
+      'lagaye',
     ])) return VoiceIntent.addInvestment;
 
     // Budget
     if (_anyOf(lower, [
-      'budget for', 'set budget', 'budget limit', 'budget banao',
-      'budget set karo', 'kitna budget',
+      'budget for',
+      'set budget',
+      'budget limit',
+      'budget banao',
+      'budget set karo',
+      'kitna budget',
     ])) return VoiceIntent.setBudget;
 
     // Goal
     if (_anyOf(lower, [
-      'saving for', 'new goal', 'set goal', 'goal for', 'bachana hai',
-      'target set karo', 'lakshya', 'goal banana',
+      'saving for',
+      'new goal',
+      'set goal',
+      'goal for',
+      'bachana hai',
+      'target set karo',
+      'lakshya',
+      'goal banana',
     ])) return VoiceIntent.setGoal;
 
     // Query balance
     if (_anyOf(lower, [
-      'balance', 'how much do i have', 'kitna hai', 'kitna bacha',
-      'kitne paise hain', 'kitna paisa hai', 'account mein kitna',
+      'balance',
+      'how much do i have',
+      'kitna hai',
+      'kitna bacha',
+      'kitne paise hain',
+      'kitna paisa hai',
+      'account mein kitna',
       'wallet mein kitna',
     ])) return VoiceIntent.queryBalance;
 
     // Query general
     if (_anyOf(lower, [
-      'how much', 'what did i', 'kitna', 'kitne', 'show me', 'tell me',
-      'bata', 'dikhao', 'kitna kharch', 'this month kharcha',
+      'how much',
+      'what did i',
+      'kitna',
+      'kitne',
+      'show me',
+      'tell me',
+      'bata',
+      'dikhao',
+      'kitna kharch',
+      'this month kharcha',
     ])) return VoiceIntent.query;
 
     // Expense — active voice
     if (_anyOf(lower, [
-      'paid', 'spent', 'spend', 'bought', 'purchase', 'purchased',
-      'expense', 'bill', 'ordered', 'booked', 'charged', 'subscribed',
-      'ate', 'had', 'used',
+      'paid',
+      'spent',
+      'spend',
+      'bought',
+      'purchase',
+      'purchased',
+      'expense',
+      'bill',
+      'ordered',
+      'booked',
+      'charged',
+      'subscribed',
+      'ate',
+      'had',
+      'used',
     ])) return VoiceIntent.addExpense;
 
     // Expense — passive voice (English)
     if (_anyOf(lower, [
-      'was charged', 'has been charged', 'was deducted', 'has been deducted',
-      'was cut', 'got deducted', 'got charged', 'was debited', 'got debited',
+      'was charged',
+      'has been charged',
+      'was deducted',
+      'has been deducted',
+      'was cut',
+      'got deducted',
+      'got charged',
+      'was debited',
+      'got debited',
     ])) return VoiceIntent.addExpense;
 
     // Expense — Hindi / Hinglish active
     if (_anyOf(lower, [
-      'diya', 'diye', 'de diya', 'de diye', 'kharcha kiya', 'kharch kiya',
-      'kharcha hua', 'kharch hua', 'liya', 'le liya', 'khaaya', 'khaya',
-      'pi liya', 'peena', 'order kiya', 'book kiya', 'buy kiya',
+      'diya',
+      'diye',
+      'de diya',
+      'de diye',
+      'kharcha kiya',
+      'kharch kiya',
+      'kharcha hua',
+      'kharch hua',
+      'liya',
+      'le liya',
+      'khaaya',
+      'khaya',
+      'pi liya',
+      'peena',
+      'order kiya',
+      'book kiya',
+      'buy kiya',
     ])) return VoiceIntent.addExpense;
 
     // Expense — Hindi / Hinglish passive (money went)
     if (_anyOf(lower, [
-      'kat gaya', 'kat gayi', 'kat gaye', 'kata gaya', 'kata gayi',
-      'cut ho gaya', 'cut hua', 'deduct hua', 'deduct ho gaya',
-      'nikla', 'nikle', 'nikla paisa', 'paise gaye', 'paisa gaya',
-      'gaya paisa', 'gaye paise', 'chala gaya', 'chali gayi',
-      'kharch ho gaya', 'kharcha ho gaya',
+      'kat gaya',
+      'kat gayi',
+      'kat gaye',
+      'kata gaya',
+      'kata gayi',
+      'cut ho gaya',
+      'cut hua',
+      'deduct hua',
+      'deduct ho gaya',
+      'nikla',
+      'nikle',
+      'nikla paisa',
+      'paise gaye',
+      'paisa gaya',
+      'gaya paisa',
+      'gaye paise',
+      'chala gaya',
+      'chali gayi',
+      'kharch ho gaya',
+      'kharcha ho gaya',
     ])) return VoiceIntent.addExpense;
 
     return VoiceIntent.unknown;
@@ -424,33 +566,219 @@ class VoiceFillEngine {
     // Step 1: resolve Hindi compound expressions (e.g. "dedh hazaar" → "1500")
     final resolved = _resolveHindiCompounds(lower);
 
-    // Step 2: convert spoken words to digits
+    final numeric = _extractNumericAmount(resolved);
+    if (numeric != null) return numeric;
+
+    // Spoken amount fallback. This runs on the original resolved text because
+    // simple word replacement turns "five hundred" into "5 100", which loses
+    // the multiplicative meaning.
+    final spoken = _extractSpokenAmount(resolved);
+    if (spoken != null) return spoken;
+
+    // Last fallback for single-word numbers like "paid fifty for tea".
     final converted = _wordsToNumbers(resolved);
+    return _extractNumericAmount(converted);
+  }
 
-    final patterns = [
-      // Currency symbol before amount
-      RegExp(r'(?:₹|rs\.?\s*|rupees?\s*)([\d,]+(?:\.\d+)?)\s*(k|thousand|lakh|l|cr|crore)?', caseSensitive: false),
-      // Amount before currency symbol
-      RegExp(r'([\d,]+(?:\.\d+)?)\s*(?:₹|rs\.?|rupees?)\b', caseSensitive: false),
-      // Amount followed by multiplier
-      RegExp(r'\b([\d,]+(?:\.\d+)?)\s*(k|thousand|lakh|l|cr|crore)\b', caseSensitive: false),
-      // Bare number (last resort)
-      RegExp(r'\b(\d[\d,]*(?:\.\d+)?)\b'),
-    ];
+  double? _extractNumericAmount(String text) {
+    final candidates = <({double value, int priority, int pos})>[];
 
-    for (final p in patterns) {
-      final m = p.firstMatch(converted);
-      if (m == null) continue;
-      final s = m.group(1)!.replaceAll(',', '');
-      double v = double.tryParse(s) ?? 0;
-      if (v <= 0) continue;
-      final suf = (m.groupCount >= 2 ? m.group(2) : null)?.toLowerCase() ?? '';
-      if (suf == 'k' || suf == 'thousand') v *= 1000;
-      if (suf == 'lakh' || suf == 'l') v *= 100000;
-      if (suf == 'cr' || suf == 'crore') v *= 10000000;
-      if (v > 0) return v;
+    void addCandidate(RegExpMatch m, int priority, {String? suffix}) {
+      final raw = m.group(1)?.replaceAll(',', '') ?? '';
+      var value = double.tryParse(raw) ?? 0;
+      if (value <= 0) return;
+      final suf = suffix?.toLowerCase() ?? '';
+      if (suf == 'k' || suf == 'thousand') value *= 1000;
+      if (suf == 'lakh' || suf == 'l' || suf == 'lac') value *= 100000;
+      if (suf == 'cr' || suf == 'crore') value *= 10000000;
+      if (value > 0 && value <= 1e8) {
+        candidates.add((value: value, priority: priority, pos: m.start));
+      }
     }
-    return null;
+
+    for (final m in RegExp(
+            r'(?:₹|rs\.?\s*|inr\s*|rupees?\s*)([\d,]+(?:\.\d+)?)\s*(k|thousand|lakh|lac|l|cr|crore)?',
+            caseSensitive: false)
+        .allMatches(text)) {
+      addCandidate(m, 4, suffix: m.group(2));
+    }
+    for (final m in RegExp(r'\b([\d,]+(?:\.\d+)?)\s*(?:₹|rs\.?|inr|rupees?)\b',
+            caseSensitive: false)
+        .allMatches(text)) {
+      addCandidate(m, 4);
+    }
+    for (final m in RegExp(
+            r'\b([\d,]+(?:\.\d+)?)\s*(k|thousand|lakh|lac|l|cr|crore)\b',
+            caseSensitive: false)
+        .allMatches(text)) {
+      addCandidate(m, 3, suffix: m.group(2));
+    }
+
+    // Bare numbers are last resort. Avoid date-like numbers followed by time
+    // words, and prefer the largest value so "26 April 500 Swiggy" picks 500.
+    for (final m in RegExp(r'\b(\d[\d,]*(?:\.\d+)?)\b').allMatches(text)) {
+      final after = text.substring(m.end).trimLeft();
+      if (RegExp(
+              r'^(days?|din|month|months|mahine|year|years|saal|april|jan|feb|mar|may|june|july|aug|sep|oct|nov|dec)\b')
+          .hasMatch(after)) {
+        continue;
+      }
+      addCandidate(m, 1);
+    }
+
+    if (candidates.isEmpty) return null;
+    candidates.sort((a, b) {
+      final p = b.priority.compareTo(a.priority);
+      if (p != 0) return p;
+      final v = b.value.compareTo(a.value);
+      if (v != 0) return v;
+      return a.pos.compareTo(b.pos);
+    });
+    return candidates.first.value;
+  }
+
+  double? _extractSpokenAmount(String lower) {
+    const small = {
+      'zero': 0,
+      'one': 1,
+      'two': 2,
+      'three': 3,
+      'four': 4,
+      'five': 5,
+      'six': 6,
+      'seven': 7,
+      'eight': 8,
+      'nine': 9,
+      'ten': 10,
+      'eleven': 11,
+      'twelve': 12,
+      'thirteen': 13,
+      'fourteen': 14,
+      'fifteen': 15,
+      'sixteen': 16,
+      'seventeen': 17,
+      'eighteen': 18,
+      'nineteen': 19,
+      'twenty': 20,
+      'thirty': 30,
+      'forty': 40,
+      'fifty': 50,
+      'sixty': 60,
+      'seventy': 70,
+      'eighty': 80,
+      'ninety': 90,
+      'ek': 1,
+      'do': 2,
+      'teen': 3,
+      'char': 4,
+      'paanch': 5,
+      'chhe': 6,
+      'saat': 7,
+      'aath': 8,
+      'nau': 9,
+      'das': 10,
+      'gyarah': 11,
+      'barah': 12,
+      'tera': 13,
+      'chaudah': 14,
+      'pandrah': 15,
+      'solah': 16,
+      'satrah': 17,
+      'attharah': 18,
+      'unnees': 19,
+      'bees': 20,
+      'pachees': 25,
+      'tees': 30,
+      'chalis': 40,
+      'chalees': 40,
+      'pachas': 50,
+      'saath': 60,
+      'sattar': 70,
+      'assi': 80,
+      'nabbe': 90,
+    };
+    const multipliers = {
+      'hundred': 100,
+      'sau': 100,
+      'thousand': 1000,
+      'hazaar': 1000,
+      'hazar': 1000,
+      'lakh': 100000,
+      'lac': 100000,
+      'crore': 10000000,
+    };
+    const amountContext = {
+      'rupees',
+      'rs',
+      'paid',
+      'spent',
+      'kharcha',
+      'kharch',
+      'diya',
+      'bheja',
+      'received',
+      'credited',
+      'salary',
+      'income',
+    };
+
+    final shorthand = RegExp(
+            r'\b(one|two|three|four|five|six|seven|eight|nine)\s+(twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)\b',
+            caseSensitive: false)
+        .firstMatch(lower);
+    if (shorthand != null && _anyOf(lower, amountContext.toList())) {
+      final hundreds = small[shorthand.group(1)!.toLowerCase()];
+      final tens = small[shorthand.group(2)!.toLowerCase()];
+      if (hundreds != null && tens != null) {
+        return (hundreds * 100 + tens).toDouble();
+      }
+    }
+
+    final tokens = lower
+        .replaceAll(RegExp(r'[^a-zA-Z\s]'), ' ')
+        .split(RegExp(r'\s+'))
+        .where((t) => t.isNotEmpty)
+        .toList();
+    var best = 0.0;
+
+    for (var start = 0; start < tokens.length; start++) {
+      var total = 0.0;
+      var current = 0.0;
+      var sawNumber = false;
+      var context = false;
+
+      for (var i = start; i < tokens.length && i < start + 8; i++) {
+        final token = tokens[i];
+        if (amountContext.contains(token)) {
+          context = true;
+          continue;
+        }
+        final smallValue = small[token];
+        if (smallValue != null) {
+          current += smallValue;
+          sawNumber = true;
+          continue;
+        }
+        final multiplier = multipliers[token];
+        if (multiplier != null && sawNumber) {
+          if (multiplier == 100) {
+            current = math.max<double>(1, current) * multiplier;
+          } else {
+            total += math.max<double>(1, current) * multiplier;
+            current = 0;
+          }
+          context = true;
+          continue;
+        }
+        if (sawNumber) break;
+      }
+
+      final value = total + current;
+      if (sawNumber && context && value > best && value <= 1e8) {
+        best = value;
+      }
+    }
+    return best > 0 ? best : null;
   }
 
   /// Resolves Hindi fractional/compound amount expressions before word→number
@@ -530,7 +858,9 @@ class VoiceFillEngine {
     // This is handled by sequential word replacement; but handle
     // common combos explicitly for accuracy:
     r = r.replaceAllMapped(
-      RegExp(r'\b(ek|do|teen|char|paanch|chhe|saat|aath|nau)\s+sau\s+((?:ek|do|teen|char|paanch|chhe|saat|aath|nau|das|gyarah|barah|tera|chaudah|pandrah|solah|satrah|attharah|unnees|bees|pachees|tees|chalees|pachas|saath|sattar|assi|nabbe)\b)', caseSensitive: false),
+      RegExp(
+          r'\b(ek|do|teen|char|paanch|chhe|saat|aath|nau)\s+sau\s+((?:ek|do|teen|char|paanch|chhe|saat|aath|nau|das|gyarah|barah|tera|chaudah|pandrah|solah|satrah|attharah|unnees|bees|pachees|tees|chalees|pachas|saath|sattar|assi|nabbe)\b)',
+          caseSensitive: false),
       (m) {
         final hundreds = _hindiSingleDigit(m.group(1)!.toLowerCase());
         final rest = _hindiNumberWord(m.group(2)!.toLowerCase());
@@ -538,6 +868,15 @@ class VoiceFillEngine {
           return '${hundreds * 100 + rest}';
         }
         return m.group(0)!;
+      },
+    );
+    r = r.replaceAllMapped(
+      RegExp(
+          r'\bsau\s+((?:ek|do|teen|char|paanch|chhe|saat|aath|nau|das|gyarah|barah|tera|chaudah|pandrah|solah|satrah|attharah|unnees|bees|pachees|tees|chalees|pachas|saath|sattar|assi|nabbe)\b)',
+          caseSensitive: false),
+      (m) {
+        final rest = _hindiNumberWord(m.group(1)!.toLowerCase());
+        return rest != null ? '${100 + rest}' : m.group(0)!;
       },
     );
 
@@ -548,20 +887,49 @@ class VoiceFillEngine {
 
   int? _hindiSingleDigit(String w) {
     const m = {
-      'ek': 1, 'do': 2, 'teen': 3, 'char': 4, 'paanch': 5,
-      'chhe': 6, 'saat': 7, 'aath': 8, 'nau': 9,
+      'ek': 1,
+      'do': 2,
+      'teen': 3,
+      'char': 4,
+      'paanch': 5,
+      'chhe': 6,
+      'saat': 7,
+      'aath': 8,
+      'nau': 9,
     };
     return m[w];
   }
 
   int? _hindiNumberWord(String w) {
     const m = {
-      'ek': 1, 'do': 2, 'teen': 3, 'char': 4, 'paanch': 5,
-      'chhe': 6, 'saat': 7, 'aath': 8, 'nau': 9, 'das': 10,
-      'gyarah': 11, 'barah': 12, 'tera': 13, 'chaudah': 14, 'pandrah': 15,
-      'solah': 16, 'satrah': 17, 'attharah': 18, 'unnees': 19, 'bees': 20,
-      'pachees': 25, 'tees': 30, 'chalees': 40, 'pachas': 50,
-      'saath': 60, 'sattar': 70, 'assi': 80, 'nabbe': 90,
+      'ek': 1,
+      'do': 2,
+      'teen': 3,
+      'char': 4,
+      'paanch': 5,
+      'chhe': 6,
+      'saat': 7,
+      'aath': 8,
+      'nau': 9,
+      'das': 10,
+      'gyarah': 11,
+      'barah': 12,
+      'tera': 13,
+      'chaudah': 14,
+      'pandrah': 15,
+      'solah': 16,
+      'satrah': 17,
+      'attharah': 18,
+      'unnees': 19,
+      'bees': 20,
+      'pachees': 25,
+      'tees': 30,
+      'chalees': 40,
+      'pachas': 50,
+      'saath': 60,
+      'sattar': 70,
+      'assi': 80,
+      'nabbe': 90,
     };
     return m[w];
   }
@@ -569,25 +937,74 @@ class VoiceFillEngine {
   String _wordsToNumbers(String s) {
     // English number words
     const enMap = {
-      'zero': '0', 'one': '1', 'two': '2', 'three': '3', 'four': '4',
-      'five': '5', 'six': '6', 'seven': '7', 'eight': '8', 'nine': '9',
-      'ten': '10', 'eleven': '11', 'twelve': '12', 'thirteen': '13',
-      'fourteen': '14', 'fifteen': '15', 'sixteen': '16', 'seventeen': '17',
-      'eighteen': '18', 'nineteen': '19', 'twenty': '20', 'thirty': '30',
-      'forty': '40', 'fifty': '50', 'sixty': '60', 'seventy': '70',
-      'eighty': '80', 'ninety': '90', 'hundred': '100', 'thousand': '1000',
+      'zero': '0',
+      'one': '1',
+      'two': '2',
+      'three': '3',
+      'four': '4',
+      'five': '5',
+      'six': '6',
+      'seven': '7',
+      'eight': '8',
+      'nine': '9',
+      'ten': '10',
+      'eleven': '11',
+      'twelve': '12',
+      'thirteen': '13',
+      'fourteen': '14',
+      'fifteen': '15',
+      'sixteen': '16',
+      'seventeen': '17',
+      'eighteen': '18',
+      'nineteen': '19',
+      'twenty': '20',
+      'thirty': '30',
+      'forty': '40',
+      'fifty': '50',
+      'sixty': '60',
+      'seventy': '70',
+      'eighty': '80',
+      'ninety': '90',
+      'hundred': '100',
+      'thousand': '1000',
     };
     // Hindi number words (individual — compounds handled above)
     const hiMap = {
-      'ek': '1', 'do': '2', 'teen': '3', 'char': '4', 'paanch': '5',
-      'chhe': '6', 'saat': '7', 'aath': '8', 'nau': '9', 'das': '10',
-      'gyarah': '11', 'barah': '12', 'tera': '13', 'chaudah': '14',
-      'pandrah': '15', 'solah': '16', 'satrah': '17', 'attharah': '18',
-      'unnees': '19', 'bees': '20', 'pachees': '25', 'tees': '30',
-      'chalis': '40', 'chalees': '40', 'pachas': '50', 'saath': '60',
-      'sattar': '70', 'assi': '80', 'nabbe': '90',
-      'sau': '100', 'hazaar': '1000', 'hazar': '1000',
-      'lakh': '100000', 'lac': '100000', 'crore': '10000000',
+      'ek': '1',
+      'do': '2',
+      'teen': '3',
+      'char': '4',
+      'paanch': '5',
+      'chhe': '6',
+      'saat': '7',
+      'aath': '8',
+      'nau': '9',
+      'das': '10',
+      'gyarah': '11',
+      'barah': '12',
+      'tera': '13',
+      'chaudah': '14',
+      'pandrah': '15',
+      'solah': '16',
+      'satrah': '17',
+      'attharah': '18',
+      'unnees': '19',
+      'bees': '20',
+      'pachees': '25',
+      'tees': '30',
+      'chalis': '40',
+      'chalees': '40',
+      'pachas': '50',
+      'saath': '60',
+      'sattar': '70',
+      'assi': '80',
+      'nabbe': '90',
+      'sau': '100',
+      'hazaar': '1000',
+      'hazar': '1000',
+      'lakh': '100000',
+      'lac': '100000',
+      'crore': '10000000',
     };
 
     var r = s;
@@ -617,7 +1034,8 @@ class VoiceFillEngine {
     for (final e in aliases.entries) {
       if (e.value.any((a) => lower.contains(a))) {
         final m = accountNames.firstWhere(
-            (n) => n.toLowerCase().contains(e.key), orElse: () => '');
+            (n) => n.toLowerCase().contains(e.key),
+            orElse: () => '');
         if (m.isNotEmpty) return m;
       }
     }
@@ -626,8 +1044,9 @@ class VoiceFillEngine {
 
   String? _extractToAccount(String lower) {
     // English: "to X"
-    var m = RegExp(r"\bto\b\s+([a-z][a-z\s'\-]+?)(?:\s+from|\s+using|\s+via|\s*$)")
-        .firstMatch(lower);
+    var m =
+        RegExp(r"\bto\b\s+([a-z][a-z\s'\-]+?)(?:\s+from|\s+using|\s+via|\s*$)")
+            .firstMatch(lower);
     if (m != null) {
       final c = m.group(1)!.trim();
       final acct = _matchAccount(c);
@@ -663,11 +1082,45 @@ class VoiceFillEngine {
       'kha liya', 'kha aaya', 'pi liya',
     ],
     'Groceries': [
-      'grocery', 'groceries', 'vegetables', 'veggies', 'sabzi', 'subzi',
-      'fruits', 'milk', 'doodh', 'kiryana', 'kirana', 'ration', 'dal',
-      'chawal', 'rice', 'atta', 'flour', 'oil', 'cooking oil',
-      'blinkit', 'zepto', 'bigbasket', 'dmart', 'grofers', 'instamart',
-      'reliance fresh', 'smart bazaar', 'more',
+      'grocery',
+      'groceries',
+      'vegetables',
+      'veggies',
+      'sabzi',
+      'subzi',
+      'fruits',
+      'milk',
+      'doodh',
+      'kiryana',
+      'kirana',
+      'ration',
+      'tamatar',
+      'tomato',
+      'dhaniya',
+      'coriander',
+      'aloo',
+      'potato',
+      'pyaaz',
+      'pyaz',
+      'onion',
+      'mirchi',
+      'masala',
+      'dal',
+      'chawal',
+      'rice',
+      'atta',
+      'flour',
+      'oil',
+      'cooking oil',
+      'blinkit',
+      'zepto',
+      'bigbasket',
+      'dmart',
+      'grofers',
+      'instamart',
+      'reliance fresh',
+      'smart bazaar',
+      'more',
     ],
     'Transport': [
       'uber', 'ola', 'rapido', 'namma yatri', 'bluecar', 'cab', 'taxi',
@@ -682,7 +1135,8 @@ class VoiceFillEngine {
       'amazon', 'flipkart', 'myntra', 'meesho', 'ajio', 'nykaa', 'tata cliq',
       'shopsy', 'limeroad', 'snapdeal', 'jiomart',
       'shopping', 'clothes', 'shoes', 'jeans', 'shirt', 'dress', 'saree',
-      'suit', 'kurta', 'bag', 'wallet', 'watch', 'accessories',
+      'suit', 'kurta', 'bag', 'wallet', 'watch', 'accessories', 'slipper',
+      'slippers', 'chappal', 'chapal', 'sandal', 'sandals',
       // Hindi
       'kapde', 'joote', 'kharidna', 'kharid', 'kharida',
     ],
@@ -712,22 +1166,61 @@ class VoiceFillEngine {
       'bijli bill', 'paani ka bill', 'gas cylinder',
     ],
     'Rent': [
-      'rent', 'kiraya', 'pg', 'hostel', 'maintenance', 'society', 'housing',
-      'lease', 'flat', 'house rent', 'makaan',
+      'rent',
+      'kiraya',
+      'pg',
+      'hostel',
+      'maintenance',
+      'society',
+      'housing',
+      'lease',
+      'flat',
+      'house rent',
+      'makaan',
     ],
     'Insurance': [
-      'insurance', 'lic', 'premium', 'policy', 'bima', 'mediclaim',
-      'life insurance', 'health insurance', 'term plan', 'hdfc life',
-      'icici prudential', 'max life', 'policybazaar',
+      'insurance',
+      'lic',
+      'premium',
+      'policy',
+      'bima',
+      'mediclaim',
+      'life insurance',
+      'health insurance',
+      'term plan',
+      'hdfc life',
+      'icici prudential',
+      'max life',
+      'policybazaar',
     ],
     'Investment': [
-      'sip', 'mutual fund', 'mf', 'shares', 'stocks', 'groww', 'zerodha',
-      'upstox', 'angel', 'nps', 'ppf', 'elss', 'fd', 'gold',
-      'crypto', 'bitcoin', 'eth', 'nivesh',
+      'sip',
+      'mutual fund',
+      'mf',
+      'shares',
+      'stocks',
+      'groww',
+      'zerodha',
+      'upstox',
+      'angel',
+      'nps',
+      'ppf',
+      'elss',
+      'fd',
+      'gold',
+      'crypto',
+      'bitcoin',
+      'eth',
+      'nivesh',
     ],
     'Subscription': [
-      'subscription', 'plan', 'renewal', 'annual', 'monthly plan',
-      'membership', 'pass',
+      'subscription',
+      'plan',
+      'renewal',
+      'annual',
+      'monthly plan',
+      'membership',
+      'pass',
     ],
     'Education': [
       'school', 'college', 'university', 'fees', 'tuition', 'coaching',
@@ -752,17 +1245,40 @@ class VoiceFillEngine {
       'yaar ko diya', 'dost ko diya', 'ghar bheja',
     ],
     'Dining Out': [
-      'dine', 'dining out', 'restaurant', 'bar', 'pub', 'lounge',
-      'bahar khana', 'bahar khaana', 'khane gaye', 'restaurant gaye',
+      'dine',
+      'dining out',
+      'restaurant',
+      'bar',
+      'pub',
+      'lounge',
+      'bahar khana',
+      'bahar khaana',
+      'khane gaye',
+      'restaurant gaye',
     ],
     'Petrol': [
-      'petrol', 'diesel', 'fuel', 'cng', 'pump', 'petrol pump',
-      'iocl', 'bpcl', 'hpcl', 'indian oil', 'bharat petroleum',
+      'petrol',
+      'diesel',
+      'fuel',
+      'cng',
+      'pump',
+      'petrol pump',
+      'iocl',
+      'bpcl',
+      'hpcl',
+      'indian oil',
+      'bharat petroleum',
       'hp petrol',
     ],
     'EMI': [
-      'emi', 'loan emi', 'home loan', 'car loan', 'bike emi',
-      'installment', 'kist', 'kisht',
+      'emi',
+      'loan emi',
+      'home loan',
+      'car loan',
+      'bike emi',
+      'installment',
+      'kist',
+      'kisht',
     ],
   };
 
@@ -823,15 +1339,65 @@ class VoiceFillEngine {
   String? _extractMerchant(String lower, String raw) {
     // Known brand list — checked first
     const known = [
-      'swiggy', 'zomato', 'amazon', 'flipkart', 'netflix', 'spotify',
-      'hotstar', 'prime video', 'uber', 'ola', 'rapido', 'bigbasket',
-      'blinkit', 'zepto', 'paytm', 'gpay', 'google pay', 'phonepe', 'cred',
-      'myntra', 'nykaa', 'meesho', 'ajio', 'dmart', 'reliance', 'jio',
-      'airtel', 'vodafone', 'bsnl', 'dominos', 'mcdonalds', 'kfc', 'subway',
-      'starbucks', 'pizza hut', 'burger king', 'apollo', 'practo', 'pvr',
-      'inox', 'irctc', 'makemytrip', 'goibibo', 'groww', 'zerodha', 'upstox',
-      'dunzo', 'tata', 'hdfc', 'icici', 'sbi', 'axis', 'kotak', 'indusind',
-      'paytm mall', 'nykaa fashion', 'haldirams', 'bisleri', 'amul',
+      'swiggy',
+      'zomato',
+      'amazon',
+      'flipkart',
+      'netflix',
+      'spotify',
+      'hotstar',
+      'prime video',
+      'uber',
+      'ola',
+      'rapido',
+      'bigbasket',
+      'blinkit',
+      'zepto',
+      'paytm',
+      'gpay',
+      'google pay',
+      'phonepe',
+      'cred',
+      'myntra',
+      'nykaa',
+      'meesho',
+      'ajio',
+      'dmart',
+      'reliance',
+      'jio',
+      'airtel',
+      'vodafone',
+      'bsnl',
+      'dominos',
+      'mcdonalds',
+      'kfc',
+      'subway',
+      'starbucks',
+      'pizza hut',
+      'burger king',
+      'apollo',
+      'practo',
+      'pvr',
+      'inox',
+      'irctc',
+      'makemytrip',
+      'goibibo',
+      'groww',
+      'zerodha',
+      'upstox',
+      'dunzo',
+      'tata',
+      'hdfc',
+      'icici',
+      'sbi',
+      'axis',
+      'kotak',
+      'indusind',
+      'paytm mall',
+      'nykaa fashion',
+      'haldirams',
+      'bisleri',
+      'amul',
     ];
     for (final m in known) {
       if (lower.contains(m)) return _titleCase(m);
@@ -839,9 +1405,16 @@ class VoiceFillEngine {
 
     // English prepositions: "at X", "from X", "for X", "on X"
     final engPreps = [
-      RegExp(r"\bat\s+([a-z][a-z0-9\s'\-]+?)(?:\s+for|\s+from|\s+yesterday|\s+today|\s+this|\s+last|\s*$)"),
-      RegExp(r"\bfrom\s+([a-z][a-z0-9\s'\-]+?)(?:\s+for|\s+to|\s+yesterday|\s+today|\s+this|\s+last|\s*$)"),
-      RegExp(r"\bon\s+([a-z][a-z0-9\s'\-]+?)(?:\s+for|\s+from|\s+yesterday|\s+today|\s+this|\s*$)"),
+      RegExp(
+          r"\bat\s+([a-z][a-z0-9\s'\-]+?)(?:\s+for|\s+from|\s+yesterday|\s+today|\s+this|\s+last|\s*$)"),
+      RegExp(
+          r"\bfrom\s+([a-z][a-z0-9\s'\-]+?)(?:\s+for|\s+to|\s+yesterday|\s+today|\s+this|\s+last|\s*$)"),
+      RegExp(
+          r"\bfor\s+([a-z][a-z0-9\s'\-]+?)(?:\s+at|\s+from|\s+yesterday|\s+today|\s+this|\s+last|\s*$)"),
+      RegExp(
+          r"\bon\s+([a-z][a-z0-9\s'\-]+?)(?:\s+for|\s+from|\s+yesterday|\s+today|\s+this|\s*$)"),
+      RegExp(
+          r"\bto\s+([a-z][a-z0-9\s'\-]+?)(?:\s+for|\s+from|\s+yesterday|\s+today|\s+this|\s+last|\s*$)"),
     ];
 
     // Hindi postpositions: "X ko", "X se", "X mein", "X pe", "X wale ko", "X wali ko"
@@ -853,17 +1426,55 @@ class VoiceFillEngine {
     ];
 
     const skip = {
-      'the', 'my', 'a', 'an', 'some', 'it', 'this', 'that', 'me', 'him',
-      'her', 'us', 'them', 'free', 'home', 'office', 'online', 'yesterday',
-      'today', 'tomorrow', 'morning', 'evening', 'night', 'last',
-      'next', 'aaj', 'kal', 'abhi', 'subah', 'shaam',
+      'the',
+      'my',
+      'a',
+      'an',
+      'some',
+      'it',
+      'this',
+      'that',
+      'me',
+      'him',
+      'her',
+      'us',
+      'them',
+      'free',
+      'home',
+      'office',
+      'online',
+      'yesterday',
+      'today',
+      'tomorrow',
+      'morning',
+      'evening',
+      'night',
+      'last',
+      'next',
+      'aaj',
+      'kal',
+      'abhi',
+      'subah',
+      'shaam',
+      'food',
+      'grocery',
+      'groceries',
+      'transport',
+      'shopping',
+      'recharge',
+      'bill',
+      'expense',
+      'income',
+      'transfer',
     };
 
     for (final p in [...engPreps, ...hindiPostfixes]) {
       final m = p.firstMatch(lower);
       if (m != null) {
         final c = m.group(1)!.trim();
-        if (!skip.contains(c) && c.length > 1 && !RegExp(r'^\d+$').hasMatch(c)) {
+        if (!skip.contains(c) &&
+            c.length > 1 &&
+            !RegExp(r'^\d+$').hasMatch(c)) {
           return _titleCase(c);
         }
       }
@@ -871,17 +1482,71 @@ class VoiceFillEngine {
 
     // Best-guess: first meaningful word after stripping amount + noise words
     const noiseWords = {
-      'paid', 'spent', 'spend', 'bought', 'purchase', 'expense', 'for',
-      'on', 'at', 'from', 'the', 'a', 'an', 'my', 'kiya', 'kiye', 'diya',
-      'diye', 'liya', 'hua', 'hue', 'aur', 'bhi', 'hi', 'toh', 'ne',
-      'mein', 'mujhe', 'main', 'maine', 'gaya', 'gaye', 'aaya', 'aayi',
-      'aaye', 'rupees', 'rs', 'thousand', 'lakh', 'crore', 'hazaar',
-      'sau', 'was', 'is', 'has', 'have', 'been', 'got', 'get', 'did',
+      'paid',
+      'spent',
+      'spend',
+      'bought',
+      'purchase',
+      'expense',
+      'for',
+      'on',
+      'at',
+      'from',
+      'the',
+      'a',
+      'an',
+      'my',
+      'kiya',
+      'kiye',
+      'diya',
+      'diye',
+      'liya',
+      'hua',
+      'hue',
+      'aur',
+      'bhi',
+      'hi',
+      'toh',
+      'ne',
+      'mein',
+      'mujhe',
+      'main',
+      'maine',
+      'gaya',
+      'gaye',
+      'aaya',
+      'aayi',
+      'aaye',
+      'rupees',
+      'rs',
+      'thousand',
+      'lakh',
+      'crore',
+      'hazaar',
+      'sau',
+      'was',
+      'is',
+      'has',
+      'have',
+      'been',
+      'got',
+      'get',
+      'did',
+      'transaction',
+      'entry',
+      'add',
+      'record',
+      'save',
+      'log',
+      'payment',
+      'pay',
+      'upi',
     };
     final noAmt = lower
         .replaceAll(RegExp(r'\b\d[\d,\.]*\s*(?:k|lakh|l|cr|rs|rupees?)?\b'), '')
         .trim();
-    final words = noAmt.split(RegExp(r'\s+'))
+    final words = noAmt
+        .split(RegExp(r'\s+'))
         .where((w) => w.length > 2 && !noiseWords.contains(w))
         .toList();
     if (words.isNotEmpty) return _titleCase(words.first);
@@ -896,20 +1561,32 @@ class VoiceFillEngine {
     final today = DateTime(now.year, now.month, now.day);
 
     // Today
-    if (_anyOf(lower, ['today', 'aaj', 'just now', 'abhi', 'aaj ka', 'aaj ki'])) {
+    if (_anyOf(
+        lower, ['today', 'aaj', 'just now', 'abhi', 'aaj ka', 'aaj ki'])) {
       return now;
     }
     // Yesterday
     if (_anyOf(lower, [
-      'yesterday', 'kal', 'kal ka', 'kal ki', 'kal kiya', 'kal hua',
-      'beete kal', 'kal subah', 'kal shaam',
+      'yesterday',
+      'kal',
+      'kal ka',
+      'kal ki',
+      'kal kiya',
+      'kal hua',
+      'beete kal',
+      'kal subah',
+      'kal shaam',
     ])) {
       return today.subtract(const Duration(days: 1));
     }
     // Day before yesterday
     if (_anyOf(lower, [
-      '2 days ago', 'two days ago', 'day before yesterday',
-      'parso', 'parson', 'parso ka',
+      '2 days ago',
+      'two days ago',
+      'day before yesterday',
+      'parso',
+      'parson',
+      'parso ka',
     ])) {
       return today.subtract(const Duration(days: 2));
     }
@@ -920,7 +1597,8 @@ class VoiceFillEngine {
       if (n > 0 && n <= 90) return today.subtract(Duration(days: n));
     }
     // "N din pehle"
-    final dinPehle = RegExp(r'\b(\d+)\s+din\s+(?:pehle|pahle)\b').firstMatch(lower);
+    final dinPehle =
+        RegExp(r'\b(\d+)\s+din\s+(?:pehle|pahle)\b').firstMatch(lower);
     if (dinPehle != null) {
       final n = int.tryParse(dinPehle.group(1)!) ?? 0;
       if (n > 0 && n <= 90) return today.subtract(Duration(days: n));
@@ -938,18 +1616,29 @@ class VoiceFillEngine {
     }
 
     // "Last week" / "pichle hafte"
-    if (_anyOf(lower, ['last week', 'pichle hafte', 'pichhle hafte', 'pichle week'])) {
+    if (_anyOf(
+        lower, ['last week', 'pichle hafte', 'pichhle hafte', 'pichle week'])) {
       return today.subtract(const Duration(days: 7));
     }
 
     // Named weekdays (past)
     const days = [
-      'monday', 'tuesday', 'wednesday', 'thursday', 'friday',
-      'saturday', 'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
     ];
     const hindiDays = [
-      'somwar', 'mangalwar', 'budhwar', 'guruwar', 'shukrawar',
-      'shaniwar', 'raviwar',
+      'somwar',
+      'mangalwar',
+      'budhwar',
+      'guruwar',
+      'shukrawar',
+      'shaniwar',
+      'raviwar',
     ];
     for (int i = 0; i < days.length; i++) {
       if (lower.contains(days[i]) || lower.contains(hindiDays[i])) {
@@ -966,14 +1655,18 @@ class VoiceFillEngine {
   // ── Investment type ───────────────────────────────────────────────────────
 
   String? _extractInvestmentType(String lower) {
-    if (_anyOf(lower, ['mutual fund', 'mf', 'sip', 'elss', 'index fund'])) return 'Mutual Fund';
-    if (_anyOf(lower, ['share', 'stock', 'equity', 'nse', 'bse'])) return 'Stocks';
+    if (_anyOf(lower, ['mutual fund', 'mf', 'sip', 'elss', 'index fund']))
+      return 'Mutual Fund';
+    if (_anyOf(lower, ['share', 'stock', 'equity', 'nse', 'bse']))
+      return 'Stocks';
     if (_anyOf(lower, ['fd', 'fixed deposit'])) return 'FD';
     if (_anyOf(lower, ['rd', 'recurring deposit', 'recurring'])) return 'RD';
     if (_anyOf(lower, ['nps', 'national pension', 'pension'])) return 'NPS';
     if (_anyOf(lower, ['ppf', 'public provident'])) return 'PPF';
-    if (_anyOf(lower, ['gold', 'digital gold', 'sgb', 'sovereign gold'])) return 'Digital Gold';
-    if (_anyOf(lower, ['crypto', 'bitcoin', 'btc', 'eth', 'ethereum'])) return 'Crypto';
+    if (_anyOf(lower, ['gold', 'digital gold', 'sgb', 'sovereign gold']))
+      return 'Digital Gold';
+    if (_anyOf(lower, ['crypto', 'bitcoin', 'btc', 'eth', 'ethereum']))
+      return 'Crypto';
     if (_anyOf(lower, ['bond', 'bonds', 'debenture'])) return 'Bonds';
     return null;
   }
@@ -995,9 +1688,12 @@ class VoiceFillEngine {
 
   String _questionFor(String field) {
     switch (field) {
-      case 'amount': return 'Kitna tha? (How much was it?)';
-      case 'merchant': return 'Kahan pe? (What was it for or where?)';
-      default: return 'Can you say that again?';
+      case 'amount':
+        return 'Kitna tha? (How much was it?)';
+      case 'merchant':
+        return 'Kahan pe? (What was it for or where?)';
+      default:
+        return 'Can you say that again?';
     }
   }
 
@@ -1016,11 +1712,13 @@ class VoiceFillEngine {
 
     switch (_intent) {
       case VoiceIntent.addExpense:
-        if (desc != null && acc != null) return '$amtStr on $desc from $acc. Save?';
+        if (desc != null && acc != null)
+          return '$amtStr on $desc from $acc. Save?';
         if (desc != null) return '$amtStr on $desc. Save?';
         return '$amtStr expense${acc != null ? " from $acc" : ""}. Save?';
       case VoiceIntent.addIncome:
-        if (desc != null) return '$amtStr from $desc${acc != null ? " to $acc" : ""}. Save?';
+        if (desc != null)
+          return '$amtStr from $desc${acc != null ? " to $acc" : ""}. Save?';
         return '$amtStr income${acc != null ? " to $acc" : ""}. Save?';
       case VoiceIntent.addTransfer:
         return 'Transfer $amtStr from ${acc ?? "your account"} to ${toAcc ?? "another account"}. Save?';
@@ -1042,9 +1740,11 @@ class VoiceFillEngine {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  bool _anyOf(String text, List<String> kws) => kws.any((k) => text.contains(k));
+  bool _anyOf(String text, List<String> kws) =>
+      kws.any((k) => text.contains(k));
   String _norm(String s) => s.toLowerCase().trim();
-  String _titleCase(String s) => s.split(' ')
+  String _titleCase(String s) => s
+      .split(' ')
       .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
       .join(' ');
   String _fmtAmt(double v) {

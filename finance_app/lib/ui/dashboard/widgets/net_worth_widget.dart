@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
-import 'package:vittara_fin_os/logic/budgets_controller.dart';
+import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
+import 'package:vittara_fin_os/logic/ai/financial_health_score.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
-import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart'
-    show HealthScoreData, HealthScoreBody, computeHealthScore;
+import 'package:vittara_fin_os/ui/scorecard/financial_health_card.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
@@ -290,7 +290,6 @@ class _NetWorthBody extends StatefulWidget {
   final double totalNetWorth;
   final double momTrendPct;
   final bool isDark;
-  final HealthScoreData healthData;
 
   const _NetWorthBody({
     required this.accounts,
@@ -300,7 +299,6 @@ class _NetWorthBody extends StatefulWidget {
     required this.totalNetWorth,
     required this.momTrendPct,
     required this.isDark,
-    required this.healthData,
   });
 
   @override
@@ -367,7 +365,8 @@ class _NetWorthBodyState extends State<_NetWorthBody>
     final nwColor = nw >= 0 ? AppStyles.gain(context) : AppStyles.loss(context);
     final trend = widget.momTrendPct;
     final trendPositive = trend >= 0;
-    final trendColor = trendPositive ? AppStyles.gain(context) : AppStyles.loss(context);
+    final trendColor =
+        trendPositive ? AppStyles.gain(context) : AppStyles.loss(context);
     final trendLabel = trendPositive
         ? '+${trend.toStringAsFixed(1)}% this month'
         : '${trend.toStringAsFixed(1)}% this month';
@@ -626,22 +625,115 @@ class _NetWorthBodyState extends State<_NetWorthBody>
           ],
         ],
 
-        // ── Section 4: Financial Health Score ──────────────────────────────
+        // ── Section 4: Financial Health shortcut ───────────────────────────
         const SizedBox(height: Spacing.md),
         const Divider(height: 1),
         const SizedBox(height: Spacing.sm),
-        Text(
-          'FINANCIAL HEALTH',
-          style: TextStyle(
-            fontSize: TypeScale.micro,
-            letterSpacing: 1.2,
-            fontWeight: FontWeight.w700,
-            color: AppStyles.getSecondaryTextColor(context),
-          ),
+        Selector<AIIntelligenceController, FinancialHealthScore?>(
+          selector: (_, ai) => ai.healthScore,
+          builder: (context, score, _) {
+            return _FinancialHealthShortcut(score: score);
+          },
         ),
-        const SizedBox(height: Spacing.sm),
-        HealthScoreBody(data: widget.healthData, isDark: widget.isDark),
       ],
+    );
+  }
+}
+
+class _FinancialHealthShortcut extends StatelessWidget {
+  final FinancialHealthScore? score;
+
+  const _FinancialHealthShortcut({required this.score});
+
+  @override
+  Widget build(BuildContext context) {
+    final current = score;
+    final color = current == null
+        ? AppStyles.getPrimaryColor(context)
+        : current.overallScore >= 70
+            ? AppStyles.gain(context)
+            : current.overallScore >= 40
+                ? const Color(0xFFFF9500)
+                : AppStyles.loss(context);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: current == null
+          ? null
+          : () => Navigator.of(context).push(
+                CupertinoPageRoute(
+                  builder: (_) => FinancialHealthCard(score: current),
+                ),
+              ),
+      child: Container(
+        padding: const EdgeInsets.all(Spacing.md),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(Radii.lg),
+          border: Border.all(color: color.withValues(alpha: 0.20)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color.withValues(alpha: 0.16),
+              ),
+              child: Center(
+                child: current == null
+                    ? Icon(CupertinoIcons.heart_fill, color: color, size: 20)
+                    : Text(
+                        current.overallScore.toStringAsFixed(0),
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(width: Spacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Financial Health',
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontSize: TypeScale.callout,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    current == null
+                        ? 'Add more income, expense, budget, and account data to unlock the full score.'
+                        : '${current.overallLabel} - tap to see the full scorecard breakdown',
+                    style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: TypeScale.caption,
+                      height: 1.25,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (current != null) ...[
+              const SizedBox(width: Spacing.sm),
+              Icon(
+                CupertinoIcons.chevron_forward,
+                size: 16,
+                color: AppStyles.getSecondaryTextColor(context),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
@@ -675,9 +767,9 @@ class NetWorthWidget extends BaseDashboardWidget {
     required double height,
   }) {
     return RepaintBoundary(
-      child: Consumer4<AccountsController, InvestmentsController,
-          TransactionsController, BudgetsController>(
-        builder: (context, accCtrl, invCtrl, txCtrl, budCtrl, _) {
+      child: Consumer3<AccountsController, InvestmentsController,
+          TransactionsController>(
+        builder: (context, accCtrl, invCtrl, txCtrl, _) {
           final accounts = accCtrl.accounts;
           final investments = invCtrl.investments;
           final transactions = txCtrl.transactions;
@@ -692,8 +784,8 @@ class NetWorthWidget extends BaseDashboardWidget {
             if (acc.type == AccountType.credit ||
                 acc.type == AccountType.payLater) {
               // Credit used = limit - available balance
-              totalCreditUsed +=
-                  ((acc.creditLimit ?? 0) - acc.balance).clamp(0, double.infinity);
+              totalCreditUsed += ((acc.creditLimit ?? 0) - acc.balance)
+                  .clamp(0, double.infinity);
             } else {
               totalSavings += acc.balance;
             }
@@ -709,7 +801,8 @@ class NetWorthWidget extends BaseDashboardWidget {
             }
           }
 
-          final totalNetWorth = totalSavings + totalInvestments - totalCreditUsed;
+          final totalNetWorth =
+              totalSavings + totalInvestments - totalCreditUsed;
 
           // ── MoM trend calculation ─────────────────────────────────────────
           // Approximate: compare this month's net cash flow vs net worth
@@ -745,8 +838,7 @@ class NetWorthWidget extends BaseDashboardWidget {
           }
 
           // ── All accounts combined for carousel (excluding hidden) ─────────
-          final visibleAccounts =
-              accounts.where((a) => !a.isHidden).toList();
+          final visibleAccounts = accounts.where((a) => !a.isHidden).toList();
 
           // ── Empty state ───────────────────────────────────────────────────
           if (visibleAccounts.isEmpty && investments.isEmpty) {
@@ -803,13 +895,6 @@ class NetWorthWidget extends BaseDashboardWidget {
             );
           }
 
-          final healthData = computeHealthScore(
-            transactions: transactions,
-            budgets: budCtrl.budgets,
-            investments: investments,
-            accounts: accounts,
-          );
-
           // Outer _buildDashboardWidgetCard in main.dart already provides
           // LayoutBuilder + ConstrainedBox(minHeight) + SingleChildScrollView.
           // Returning _NetWorthBody directly prevents double-nested scroll that
@@ -823,7 +908,6 @@ class NetWorthWidget extends BaseDashboardWidget {
             totalNetWorth: totalNetWorth,
             momTrendPct: momTrendPct,
             isDark: isDark,
-            healthData: healthData,
           );
         },
       ),

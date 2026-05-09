@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/services/ai_voice_command_service.dart';
 import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
 import 'package:vittara_fin_os/ui/settings/csv_import_screen.dart';
 import 'package:vittara_fin_os/ui/manage/reports_analysis_screen.dart';
@@ -49,10 +50,77 @@ class DashboardAppMenuScreen extends StatelessWidget {
               children: [
                 _BrandHeader(),
                 const SizedBox(height: Spacing.xl),
-
-                // ── Secondary sections ──
                 _MenuSectionCard(
-                  title: 'Product',
+                  title: 'Core Actions',
+                  items: [
+                    _MenuItem(
+                      title: 'AI Assistant',
+                      subtitle:
+                          'Voice commands, entries, summaries, exports, navigation',
+                      icon: CupertinoIcons.sparkles,
+                      color: AppStyles.aetherTeal,
+                      onTap: () => AIVoiceCommandService.openAssistant(context),
+                    ),
+                    _MenuItem(
+                      title: 'Manage',
+                      subtitle:
+                          'Banks, accounts, categories, investments, lending',
+                      icon: CupertinoIcons.square_grid_2x2_fill,
+                      color: SemanticColors.accounts,
+                      onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(page: const ManageScreen()),
+                      ),
+                    ),
+                    _MenuItem(
+                      title: 'Import Bank Statement',
+                      subtitle: 'CSV, PDF, XLS, XLSX import with AI review',
+                      icon: CupertinoIcons.arrow_down_doc_fill,
+                      color: AppStyles.aetherTeal,
+                      onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(page: const CsvImportScreen()),
+                      ),
+                    ),
+                    _MenuItem(
+                      title: 'Monthly Statement',
+                      subtitle:
+                          'Generate and share account-wise PDF statements',
+                      icon: CupertinoIcons.doc_text_fill,
+                      color: SemanticColors.primary,
+                      onTap: () => showMonthlyStatementSheet(context),
+                    ),
+                    _MenuItem(
+                      title: 'Reports & Analysis',
+                      subtitle:
+                          'Deep analysis by date, category, account, type',
+                      icon: CupertinoIcons.chart_bar_square_fill,
+                      color: SemanticColors.info,
+                      onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(page: const ReportsAnalysisScreen()),
+                      ),
+                    ),
+                    _MenuItem(
+                      title: 'Settings',
+                      subtitle: 'Theme, security, backup, and preferences',
+                      icon: CupertinoIcons.settings_solid,
+                      color: SemanticColors.tags,
+                      onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(page: const SettingsScreen()),
+                      ),
+                    ),
+                    _MenuItem(
+                      title: 'Achievements',
+                      subtitle: 'Milestones across your financial journey',
+                      icon: CupertinoIcons.star_fill,
+                      color: AppStyles.solarGold,
+                      onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(page: const AchievementsScreen()),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: Spacing.lg),
+                _MenuSectionCard(
+                  title: 'Product & Support',
                   items: [
                     _MenuItem(
                       title: 'About',
@@ -66,11 +134,29 @@ class DashboardAppMenuScreen extends StatelessWidget {
                     _MenuItem(
                       title: 'What\'s New',
                       subtitle: 'Recent improvements and release highlights',
-                      icon: CupertinoIcons.sparkles,
+                      icon: CupertinoIcons.bolt_fill,
                       color: SemanticColors.success,
                       onTap: () => Navigator.of(context).push(
                         FadeScalePageRoute(page: const WhatsNewScreen()),
                       ),
+                    ),
+                    _MenuItem(
+                      title: 'Financial Calendar',
+                      subtitle:
+                          'FD maturities, SIPs, bills, goals & budget resets',
+                      icon: CupertinoIcons.calendar_badge_plus,
+                      color: AppStyles.aetherTeal,
+                      onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(
+                            page: const FinancialCalendarScreen()),
+                      ),
+                    ),
+                    _MenuItem(
+                      title: 'Contact Support',
+                      subtitle: 'Copy support email and diagnostics',
+                      icon: CupertinoIcons.chat_bubble_text_fill,
+                      color: SemanticColors.lending,
+                      onTap: () => _showSupportOptions(context),
                     ),
                     _MenuItem(
                       title: 'App Information',
@@ -85,40 +171,7 @@ class DashboardAppMenuScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: Spacing.lg),
                 _MenuSectionCard(
-                  title: 'Help',
-                  items: [
-                    _MenuItem(
-                      title: 'FAQs',
-                      subtitle: 'Answers for common financial app workflows',
-                      icon: CupertinoIcons.question_circle_fill,
-                      color: SemanticColors.warning,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const FAQsScreen()),
-                      ),
-                    ),
-                    _MenuItem(
-                      title: 'Contact Support',
-                      subtitle: 'Raise issues and get help from the team',
-                      icon: CupertinoIcons.chat_bubble_text_fill,
-                      color: SemanticColors.lending,
-                      onTap: () => _showSupportOptions(context),
-                    ),
-                    _MenuItem(
-                      title: 'Open Source Licenses',
-                      subtitle: 'Dependency attributions and license details',
-                      icon: CupertinoIcons.doc_text_fill,
-                      color: SemanticColors.categories,
-                      onTap: () => showLicensePage(
-                        context: context,
-                        applicationName: _appName,
-                        applicationVersion: _appVersion,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: Spacing.lg),
-                _MenuSectionCard(
-                  title: 'Policies',
+                  title: 'Legal',
                   items: [
                     _MenuItem(
                       title: 'Privacy Policy',
@@ -150,77 +203,19 @@ class DashboardAppMenuScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ],
-                ),
-
-                const SizedBox(height: Spacing.lg),
-                _MenuSectionCard(
-                  title: 'Utilities',
-                  items: [
                     _MenuItem(
-                      title: 'Financial Calendar',
-                      subtitle: 'FD maturities, SIPs, bills, goals & budget resets',
-                      icon: CupertinoIcons.calendar_badge_plus,
-                      color: AppStyles.aetherTeal,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const FinancialCalendarScreen()),
-                      ),
-                    ),
-                    _MenuItem(
-                      title: 'Reports & Analysis',
-                      subtitle: 'Deep analysis by date/category/account/type + exports',
-                      icon: CupertinoIcons.chart_bar_square_fill,
-                      color: SemanticColors.info,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const ReportsAnalysisScreen()),
-                      ),
-                    ),
-                    _MenuItem(
-                      title: 'Monthly Statement',
-                      subtitle: 'Full account-wise PDF — accounts, investments, merchants & more',
+                      title: 'Open Source Licenses',
+                      subtitle: 'Dependency attributions and license details',
                       icon: CupertinoIcons.doc_text_fill,
-                      color: SemanticColors.primary,
-                      onTap: () => showMonthlyStatementSheet(context),
-                    ),
-                    _MenuItem(
-                      title: 'Manage',
-                      subtitle: 'Banks, accounts, categories, and app entities',
-                      icon: CupertinoIcons.square_grid_2x2_fill,
-                      color: SemanticColors.accounts,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const ManageScreen()),
-                      ),
-                    ),
-                    _MenuItem(
-                      title: 'Import Bank Statement',
-                      subtitle: 'CSV, PDF, XLS, XLSX — 14 banks, AI-powered',
-                      icon: CupertinoIcons.arrow_down_doc_fill,
-                      color: AppStyles.aetherTeal,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const CsvImportScreen()),
-                      ),
-                    ),
-                    _MenuItem(
-                      title: 'Settings',
-                      subtitle: 'Security, theme, backup, and preferences',
-                      icon: CupertinoIcons.settings_solid,
-                      color: SemanticColors.tags,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const SettingsScreen()),
-                      ),
-                    ),
-                    _MenuItem(
-                      title: 'Achievements',
-                      subtitle: 'Milestones unlocked across your financial journey',
-                      icon: CupertinoIcons.star_fill,
-                      color: AppStyles.solarGold,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const AchievementsScreen()),
+                      color: SemanticColors.categories,
+                      onTap: () => showLicensePage(
+                        context: context,
+                        applicationName: _appName,
+                        applicationVersion: _appVersion,
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: Spacing.xxl),
               ],
             ),
@@ -258,25 +253,29 @@ class DashboardAppMenuScreen extends StatelessWidget {
         icon: CupertinoIcons.calendar_badge_plus,
         color: AppStyles.aetherTeal,
         badge: todayEventCount,
-        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const FinancialCalendarScreen())),
+        onTap: () => Navigator.of(context)
+            .push(FadeScalePageRoute(page: const FinancialCalendarScreen())),
       ),
       _QuickItem(
         label: 'Manage',
         icon: CupertinoIcons.square_grid_2x2_fill,
         color: SemanticColors.accounts,
-        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const ManageScreen())),
+        onTap: () => Navigator.of(context)
+            .push(FadeScalePageRoute(page: const ManageScreen())),
       ),
       _QuickItem(
         label: 'Settings',
         icon: CupertinoIcons.settings_solid,
         color: SemanticColors.tags,
-        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const SettingsScreen())),
+        onTap: () => Navigator.of(context)
+            .push(FadeScalePageRoute(page: const SettingsScreen())),
       ),
       _QuickItem(
         label: 'Reports',
         icon: CupertinoIcons.chart_bar_square_fill,
         color: SemanticColors.info,
-        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const ReportsAnalysisScreen())),
+        onTap: () => Navigator.of(context)
+            .push(FadeScalePageRoute(page: const ReportsAnalysisScreen())),
       ),
       _QuickItem(
         label: 'Statement',
@@ -288,13 +287,15 @@ class DashboardAppMenuScreen extends StatelessWidget {
         label: 'Import',
         icon: CupertinoIcons.arrow_down_doc_fill,
         color: AppStyles.accentTeal,
-        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const CsvImportScreen())),
+        onTap: () => Navigator.of(context)
+            .push(FadeScalePageRoute(page: const CsvImportScreen())),
       ),
       _QuickItem(
         label: 'Achievements',
         icon: CupertinoIcons.star_fill,
         color: AppStyles.solarGold,
-        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const AchievementsScreen())),
+        onTap: () => Navigator.of(context)
+            .push(FadeScalePageRoute(page: const AchievementsScreen())),
       ),
     ];
 
@@ -305,8 +306,8 @@ class DashboardAppMenuScreen extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: Spacing.md, left: 2),
           child: Row(
             children: [
-              Icon(CupertinoIcons.bolt_fill, size: 12,
-                  color: AppStyles.getSecondaryTextColor(context)),
+              Icon(CupertinoIcons.bolt_fill,
+                  size: 12, color: AppStyles.getSecondaryTextColor(context)),
               const SizedBox(width: 6),
               Text(
                 'QUICK ACCESS',
@@ -344,14 +345,17 @@ class DashboardAppMenuScreen extends StatelessWidget {
                       color: item.color.withValues(alpha: isDark ? 0.15 : 0.10),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: item.color.withValues(alpha: isDark ? 0.25 : 0.18),
+                        color:
+                            item.color.withValues(alpha: isDark ? 0.25 : 0.18),
                         width: 1,
                       ),
                     ),
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        Center(child: Icon(item.icon, color: item.color, size: 22)),
+                        Center(
+                            child:
+                                Icon(item.icon, color: item.color, size: 22)),
                         if (item.badge > 0)
                           Positioned(
                             top: -4,
@@ -403,39 +407,39 @@ class DashboardAppMenuScreen extends StatelessWidget {
       builder: (ctx) => RLayout.tabletConstrain(
         ctx,
         CupertinoActionSheet(
-        title: const Text('Contact Support'),
-        message: const Text(
-          'Share your issue with relevant details. Include screenshots and steps to reproduce for faster resolution.',
-        ),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () async {
-              await Clipboard.setData(
-                const ClipboardData(text: _supportEmail),
-              );
-              if (ctx.mounted) Navigator.of(ctx).pop();
-              toast.showSuccess('Support email copied');
-            },
-            child: const Text('Copy Support Email'),
+          title: const Text('Contact Support'),
+          message: const Text(
+            'Share your issue with relevant details. Include screenshots and steps to reproduce for faster resolution.',
           ),
-          CupertinoActionSheetAction(
-            onPressed: () async {
-              final text = StringBuffer()
-                ..writeln('App: $_appName')
-                ..writeln('Version: $_appVersion')
-                ..writeln('Platform: Flutter');
-              await Clipboard.setData(ClipboardData(text: text.toString()));
-              if (ctx.mounted) Navigator.of(ctx).pop();
-              toast.showInfo('Diagnostic info copied');
-            },
-            child: const Text('Copy Diagnostic Summary'),
+          actions: [
+            CupertinoActionSheetAction(
+              onPressed: () async {
+                await Clipboard.setData(
+                  const ClipboardData(text: _supportEmail),
+                );
+                if (ctx.mounted) Navigator.of(ctx).pop();
+                toast.showSuccess('Support email copied');
+              },
+              child: const Text('Copy Support Email'),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () async {
+                final text = StringBuffer()
+                  ..writeln('App: $_appName')
+                  ..writeln('Version: $_appVersion')
+                  ..writeln('Platform: Flutter');
+                await Clipboard.setData(ClipboardData(text: text.toString()));
+                if (ctx.mounted) Navigator.of(ctx).pop();
+                toast.showInfo('Diagnostic info copied');
+              },
+              child: const Text('Copy Diagnostic Summary'),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
           ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.of(ctx).pop(),
-          child: const Text('Close'),
         ),
-      ),
       ),
     );
   }
@@ -662,13 +666,15 @@ class AboutAppScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text('About',
-            style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text('About',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
+              previousPageTitle: 'Back',
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+            ),
       child: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(Spacing.lg),
@@ -744,13 +750,15 @@ class FAQsScreen extends StatelessWidget {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text('FAQs',
-            style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text('FAQs',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
+              previousPageTitle: 'Back',
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+            ),
       child: SafeArea(
         child: ListView.separated(
           padding: const EdgeInsets.all(Spacing.lg),
@@ -813,15 +821,17 @@ class AppInformationScreen extends StatelessWidget {
       ) {
         return CupertinoPageScaffold(
           backgroundColor: AppStyles.getBackground(context),
-          navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-            middle: Text(
-              'App Information',
-              style: TextStyle(color: AppStyles.getTextColor(context)),
-            ),
-            previousPageTitle: 'Back',
-            backgroundColor: AppStyles.getBackground(context),
-            border: null,
-          ),
+          navigationBar: AppStyles.isLandscape(context)
+              ? null
+              : CupertinoNavigationBar(
+                  middle: Text(
+                    'App Information',
+                    style: TextStyle(color: AppStyles.getTextColor(context)),
+                  ),
+                  previousPageTitle: 'Back',
+                  backgroundColor: AppStyles.getBackground(context),
+                  border: null,
+                ),
           child: SafeArea(
             child: ListView(
               padding: const EdgeInsets.all(Spacing.lg),
@@ -886,13 +896,15 @@ class WhatsNewScreen extends StatelessWidget {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text('What\'s New',
-            style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text('What\'s New',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
+              previousPageTitle: 'Back',
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+            ),
       child: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(Spacing.lg),
@@ -960,13 +972,15 @@ class LegalDocumentScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text(title,
-            style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text(title,
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
+              previousPageTitle: 'Back',
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+            ),
       child: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(Spacing.lg),

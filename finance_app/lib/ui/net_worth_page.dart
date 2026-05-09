@@ -320,6 +320,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
   bool _expandInvestments = false;
   List<_NetWorthSnapshot> _historySnapshots = [];
   List<_NetWorthSnapshot> _dailySnapshots = [];
+  int? _selectedTrendIndex;
   bool _snapshotSavedThisSession = false;
 
   @override
@@ -736,8 +737,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
               );
             } catch (e) {
               if (kDebugMode) {
-                print('Error building Net Worth page: $e');
-                print(StackTrace.current);
+                debugPrint('Error building Net Worth page: $e');
+                debugPrintStack(stackTrace: StackTrace.current);
               }
               return Center(
                 child: Column(
@@ -2667,6 +2668,12 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
   Widget _buildNetWorthTrendCard(BuildContext context) {
     final snapshots = _dailySnapshots;
+    final selectedIndex = _selectedTrendIndex != null &&
+            _selectedTrendIndex! >= 0 &&
+            _selectedTrendIndex! < snapshots.length
+        ? _selectedTrendIndex!
+        : snapshots.length - 1;
+    final selectedSnapshot = snapshots[selectedIndex];
     final first = snapshots.first.value;
     final last = snapshots.last.value;
     final change = last - first;
@@ -2747,17 +2754,65 @@ class _NetWorthPageState extends State<NetWorthPage> {
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
-          const SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.md),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 160),
+            child: _TrendValueBadge(
+              key: ValueKey(selectedSnapshot.date),
+              snapshot: selectedSnapshot,
+              color: trendColor,
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
           // Sparkline chart
-          SizedBox(
-            height: 120,
-            child: CustomPaint(
-              painter: _NetWorthSparklinePainter(
-                snapshots: snapshots,
-                lineColor: trendColor,
-                gridColor: AppStyles.getSecondaryTextColor(context),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              void selectFromLocalPosition(Offset localPosition) {
+                if (snapshots.length < 2) return;
+                final width = constraints.maxWidth;
+                const leftPad = _NetWorthSparklinePainter.leftPad;
+                const rightPad = _NetWorthSparklinePainter.rightPad;
+                final chartWidth = math.max(1.0, width - leftPad - rightPad);
+                final normalized =
+                    ((localPosition.dx - leftPad) / chartWidth).clamp(0.0, 1.0);
+                final index = (normalized * (snapshots.length - 1)).round();
+                if (_selectedTrendIndex != index) {
+                  setState(() => _selectedTrendIndex = index);
+                }
+              }
+
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapDown: (details) =>
+                    selectFromLocalPosition(details.localPosition),
+                onHorizontalDragStart: (details) =>
+                    selectFromLocalPosition(details.localPosition),
+                onHorizontalDragUpdate: (details) =>
+                    selectFromLocalPosition(details.localPosition),
+                child: SizedBox(
+                  height: 120,
+                  child: CustomPaint(
+                    painter: _NetWorthSparklinePainter(
+                      snapshots: snapshots,
+                      lineColor: trendColor,
+                      gridColor: AppStyles.getSecondaryTextColor(context),
+                      selectedIndex: selectedIndex,
+                    ),
+                    size: Size.infinite,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: Spacing.xs),
+          Center(
+            child: Text(
+              'Tap or drag on the chart to inspect history',
+              style: TextStyle(
+                fontSize: TypeScale.micro,
+                color: AppStyles.getSecondaryTextColor(context)
+                    .withValues(alpha: 0.8),
               ),
-              size: Size.infinite,
             ),
           ),
           const SizedBox(height: Spacing.sm),
@@ -2820,29 +2875,82 @@ class _NetWorthSnapshot {
   const _NetWorthSnapshot({required this.date, required this.value});
 }
 
+class _TrendValueBadge extends StatelessWidget {
+  final _NetWorthSnapshot snapshot;
+  final Color color;
+
+  const _TrendValueBadge({
+    super.key,
+    required this.snapshot,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Spacing.md,
+        vertical: Spacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(color: color.withValues(alpha: 0.24)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(CupertinoIcons.calendar, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            DateFormatter.format(snapshot.date),
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w700,
+              color: AppStyles.getTextColor(context),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            CurrencyFormatter.format(snapshot.value, decimals: 0),
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Sparkline painter for net worth trend chart
 // ---------------------------------------------------------------------------
 
 class _NetWorthSparklinePainter extends CustomPainter {
+  static const leftPad = 4.0;
+  static const rightPad = 4.0;
+  static const topPad = 8.0;
+  static const bottomPad = 8.0;
+
   final List<_NetWorthSnapshot> snapshots;
   final Color lineColor;
   final Color gridColor;
+  final int? selectedIndex;
 
   const _NetWorthSparklinePainter({
     required this.snapshots,
     required this.lineColor,
     required this.gridColor,
+    this.selectedIndex,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (snapshots.length < 2) return;
 
-    const leftPad = 4.0;
-    const rightPad = 4.0;
-    const topPad = 8.0;
-    const bottomPad = 8.0;
     final w = size.width - leftPad - rightPad;
     final h = size.height - topPad - bottomPad;
 
@@ -2865,6 +2973,27 @@ class _NetWorthSparklinePainter extends CustomPainter {
     for (int i = 0; i <= 2; i++) {
       final y = topPad + (i / 2) * h;
       canvas.drawLine(Offset(leftPad, y), Offset(leftPad + w, y), gridPaint);
+    }
+
+    final safeSelectedIndex = selectedIndex?.clamp(0, snapshots.length - 1);
+    if (safeSelectedIndex != null) {
+      final selectedX = xOf(safeSelectedIndex);
+      final selectedY = yOf(snapshots[safeSelectedIndex].value);
+      final markerPaint = Paint()
+        ..color = lineColor.withValues(alpha: 0.38)
+        ..strokeWidth = 1.2;
+      canvas.drawLine(
+        Offset(selectedX, topPad),
+        Offset(selectedX, topPad + h),
+        markerPaint,
+      );
+      canvas.drawCircle(
+        Offset(selectedX, selectedY),
+        8.0,
+        Paint()
+          ..color = lineColor.withValues(alpha: 0.18)
+          ..style = PaintingStyle.fill,
+      );
     }
 
     // Build path for line
@@ -2924,9 +3053,28 @@ class _NetWorthSparklinePainter extends CustomPainter {
         ..style = PaintingStyle.fill,
     );
     canvas.drawCircle(Offset(lastX, lastY), 3.5, dotPaint);
+
+    if (safeSelectedIndex != null) {
+      final selectedX = xOf(safeSelectedIndex);
+      final selectedY = yOf(snapshots[safeSelectedIndex].value);
+      canvas.drawCircle(
+        Offset(selectedX, selectedY),
+        4.5,
+        Paint()
+          ..color = CupertinoColors.white
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        Offset(selectedX, selectedY),
+        3.0,
+        dotPaint,
+      );
+    }
   }
 
   @override
   bool shouldRepaint(covariant _NetWorthSparklinePainter old) =>
-      old.snapshots != snapshots || old.lineColor != lineColor;
+      old.snapshots != snapshots ||
+      old.lineColor != lineColor ||
+      old.selectedIndex != selectedIndex;
 }

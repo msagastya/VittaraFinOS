@@ -31,7 +31,8 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/services/transaction_export_service.dart';
-import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
+import 'package:vittara_fin_os/ui/widgets/animated_counter.dart'
+    as counter_widgets;
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 enum _DateRangeFilter {
@@ -39,15 +40,23 @@ enum _DateRangeFilter {
   today,
   week,
   month,
-  year;
+  year,
+  custom;
 
   String get label {
     switch (this) {
-      case _DateRangeFilter.all:   return 'All';
-      case _DateRangeFilter.today: return 'Today';
-      case _DateRangeFilter.week:  return 'Week';
-      case _DateRangeFilter.month: return 'Month';
-      case _DateRangeFilter.year:  return 'Year';
+      case _DateRangeFilter.all:
+        return 'All';
+      case _DateRangeFilter.today:
+        return 'Today';
+      case _DateRangeFilter.week:
+        return 'Week';
+      case _DateRangeFilter.month:
+        return 'Month';
+      case _DateRangeFilter.year:
+        return 'Year';
+      case _DateRangeFilter.custom:
+        return 'Custom';
     }
   }
 
@@ -63,6 +72,8 @@ enum _DateRangeFilter {
         return DateTime(now.year, now.month, 1);
       case _DateRangeFilter.year:
         return DateTime(now.year, 1, 1);
+      case _DateRangeFilter.custom:
+        return DateTime(2000);
     }
   }
 }
@@ -100,6 +111,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   double? _maxAmount;
   TransactionType? _typeFilter;
   _DateRangeFilter _dateFilter = _DateRangeFilter.all;
+  DateTime? _customStartDate;
+  DateTime? _customEndDate;
   bool _isExportingCsv = false;
   bool _isExportingPdf = false;
   bool _isExportingXlsx = false;
@@ -145,7 +158,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     if (!mounted) return;
     final typeName = prefs.getString(_prefKeyTxType);
     if (typeName != null) {
-      final match = TransactionType.values.where((e) => e.name == typeName).firstOrNull;
+      final match =
+          TransactionType.values.where((e) => e.name == typeName).firstOrNull;
       if (match != null) setState(() => _typeFilter = match);
     }
   }
@@ -200,9 +214,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
       result = result.where((t) {
-        final merchant = (t.metadata?['merchant'] as String? ?? '').toLowerCase();
-        final description = (t.metadata?['description'] as String? ?? '').toLowerCase();
-        final tags = ((t.metadata?['tags'] as List?)?.join(' ') ?? '').toLowerCase();
+        final merchant =
+            (t.metadata?['merchant'] as String? ?? '').toLowerCase();
+        final description =
+            (t.metadata?['description'] as String? ?? '').toLowerCase();
+        final tags =
+            ((t.metadata?['tags'] as List?)?.join(' ') ?? '').toLowerCase();
         final summary = t.getSummary().toLowerCase();
         final typeLabel = t.getTypeLabel().toLowerCase();
         final amount = t.amount.toString();
@@ -225,12 +242,178 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     if (_maxAmount != null) {
       result = result.where((t) => t.amount <= _maxAmount!).toList();
     }
-    if (_dateFilter != _DateRangeFilter.all) {
+    if (_dateFilter == _DateRangeFilter.custom) {
+      final start = _customStartDate;
+      final end = _customEndDate;
+      if (start != null && end != null) {
+        final from = DateTime(start.year, start.month, start.day);
+        final toExclusive =
+            DateTime(end.year, end.month, end.day).add(const Duration(days: 1));
+        result = result
+            .where((t) =>
+                !t.dateTime.isBefore(from) && t.dateTime.isBefore(toExclusive))
+            .toList();
+      }
+    } else if (_dateFilter != _DateRangeFilter.all) {
       final now = DateTime.now();
       final cutoff = _dateFilter.cutoff(now);
-      result = result.where((t) => t.dateTime.isAfter(cutoff)).toList();
+      result = result.where((t) => !t.dateTime.isBefore(cutoff)).toList();
     }
     return result;
+  }
+
+  Future<void> _showCustomDateRangeSheet() async {
+    final now = DateTime.now();
+    var tempStart = _customStartDate ?? DateTime(now.year, now.month, now.day);
+    var tempEnd = _customEndDate ?? now;
+
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Container(
+          decoration: AppStyles.bottomSheetDecoration(ctx),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemGrey3,
+                        borderRadius: BorderRadius.circular(2.5),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Custom Date Range',
+                    style: AppStyles.titleStyle(ctx)
+                        .copyWith(fontSize: TypeScale.title3),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _DateRangeField(
+                          label: 'From',
+                          value: DateFormatter.format(tempStart),
+                          onTap: () async {
+                            final picked = await _pickDate(ctx, tempStart);
+                            if (picked == null) return;
+                            setSheet(() {
+                              tempStart = picked;
+                              if (tempEnd.isBefore(tempStart)) {
+                                tempEnd = tempStart;
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _DateRangeField(
+                          label: 'To',
+                          value: DateFormatter.format(tempEnd),
+                          onTap: () async {
+                            final picked = await _pickDate(ctx, tempEnd);
+                            if (picked == null) return;
+                            setSheet(() {
+                              tempEnd = picked.isBefore(tempStart)
+                                  ? tempStart
+                                  : picked;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CupertinoButton(
+                          color: CupertinoColors.systemGrey5,
+                          onPressed: () => Navigator.pop(ctx),
+                          child: Text(
+                            'Cancel',
+                            style:
+                                TextStyle(color: AppStyles.getTextColor(ctx)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CupertinoButton.filled(
+                          onPressed: () {
+                            setState(() {
+                              _dateFilter = _DateRangeFilter.custom;
+                              _customStartDate = tempStart;
+                              _customEndDate = tempEnd;
+                              _visibleCount = _pageSize;
+                            });
+                            Navigator.pop(ctx);
+                          },
+                          child: const Text('Apply'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<DateTime?> _pickDate(
+      BuildContext context, DateTime initialDate) async {
+    var selected = initialDate;
+    return showCupertinoModalPopup<DateTime>(
+      context: context,
+      builder: (ctx) => Container(
+        height: 320,
+        decoration: AppStyles.bottomSheetDecoration(ctx),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              SizedBox(
+                height: 48,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CupertinoButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Cancel'),
+                    ),
+                    CupertinoButton(
+                      onPressed: () => Navigator.pop(ctx, selected),
+                      child: const Text('Done'),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.date,
+                  initialDateTime: initialDate,
+                  maximumDate: DateTime.now().add(const Duration(days: 1)),
+                  onDateTimeChanged: (value) => selected = value,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showFilterSheet(BuildContext context) {
@@ -397,6 +580,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 _maxAmount = null;
                                 _typeFilter = null;
                                 _dateFilter = _DateRangeFilter.all;
+                                _customStartDate = null;
+                                _customEndDate = null;
                               });
                               _saveFilterPrefs();
                               Navigator.pop(ctx);
@@ -472,7 +657,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         subject: 'Transactions Export',
       );
       // Clean up temp file after sharing
-      try { await file.delete(); } catch (_) {}
+      try {
+        await file.delete();
+      } catch (_) {}
     } catch (e) {
       if (mounted) toast_lib.toast.showError('Export failed: $e');
     } finally {
@@ -494,7 +681,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         [XFile(file.path, mimeType: 'application/pdf')],
         subject: '${widget.filterAccountName ?? 'Transactions'} — PDF Export',
       );
-      try { await file.delete(); } catch (_) {}
+      try {
+        await file.delete();
+      } catch (_) {}
     } catch (e) {
       if (mounted) toast_lib.toast.showError('PDF export failed: $e');
     } finally {
@@ -513,10 +702,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       );
       if (!mounted) return;
       await Share.shareXFiles(
-        [XFile(file.path, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')],
+        [
+          XFile(file.path,
+              mimeType:
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        ],
         subject: '${widget.filterAccountName ?? 'Transactions'} — Excel Export',
       );
-      try { await file.delete(); } catch (_) {}
+      try {
+        await file.delete();
+      } catch (_) {}
     } catch (e) {
       if (mounted) toast_lib.toast.showError('Excel export failed: $e');
     } finally {
@@ -529,7 +724,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       context: context,
       builder: (ctx) => CupertinoActionSheet(
         title: const Text('Export Transactions'),
-        message: Text('${transactions.length} transaction${transactions.length == 1 ? '' : 's'} will be exported'),
+        message: Text(
+            '${transactions.length} transaction${transactions.length == 1 ? '' : 's'} will be exported'),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
@@ -539,13 +735,17 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(CupertinoIcons.doc_richtext, color: CupertinoColors.systemRed),
+                const Icon(CupertinoIcons.doc_richtext,
+                    color: CupertinoColors.systemRed),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Export as PDF', style: TextStyle(fontWeight: FontWeight.w600)),
-                    Text('Styled report with logo & summary', style: AppTypography.footnote(color: CupertinoColors.systemGrey)),
+                    const Text('Export as PDF',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text('Styled report with logo & summary',
+                        style: AppTypography.footnote(
+                            color: CupertinoColors.systemGrey)),
                   ],
                 ),
               ],
@@ -559,13 +759,17 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(CupertinoIcons.square_grid_2x2, color: CupertinoColors.systemGreen),
+                const Icon(CupertinoIcons.square_grid_2x2,
+                    color: CupertinoColors.systemGreen),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Export as Excel (.xlsx)', style: TextStyle(fontWeight: FontWeight.w600)),
-                    Text('Spreadsheet with colour coding', style: AppTypography.footnote(color: CupertinoColors.systemGrey)),
+                    const Text('Export as Excel (.xlsx)',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text('Spreadsheet with colour coding',
+                        style: AppTypography.footnote(
+                            color: CupertinoColors.systemGrey)),
                   ],
                 ),
               ],
@@ -579,13 +783,17 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(CupertinoIcons.doc_plaintext, color: CupertinoColors.systemBlue),
+                const Icon(CupertinoIcons.doc_plaintext,
+                    color: CupertinoColors.systemBlue),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Export as CSV', style: TextStyle(fontWeight: FontWeight.w600)),
-                    Text('Plain comma-separated values', style: AppTypography.footnote(color: CupertinoColors.systemGrey)),
+                    const Text('Export as CSV',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text('Plain comma-separated values',
+                        style: AppTypography.footnote(
+                            color: CupertinoColors.systemGrey)),
                   ],
                 ),
               ],
@@ -613,60 +821,70 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     return safe;
   }
 
-
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text(
-            widget.filterPaymentAppName ?? widget.filterContactName ?? widget.filterAccountName ?? 'Transaction History',
-            style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CupertinoButton(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              onPressed: () => _showFilterSheet(context),
-              child: Icon(
-                _hasActiveFilter
-                    ? CupertinoIcons.line_horizontal_3_decrease_circle_fill
-                    : CupertinoIcons.line_horizontal_3_decrease_circle,
-                size: 22,
-                color: _hasActiveFilter
-                    ? AppStyles.getPrimaryColor(context)
-                    : AppStyles.getSecondaryTextColor(context),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text(
+                  widget.filterPaymentAppName ??
+                      widget.filterContactName ??
+                      widget.filterAccountName ??
+                      'Transaction History',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
+              previousPageTitle: 'Back',
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CupertinoButton(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    onPressed: () => _showFilterSheet(context),
+                    child: Icon(
+                      _hasActiveFilter
+                          ? CupertinoIcons
+                              .line_horizontal_3_decrease_circle_fill
+                          : CupertinoIcons.line_horizontal_3_decrease_circle,
+                      size: 22,
+                      color: _hasActiveFilter
+                          ? AppStyles.getPrimaryColor(context)
+                          : AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                  // F22: CSV Export
+                  Consumer2<TransactionsController, InvestmentsController>(
+                    builder: (ctx, txCtrl, invCtrl, _) {
+                      final all = TransactionFeedBuilder.buildUnifiedFeed(
+                        transactions: txCtrl.transactions,
+                        investments: invCtrl.investments,
+                      );
+                      final filtered = _filterBySearch(all);
+                      return CupertinoButton(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        onPressed: (_isExportingCsv ||
+                                    _isExportingPdf ||
+                                    _isExportingXlsx) ||
+                                filtered.isEmpty
+                            ? null
+                            : () => _showExportSheet(context, filtered),
+                        child: _isExportingCsv ||
+                                _isExportingPdf ||
+                                _isExportingXlsx
+                            ? const CupertinoActivityIndicator(radius: 10)
+                            : Icon(
+                                CupertinoIcons.share,
+                                size: 20,
+                                color: AppStyles.getSecondaryTextColor(ctx),
+                              ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
-            // F22: CSV Export
-            Consumer2<TransactionsController, InvestmentsController>(
-              builder: (ctx, txCtrl, invCtrl, _) {
-                final all = TransactionFeedBuilder.buildUnifiedFeed(
-                  transactions: txCtrl.transactions,
-                  investments: invCtrl.investments,
-                );
-                final filtered = _filterBySearch(all);
-                return CupertinoButton(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  onPressed: (_isExportingCsv || _isExportingPdf || _isExportingXlsx) || filtered.isEmpty
-                      ? null
-                      : () => _showExportSheet(context, filtered),
-                  child: _isExportingCsv || _isExportingPdf || _isExportingXlsx
-                      ? const CupertinoActivityIndicator(radius: 10)
-                      : Icon(
-                          CupertinoIcons.share,
-                          size: 20,
-                          color: AppStyles.getSecondaryTextColor(ctx),
-                        ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
       child: Consumer2<TransactionsController, InvestmentsController>(
         builder:
             (context, transactionsController, investmentsController, child) {
@@ -680,7 +898,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             return EmptyStateView(
               icon: CupertinoIcons.doc_text,
               title: 'No transactions yet',
-              subtitle: 'Your spending, income, and transfers will appear here.',
+              subtitle:
+                  'Your spending, income, and transfers will appear here.',
               actionLabel: 'Add your first transaction',
               onAction: () => showQuickEntrySheet(context),
             );
@@ -749,8 +968,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                   Consumer2<TransactionsController,
                                       InvestmentsController>(
                                     builder: (ctx, txCtrl, invCtrl, _) {
-                                      final all =
-                                          TransactionFeedBuilder.buildUnifiedFeed(
+                                      final all = TransactionFeedBuilder
+                                          .buildUnifiedFeed(
                                         transactions: txCtrl.transactions,
                                         investments: invCtrl.investments,
                                       );
@@ -763,12 +982,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                                     _isExportingXlsx) ||
                                                 filtered.isEmpty
                                             ? null
-                                            : () => _showExportSheet(
-                                                ctx, filtered),
+                                            : () =>
+                                                _showExportSheet(ctx, filtered),
                                         child: Icon(CupertinoIcons.share,
                                             size: 16,
-                                            color: AppStyles
-                                                .getSecondaryTextColor(ctx)),
+                                            color:
+                                                AppStyles.getSecondaryTextColor(
+                                                    ctx)),
                                       );
                                     },
                                   ),
@@ -806,15 +1026,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               onTap: () => _showFilterSheet(context),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: Spacing.sm, vertical: Spacing.xs),
+                                    horizontal: Spacing.sm,
+                                    vertical: Spacing.xs),
                                 decoration: BoxDecoration(
                                   color: _hasActiveFilter
                                       ? AppStyles.getPrimaryColor(context)
                                           .withValues(alpha: 0.12)
                                       : AppStyles.getDividerColor(context)
                                           .withValues(alpha: 0.4),
-                                  borderRadius:
-                                      BorderRadius.circular(Radii.sm),
+                                  borderRadius: BorderRadius.circular(Radii.sm),
                                   border: Border.all(
                                     color: _hasActiveFilter
                                         ? AppStyles.getPrimaryColor(context)
@@ -839,7 +1059,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      _hasActiveFilter ? 'Filters Active' : 'Filter',
+                                      _hasActiveFilter
+                                          ? 'Filters Active'
+                                          : 'Filter',
                                       style: TextStyle(
                                         fontSize: TypeScale.caption,
                                         color: _hasActiveFilter
@@ -858,8 +1080,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                             _minAmount = null;
                                             _maxAmount = null;
                                             _typeFilter = null;
-                                            _dateFilter =
-                                                _DateRangeFilter.all;
+                                            _dateFilter = _DateRangeFilter.all;
+                                            _customStartDate = null;
+                                            _customEndDate = null;
                                           });
                                           _saveFilterPrefs();
                                         },
@@ -912,8 +1135,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 ? _buildNoSearchResults()
                                 : EmptyStateWidget(
                                     icon: _hasActiveFilter
-                                        ? CupertinoIcons.line_horizontal_3_decrease
-                                        : CupertinoIcons.arrow_up_arrow_down_circle,
+                                        ? CupertinoIcons
+                                            .line_horizontal_3_decrease
+                                        : CupertinoIcons
+                                            .arrow_up_arrow_down_circle,
                                     title: _hasActiveFilter
                                         ? 'No matches'
                                         : 'No transactions yet',
@@ -930,8 +1155,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           )
                         else
                           Expanded(
-                            child: _buildGroupedList(context, transactions,
-                                transactionsController),
+                            child: _buildGroupedList(
+                                context, transactions, transactionsController),
                           ),
                       ],
                     ),
@@ -992,6 +1217,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 '≥₹${_minAmount!.toStringAsFixed(0)}',
                               if (_maxAmount != null)
                                 '≤₹${_maxAmount!.toStringAsFixed(0)}',
+                              if (_dateFilter == _DateRangeFilter.custom &&
+                                  _customStartDate != null &&
+                                  _customEndDate != null)
+                                '${DateFormatter.formatSlash(_customStartDate!)} - ${DateFormatter.formatSlash(_customEndDate!)}',
                             ].join(' · '),
                             style: TextStyle(
                               fontSize: TypeScale.caption,
@@ -1008,6 +1237,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               _maxAmount = null;
                               _typeFilter = null;
                               _dateFilter = _DateRangeFilter.all;
+                              _customStartDate = null;
+                              _customEndDate = null;
                             });
                             _saveFilterPrefs();
                           },
@@ -1075,61 +1306,80 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   Widget _buildDateChips() {
-    return SizedBox(
-      height: 44,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-        children: _DateRangeFilter.values.map((filter) {
-          final selected = _dateFilter == filter;
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() {
-              _dateFilter = filter;
-              _visibleCount = _pageSize;
-            }),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              margin: const EdgeInsets.only(right: 8),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: selected
-                    ? AppStyles.getPrimaryColor(context)
-                    : AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
+      child: SizedBox(
+        height: 40,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+          children: _DateRangeFilter.values.map((filter) {
+            final selected = _dateFilter == filter;
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (filter == _DateRangeFilter.custom) {
+                  _showCustomDateRangeSheet();
+                  return;
+                }
+                setState(() {
+                  _dateFilter = filter;
+                  _customStartDate = null;
+                  _customEndDate = null;
+                  _visibleCount = _pageSize;
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                margin: const EdgeInsets.only(right: 8, bottom: 2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
                   color: selected
                       ? AppStyles.getPrimaryColor(context)
-                      : AppStyles.getDividerColor(context),
+                      : AppStyles.getCardColor(context),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: selected
+                        ? AppStyles.getPrimaryColor(context)
+                        : AppStyles.getDividerColor(context),
+                  ),
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                            color: AppStyles.getPrimaryColor(context)
+                                .withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
                 ),
-                boxShadow: selected
-                    ? [
-                        BoxShadow(
-                          color: AppStyles.getPrimaryColor(context)
-                              .withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Text(
-                filter.label,
-                style: TextStyle(
-                  color: selected
-                      ? CupertinoColors.white
-                      : AppStyles.getSecondaryTextColor(context),
-                  fontSize: TypeScale.footnote,
-                  fontWeight:
-                      selected ? FontWeight.w700 : FontWeight.w500,
+                child: Text(
+                  filter == _DateRangeFilter.custom && selected
+                      ? _customRangeChipLabel
+                      : filter.label,
+                  style: TextStyle(
+                    color: selected
+                        ? CupertinoColors.white
+                        : AppStyles.getSecondaryTextColor(context),
+                    fontSize: TypeScale.footnote,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
-          );
-        }).toList(),
+            );
+          }).toList(),
+        ),
       ),
     );
+  }
+
+  String get _customRangeChipLabel {
+    final start = _customStartDate;
+    final end = _customEndDate;
+    if (start == null || end == null) return 'Custom';
+    return '${DateFormatter.formatSlash(start)}-${DateFormatter.formatSlash(end)}';
   }
 
   Widget _buildSummaryStrip(List<Transaction> transactions) {
@@ -1137,8 +1387,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     double totalExpense = 0;
     for (final t in transactions) {
       final eventType = t.metadata?['investmentEventType'] as String?;
-      final isSellOrDividend =
-          eventType == 'dividend' || eventType == 'sell' || eventType == 'decrease' || eventType == 'redeem';
+      final isSellOrDividend = eventType == 'dividend' ||
+          eventType == 'sell' ||
+          eventType == 'decrease' ||
+          eventType == 'redeem';
       if (t.type == TransactionType.income || isSellOrDividend) {
         totalIncome += t.amount;
       } else if (t.type == TransactionType.expense) {
@@ -1185,7 +1437,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               _buildStatCell(
                 label: 'Net',
                 value: net.abs(),
-                color: netPositive ? AppStyles.gain(context) : CupertinoColors.systemRed,
+                color: netPositive
+                    ? AppStyles.gain(context)
+                    : CupertinoColors.systemRed,
                 icon: netPositive
                     ? CupertinoIcons.chart_bar_alt_fill
                     : CupertinoIcons.arrow_down_right_circle_fill,
@@ -1243,7 +1497,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           Icon(
             CupertinoIcons.search,
             size: 48,
-            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.4),
+            color:
+                AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.4),
           ),
           const SizedBox(height: 16),
           Text(
@@ -1280,22 +1535,26 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     // Build a flat list of headers + transactions (all items, for grouping).
     final groups = DateFormatter.groupByDate(transactions, (t) => t.dateTime);
     // Compute per-group totals for the date headers.
-    final Map<String, ({int count, double expense, double income})> groupStats = {};
+    final Map<String, ({int count, double expense, double income})> groupStats =
+        {};
     for (final entry in groups.entries) {
       double exp = 0;
       double inc = 0;
       for (final t in entry.value) {
         final evtType = t.metadata?['investmentEventType'] as String?;
         final isInflow = t.type == TransactionType.income ||
-            evtType == 'dividend' || evtType == 'sell' ||
-            evtType == 'decrease' || evtType == 'redeem';
+            evtType == 'dividend' ||
+            evtType == 'sell' ||
+            evtType == 'decrease' ||
+            evtType == 'redeem';
         if (isInflow) {
           inc += t.amount;
         } else if (t.type == TransactionType.expense) {
           exp += t.amount;
         }
       }
-      groupStats[entry.key] = (count: entry.value.length, expense: exp, income: inc);
+      groupStats[entry.key] =
+          (count: entry.value.length, expense: exp, income: inc);
     }
     final allItems = <_TxnListItem>[];
     for (final entry in groups.entries) {
@@ -1326,114 +1585,117 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     return Stack(
       children: [
         RefreshIndicator(
-      color: AppStyles.getPrimaryColor(context),
-      onRefresh: () async {
-        Haptics.medium();
-        // Scroll to top and trigger a UI refresh
-        if (mounted) {
-          _scrollController.jumpTo(0);
-          setState(() {});
-        }
-      },
-      child: ListView.builder(
-        controller: _scrollController,
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        physics: const SmoothScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        cacheExtent: 600,
-        padding: const EdgeInsets.fromLTRB(
-            Spacing.lg, Spacing.sm, Spacing.lg, Spacing.xxxl),
-        itemCount: listItems.length + (hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          // "Load More" button appended after the last visible item
-          if (hasMore && index == listItems.length) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: CupertinoButton(
-                onPressed: () =>
-                    setState(() => _visibleCount += _pageSize),
-                child: Text(
-                  'Load ${min(_pageSize, remaining)} more',
-                  style: TextStyle(
-                    color: AppStyles.getPrimaryColor(context),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            );
-          }
-          final item = listItems[index];
-          if (item.isHeader) {
-            final stats = groupStats[item.header!];
-            final dayExpense = stats?.expense ?? 0;
-            final dayIncome = stats?.income ?? 0;
-            final dayCount = stats?.count ?? 0;
-            return Padding(
-              key: ValueKey('h_${item.header}'),
-              padding: EdgeInsets.only(
-                  top: index == 0 ? 0 : Spacing.xl, bottom: Spacing.sm),
-              child: Row(
-                children: [
-                  Container(
-                    width: 3,
-                    height: 13,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [AppStyles.accentBlue, AppStyles.teal(context)],
-                      ),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(width: 7),
-                  Text(
-                    item.header!.toUpperCase(),
-                    style: AppTypography.sectionLabel(
-                      color: AppStyles.getSecondaryTextColor(context),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '· $dayCount',
-                    style: AppTypography.caption(
-                      color: AppStyles.getSecondaryTextColor(context)
-                          .withValues(alpha: 0.5),
-                    ),
-                  ),
-                  const Spacer(),
-                  if (dayIncome > 0)
-                    Text(
-                      '+₹${dayIncome.toStringAsFixed(0)}',
-                      style: AppTypography.caption(
-                        color: AppStyles.gain(context).withValues(alpha: 0.8),
-                        fontWeight: AppTypography.semiBold,
+          color: AppStyles.getPrimaryColor(context),
+          onRefresh: () async {
+            Haptics.medium();
+            // Scroll to top and trigger a UI refresh
+            if (mounted) {
+              _scrollController.jumpTo(0);
+              setState(() {});
+            }
+          },
+          child: ListView.builder(
+            controller: _scrollController,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            physics: const SmoothScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            cacheExtent: 600,
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.lg, Spacing.sm, Spacing.lg, Spacing.xxxl),
+            itemCount: listItems.length + (hasMore ? 1 : 0),
+            itemBuilder: (context, index) {
+              // "Load More" button appended after the last visible item
+              if (hasMore && index == listItems.length) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: CupertinoButton(
+                    onPressed: () => setState(() => _visibleCount += _pageSize),
+                    child: Text(
+                      'Load ${min(_pageSize, remaining)} more',
+                      style: TextStyle(
+                        color: AppStyles.getPrimaryColor(context),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  if (dayIncome > 0 && dayExpense > 0)
-                    const SizedBox(width: 6),
-                  if (dayExpense > 0)
-                    Text(
-                      '-₹${dayExpense.toStringAsFixed(0)}',
-                      style: AppTypography.caption(
-                        color: CupertinoColors.systemRed
-                            .withValues(alpha: 0.75),
-                        fontWeight: AppTypography.semiBold,
+                  ),
+                );
+              }
+              final item = listItems[index];
+              if (item.isHeader) {
+                final stats = groupStats[item.header!];
+                final dayExpense = stats?.expense ?? 0;
+                final dayIncome = stats?.income ?? 0;
+                final dayCount = stats?.count ?? 0;
+                return Padding(
+                  key: ValueKey('h_${item.header}'),
+                  padding: EdgeInsets.only(
+                      top: index == 0 ? 0 : Spacing.xl, bottom: Spacing.sm),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 3,
+                        height: 13,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              AppStyles.accentBlue,
+                              AppStyles.teal(context)
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    ),
-                ],
-              ),
-            );
-          }
-          final txn = item.transaction!;
-          return StaggeredItem(
-            key: ValueKey(txn.id),
-            index: index,
-            child: _buildTransactionCard(context, txn, controller),
-          );
-        },
-      ),
+                      const SizedBox(width: 7),
+                      Text(
+                        item.header!.toUpperCase(),
+                        style: AppTypography.sectionLabel(
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '· $dayCount',
+                        style: AppTypography.caption(
+                          color: AppStyles.getSecondaryTextColor(context)
+                              .withValues(alpha: 0.5),
+                        ),
+                      ),
+                      const Spacer(),
+                      if (dayIncome > 0)
+                        Text(
+                          '+₹${dayIncome.toStringAsFixed(0)}',
+                          style: AppTypography.caption(
+                            color:
+                                AppStyles.gain(context).withValues(alpha: 0.8),
+                            fontWeight: AppTypography.semiBold,
+                          ),
+                        ),
+                      if (dayIncome > 0 && dayExpense > 0)
+                        const SizedBox(width: 6),
+                      if (dayExpense > 0)
+                        Text(
+                          '-₹${dayExpense.toStringAsFixed(0)}',
+                          style: AppTypography.caption(
+                            color: CupertinoColors.systemRed
+                                .withValues(alpha: 0.75),
+                            fontWeight: AppTypography.semiBold,
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              }
+              final txn = item.transaction!;
+              return StaggeredItem(
+                key: ValueKey(txn.id),
+                index: index,
+                child: _buildTransactionCard(context, txn, controller),
+              );
+            },
+          ),
         ),
         if (_showScrollToTop)
           Positioned(
@@ -1477,7 +1739,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   ) {
     final eventType = transaction.metadata?['investmentEventType'] as String?;
     final isDividend = eventType == 'dividend';
-    final isSell = eventType == 'sell' || eventType == 'decrease' || eventType == 'redeem';
+    final isSell =
+        eventType == 'sell' || eventType == 'decrease' || eventType == 'redeem';
     final typeColor = isDividend
         ? const Color(0xFFFFB800) // amber for dividends
         : isSell
@@ -1489,7 +1752,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             ? CupertinoIcons.arrow_up_circle_fill
             : transaction.type.typeIcon;
 
-    final archiveCtrl = Provider.of<TransactionsArchiveController>(context, listen: false);
+    final archiveCtrl =
+        Provider.of<TransactionsArchiveController>(context, listen: false);
 
     return Slidable(
       key: ValueKey('slide_${transaction.id}'),
@@ -1499,7 +1763,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         extentRatio: 0.44,
         children: [
           SlidableAction(
-            onPressed: (_) => _editTransaction(context, transaction, controller),
+            onPressed: (_) =>
+                _editTransaction(context, transaction, controller),
             backgroundColor: CupertinoColors.activeBlue,
             foregroundColor: CupertinoColors.white,
             icon: CupertinoIcons.pencil,
@@ -1551,170 +1816,187 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         ),
         child: Container(
           margin: const EdgeInsets.only(bottom: Spacing.md),
-        decoration: AppStyles.accentCardDecoration(context, typeColor),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(Radii.xxl),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Left accent bar
-                Container(
-                  width: 3,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [typeColor, typeColor.withValues(alpha: 0.40)],
+          decoration: AppStyles.accentCardDecoration(context, typeColor),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(Radii.xxl),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Left accent bar
+                  Container(
+                    width: 3,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [typeColor, typeColor.withValues(alpha: 0.40)],
+                      ),
                     ),
                   ),
-                ),
-                // Content
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: Spacing.md, vertical: Spacing.md),
-                    child: Row(
-                      children: [
-                        // Icon
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration:
-                              AppStyles.iconBoxDecoration(context, typeColor),
-                          child: Icon(typeIcon, color: typeColor, size: 20),
-                        ),
-                        const SizedBox(width: Spacing.md),
+                  // Content
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: Spacing.md, vertical: Spacing.md),
+                      child: Row(
+                        children: [
+                          // Icon
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration:
+                                AppStyles.iconBoxDecoration(context, typeColor),
+                            child: Icon(typeIcon, color: typeColor, size: 20),
+                          ),
+                          const SizedBox(width: Spacing.md),
 
-                        // Info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                transaction.getTypeLabel(),
-                                style: AppTypography.callout(
-                                  color: AppStyles.getTextColor(context),
-                                  fontWeight: AppTypography.semiBold,
-                                ).copyWith(letterSpacing: -0.2),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                AIIntelligenceController.displayName(transaction),
-                                style: AppTypography.footnote(
-                                  color: AppStyles.getSecondaryTextColor(context),
+                          // Info
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  transaction.getTypeLabel(),
+                                  style: AppTypography.callout(
+                                    color: AppStyles.getTextColor(context),
+                                    fontWeight: AppTypography.semiBold,
+                                  ).copyWith(letterSpacing: -0.2),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Builder(builder: (ctx) {
-                                final cat = transaction.metadata?['categoryName'] as String?;
-                                if (cat == null || cat.isEmpty) return const SizedBox.shrink();
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 3),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: typeColor.withValues(alpha: 0.10),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: typeColor.withValues(alpha: 0.25), width: 0.5),
-                                    ),
-                                    child: Text(
-                                      cat,
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                        color: typeColor.withValues(alpha: 0.85),
-                                        letterSpacing: 0.2,
-                                      ),
-                                    ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  AIIntelligenceController.displayName(
+                                      transaction),
+                                  style: AppTypography.footnote(
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
-                                );
-                              }),
-                              if (transaction.type == TransactionType.transfer &&
-                                  (transaction.metadata?['transferRef'] as String?)?.isNotEmpty == true) ...[
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Container(
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Builder(builder: (ctx) {
+                                  final cat = transaction
+                                      .metadata?['categoryName'] as String?;
+                                  if (cat == null || cat.isEmpty)
+                                    return const SizedBox.shrink();
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 3),
+                                    child: Container(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: AppStyles.teal(context)
-                                            .withValues(alpha: 0.12),
+                                        color:
+                                            typeColor.withValues(alpha: 0.10),
                                         borderRadius: BorderRadius.circular(4),
                                         border: Border.all(
-                                          color: AppStyles.teal(context)
-                                              .withValues(alpha: 0.35),
-                                          width: 0.5,
+                                            color: typeColor.withValues(
+                                                alpha: 0.25),
+                                            width: 0.5),
+                                      ),
+                                      child: Text(
+                                        cat,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color:
+                                              typeColor.withValues(alpha: 0.85),
+                                          letterSpacing: 0.2,
                                         ),
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            CupertinoIcons.arrow_right_arrow_left,
-                                            size: 9,
-                                            color: AppStyles.teal(context),
-                                          ),
-                                          const SizedBox(width: 3),
-                                          Text(
-                                            'Transfer',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600,
-                                              color: AppStyles.teal(context),
-                                              letterSpacing: 0.2,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
                                     ),
-                                  ],
+                                  );
+                                }),
+                                if (transaction.type ==
+                                        TransactionType.transfer &&
+                                    (transaction.metadata?['transferRef']
+                                                as String?)
+                                            ?.isNotEmpty ==
+                                        true) ...[
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppStyles.teal(context)
+                                              .withValues(alpha: 0.12),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          border: Border.all(
+                                            color: AppStyles.teal(context)
+                                                .withValues(alpha: 0.35),
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              CupertinoIcons
+                                                  .arrow_right_arrow_left,
+                                              size: 9,
+                                              color: AppStyles.teal(context),
+                                            ),
+                                            const SizedBox(width: 3),
+                                            Text(
+                                              'Transfer',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppStyles.teal(context),
+                                                letterSpacing: 0.2,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                                const SizedBox(height: 2),
+                                Text(
+                                  DateFormatter.format(transaction.dateTime),
+                                  style: AppTypography.footnote(
+                                    color:
+                                        AppStyles.getTertiaryTextColor(context),
+                                  ),
                                 ),
                               ],
-                              const SizedBox(height: 2),
+                            ),
+                          ),
+
+                          // Amount
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
                               Text(
-                                DateFormatter.format(transaction.dateTime),
-                                style: AppTypography.footnote(
-                                  color: AppStyles.getTertiaryTextColor(context),
-                                ),
+                                '${transaction.type == TransactionType.expense ? '−' : '+'}${CurrencyFormatter.compact(transaction.amount)}',
+                                style: AppTypography.callout(
+                                  color: typeColor,
+                                  fontWeight: AppTypography.bold,
+                                ).copyWith(letterSpacing: -0.3),
+                              ),
+                              const SizedBox(height: 4),
+                              Icon(
+                                CupertinoIcons.chevron_right,
+                                size: 11,
+                                color: AppStyles.getSecondaryTextColor(context)
+                                    .withValues(alpha: 0.50),
                               ),
                             ],
                           ),
-                        ),
-
-                        // Amount
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '${transaction.type == TransactionType.expense ? '−' : '+'}${CurrencyFormatter.compact(transaction.amount)}',
-                              style: AppTypography.callout(
-                                color: typeColor,
-                                fontWeight: AppTypography.bold,
-                              ).copyWith(letterSpacing: -0.3),
-                            ),
-                            const SizedBox(height: 4),
-                            Icon(
-                              CupertinoIcons.chevron_right,
-                              size: 11,
-                              color: AppStyles.getSecondaryTextColor(context)
-                                  .withValues(alpha: 0.50),
-                            ),
-                          ],
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -1742,8 +2024,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
     Widget statRow(String label, String value, Color color) {
       return Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: Spacing.sm, vertical: 3),
+        padding:
+            const EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: 3),
         child: Row(
           children: [
             Text(
@@ -1771,8 +2053,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-              Spacing.sm, Spacing.xs, Spacing.sm, 2),
+          padding:
+              const EdgeInsets.fromLTRB(Spacing.sm, Spacing.xs, Spacing.sm, 2),
           child: Text(
             '${transactions.length} transactions',
             style: TextStyle(
@@ -1786,12 +2068,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         statRow('Income', fmt(income), AppStyles.gain(context)),
         statRow('Expense', fmt(expense), AppStyles.loss(context)),
         Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: Spacing.sm, vertical: 2),
+          padding:
+              const EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: 2),
           child: Container(
               height: 0.5,
-              color: AppStyles.getDividerColor(context)
-                  .withValues(alpha: 0.5)),
+              color: AppStyles.getDividerColor(context).withValues(alpha: 0.5)),
         ),
         statRow(
           'Net',
@@ -1812,12 +2093,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             padding: EdgeInsets.zero,
             minimumSize: Size.zero,
             onPressed: () => Navigator.maybePop(context),
-            child: Icon(CupertinoIcons.chevron_left, size: 20,
-                color: AppStyles.getPrimaryColor(context)),
+            child: Icon(CupertinoIcons.chevron_left,
+                size: 20, color: AppStyles.getPrimaryColor(context)),
           ),
           const SizedBox(width: 8),
           Text(
-            (widget.filterPaymentAppName ?? widget.filterContactName ?? widget.filterAccountName)?.toUpperCase() ?? 'TRANSACTIONS',
+            (widget.filterPaymentAppName ??
+                        widget.filterContactName ??
+                        widget.filterAccountName)
+                    ?.toUpperCase() ??
+                'TRANSACTIONS',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -1918,15 +2203,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   ) {
     // Check if transaction is within 24h edit window
     final createdAt = transaction.createdAt;
-    final isEditableWindow = createdAt != null &&
-        DateTime.now().difference(createdAt).inHours <= 24;
+    final isEditableWindow =
+        createdAt != null && DateTime.now().difference(createdAt).inHours <= 24;
 
     if (!isEditableWindow) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
+          color:
+              AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -2150,7 +2436,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       decoration: BoxDecoration(
         color: CupertinoColors.activeBlue.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(Radii.md),
-        border: Border.all(color: CupertinoColors.activeBlue.withValues(alpha: 0.2)),
+        border: Border.all(
+            color: CupertinoColors.activeBlue.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2222,8 +2509,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           CupertinoButton(
             padding: EdgeInsets.zero,
             minSize: 28,
-            onPressed: () =>
-                setState(() => _dismissedSuggestions.add(p.payee)),
+            onPressed: () => setState(() => _dismissedSuggestions.add(p.payee)),
             child: const Icon(CupertinoIcons.xmark,
                 size: 14, color: CupertinoColors.inactiveGray),
           ),
@@ -2270,6 +2556,68 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             child: const Text('Track it'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DateRangeField extends StatelessWidget {
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  const _DateRangeField({
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppStyles.getBackground(context),
+          borderRadius: BorderRadius.circular(Radii.md),
+          border: Border.all(color: AppStyles.getDividerColor(context)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: TypeScale.caption,
+                color: AppStyles.getSecondaryTextColor(context),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.w700,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Icon(
+                  CupertinoIcons.calendar,
+                  size: 14,
+                  color: AppStyles.getPrimaryColor(context),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
