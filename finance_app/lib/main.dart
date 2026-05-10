@@ -906,13 +906,14 @@ class _SplashScreenState extends State<SplashScreen>
     final v2Done = await hasCompletedActivation();
     if (!mounted) return;
 
-    void _goToDashboard() {
-      Navigator.of(context)
+    void _goToDashboard({BuildContext? routeContext}) {
+      final navContext = routeContext ?? context;
+      Navigator.of(navContext)
           .pushReplacement(FadeScalePageRoute(page: const DashboardScreen()));
-      _triggerSmsStartupScan();
-      _checkAndShowWhatsNew();
-      _showDeviceSecurityWarningIfNeeded();
-      _checkOptimiseDashboardPrompt();
+      _triggerSmsStartupScan(navContext);
+      _checkAndShowWhatsNew(navContext);
+      _showDeviceSecurityWarningIfNeeded(navContext);
+      _checkOptimiseDashboardPrompt(navContext);
       BackupRestoreService.runAutoBackupIfNeeded();
       DeviceIntelligenceTier.detect();
       MerchantNormalizer.init();
@@ -926,8 +927,11 @@ class _SplashScreenState extends State<SplashScreen>
       // New user → show activation wizard
       Navigator.of(context).pushReplacement(
         FadeScalePageRoute(
-          page: OnboardingActivationScreen(
-            onComplete: _goToDashboard,
+          page: Builder(
+            builder: (activationContext) => OnboardingActivationScreen(
+              onComplete: () =>
+                  _goToDashboard(routeContext: activationContext),
+            ),
           ),
         ),
       );
@@ -937,17 +941,17 @@ class _SplashScreenState extends State<SplashScreen>
   /// T-138: Show a one-time warning if the device is rooted or an emulator.
   /// Stores `security_warning_shown` in SharedPreferences so it is shown
   /// only once, not on every launch.
-  void _showDeviceSecurityWarningIfNeeded() {
+  void _showDeviceSecurityWarningIfNeeded(BuildContext routeContext) {
     final warning = DeviceSecurityService.instance.warningMessage;
     if (warning == null) return;
     Future.delayed(const Duration(milliseconds: 1200), () async {
-      if (!mounted) return;
+      if (!routeContext.mounted) return;
       final prefs = await sp.SharedPreferences.getInstance();
       if (prefs.getBool('security_warning_shown') == true) return;
       await prefs.setBool('security_warning_shown', true);
-      if (!mounted) return;
+      if (!routeContext.mounted) return;
       showCupertinoDialog<void>(
-        context: context,
+        context: routeContext,
         builder: (_) => CupertinoAlertDialog(
           title: const Text('Security Warning'),
           content: Text(warning),
@@ -964,17 +968,17 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   /// T-140: After 14 days of usage, offer one-time "Optimise my dashboard" prompt.
-  void _checkOptimiseDashboardPrompt() {
+  void _checkOptimiseDashboardPrompt(BuildContext routeContext) {
     Future.delayed(const Duration(seconds: 3), () async {
-      if (!mounted) return;
+      if (!routeContext.mounted) return;
       final should =
           await UsageTrackerService.instance.shouldShowOptimisePrompt();
-      if (!should || !mounted) return;
+      if (!should || !routeContext.mounted) return;
       await UsageTrackerService.instance.markOptimisePromptShown();
-      if (!mounted) return;
-      final dashCtrl = context.read<DashboardController>();
+      if (!routeContext.mounted) return;
+      final dashCtrl = routeContext.read<DashboardController>();
       final ok = await showCupertinoDialog<bool>(
-        context: context,
+        context: routeContext,
         builder: (_) => CupertinoAlertDialog(
           title: const Text('Optimise your dashboard?'),
           content: const Text(
@@ -1000,36 +1004,39 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   /// AU20-02 — Show "What's New" once on first launch after an app update.
-  void _checkAndShowWhatsNew() {
+  void _checkAndShowWhatsNew(BuildContext routeContext) {
     const currentVersion = WhatsNewSheet.currentVersion;
     Future.microtask(() async {
       final prefs = await sp.SharedPreferences.getInstance();
       final lastSeen = prefs.getString('lastSeenVersion') ?? '';
       if (lastSeen != currentVersion) {
         await prefs.setString('lastSeenVersion', currentVersion);
-        if (!mounted) return;
+        if (!routeContext.mounted) return;
         // Small delay so the dashboard finishes its entrance animation first
         await Future.delayed(const Duration(milliseconds: 800));
-        if (!mounted) return;
+        if (!routeContext.mounted) return;
         showCupertinoModalPopup<void>(
-          context: context,
+          context: routeContext,
           builder: (_) => const WhatsNewSheet(),
         );
       }
     });
   }
 
-  void _triggerSmsStartupScan() {
+  void _triggerSmsStartupScan(BuildContext routeContext) {
     final smsEnabled =
-        Provider.of<SettingsController>(context, listen: false).isSmsEnabled;
+        Provider.of<SettingsController>(routeContext, listen: false)
+            .isSmsEnabled;
     if (!smsEnabled) return;
     // Run silently — errors are swallowed so they never crash the app.
     Future.microtask(() async {
       try {
         await SmsAutoScanService.instance.runStartupScan(
-          banksCtrl: Provider.of<BanksController>(context, listen: false),
-          accountsCtrl: Provider.of<AccountsController>(context, listen: false),
-          txCtrl: Provider.of<TransactionsController>(context, listen: false),
+          banksCtrl: Provider.of<BanksController>(routeContext, listen: false),
+          accountsCtrl:
+              Provider.of<AccountsController>(routeContext, listen: false),
+          txCtrl:
+              Provider.of<TransactionsController>(routeContext, listen: false),
         );
       } catch (e) {
         logger.error('SMS startup scan failed', error: e);
@@ -2066,8 +2073,8 @@ class _DashboardScreenContent extends StatelessWidget {
   /// FAB with checkmark morph — listens to [dashboardSavedSignal].
   Widget _buildMorphFAB(BuildContext context) {
     return _MorphFAB(
-      onPressed: () => showQuickEntrySheet(context),
-      onLongPress: () => showDashboardActionSheet(context),
+      onPressed: () => showDashboardActionSheet(context),
+      onLongPress: () => showQuickEntrySheet(context),
     );
   }
 
