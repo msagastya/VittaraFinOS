@@ -5,6 +5,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val keystoreProperties = java.util.Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+}
+
 android {
     namespace = "com.vittara.finos"
     compileSdk = flutter.compileSdkVersion
@@ -22,10 +28,13 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = "vittara"
-            keyPassword = "vittara2024release"
-            storeFile = file("vittara-release.jks")
-            storePassword = "vittara2024release"
+            keyAlias = keystoreProperties["keyAlias"] as String?
+            keyPassword = keystoreProperties["keyPassword"] as String?
+            val configuredStoreFile = keystoreProperties["storeFile"] as String?
+            if (!configuredStoreFile.isNullOrBlank()) {
+                storeFile = file(configuredStoreFile)
+            }
+            storePassword = keystoreProperties["storePassword"] as String?
         }
     }
 
