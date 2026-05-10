@@ -256,9 +256,11 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
         return;
       }
 
-      // Check for navigation intent first
+      // Check for navigation intent before fill, but only when the utterance
+      // looks like a command. Otherwise phrases like "invested 10000 in mutual
+      // fund" must remain an entry, not "open investments".
       final navTarget = VoiceNavigator.resolve(cleanText);
-      if (navTarget != null) {
+      if (navTarget != null && _looksLikeNavigationCommand(cleanText)) {
         _pendingResult = VoiceResult(
           intent: VoiceIntent.navigate,
           fields: {'navTarget': navTarget, 'rawText': cleanText},
@@ -530,6 +532,42 @@ class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
       return ('reports', 'Opening reports and analysis.');
     }
     return null;
+  }
+
+  bool _looksLikeNavigationCommand(String text) {
+    final lower = text.toLowerCase().trim();
+    bool any(List<String> words) => words.any(lower.contains);
+    if (RegExp(r'\b(?:₹|rs\.?|inr)?\s*\d').hasMatch(lower)) return false;
+    if (any([
+      'paid',
+      'spent',
+      'received',
+      'credited',
+      'invested',
+      'salary',
+      'kharcha',
+      'diya',
+      'mila',
+      'aaya',
+      'bheja',
+    ])) {
+      return false;
+    }
+    if (lower.split(RegExp(r'\s+')).length <= 3) return true;
+    return any([
+      'open',
+      'show',
+      'go to',
+      'go',
+      'navigate',
+      'take me',
+      'dikhao',
+      ' kholo',
+      ' khol',
+      'chalo',
+      'page',
+      'screen',
+    ]);
   }
 
   void setTtsEnabled(bool v) {

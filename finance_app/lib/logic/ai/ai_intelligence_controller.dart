@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
@@ -126,6 +127,9 @@ class AIIntelligenceController extends ChangeNotifier {
   FinancialHealthScore? _healthScore;
   FinancialHealthScore? get healthScore => _healthScore;
 
+  static const String _dismissedAnomaliesKey = 'ai_dismissed_anomaly_alert_ids';
+  Set<String> _dismissedAnomalyIds = {};
+
   bool _isComputing = false;
   bool get isComputing => _isComputing;
 
@@ -154,6 +158,7 @@ class AIIntelligenceController extends ChangeNotifier {
 
     // Load persisted habits
     _activeHabits = await HabitConstructor.loadAll();
+    await _loadDismissedAnomalies();
 
     // Register hook so we get notified whenever TransactionsController data changes.
     // Pull real balances/budgets/goals from wired providers if available.
@@ -255,9 +260,11 @@ class AIIntelligenceController extends ChangeNotifier {
 
       // Phase 2c: anomaly detection
       if (_readiness.canDetectAnomalies) {
-        _anomalies = AnomalyDetector.detect(
-          transactions: transactions,
-          existingAlerts: _anomalies,
+        _anomalies = _applyDismissedAnomalyState(
+          AnomalyDetector.detect(
+            transactions: transactions,
+            existingAlerts: _anomalies,
+          ),
         );
       }
 
@@ -377,12 +384,40 @@ class AIIntelligenceController extends ChangeNotifier {
 
   // ── Anomaly dismissal ─────────────────────────────────────────────────────
 
-  void dismissAnomaly(String anomalyId) {
+  Future<void> _loadDismissedAnomalies() async {
+    final prefs = await SharedPreferences.getInstance();
+    _dismissedAnomalyIds =
+        (prefs.getStringList(_dismissedAnomaliesKey) ?? const <String>[])
+            .toSet();
+    if (_anomalies.isNotEmpty) {
+      _anomalies = _applyDismissedAnomalyState(_anomalies);
+    }
+  }
+
+  Future<void> _persistDismissedAnomalies() async {
+    final prefs = await SharedPreferences.getInstance();
+    final ids = _dismissedAnomalyIds.toList()..sort();
+    final trimmed = ids.length > 200 ? ids.sublist(ids.length - 200) : ids;
+    _dismissedAnomalyIds = trimmed.toSet();
+    await prefs.setStringList(_dismissedAnomaliesKey, trimmed);
+  }
+
+  List<AnomalyAlert> _applyDismissedAnomalyState(List<AnomalyAlert> alerts) {
+    return alerts
+        .map((alert) => _dismissedAnomalyIds.contains(alert.id)
+            ? alert.copyWith(isDismissed: true)
+            : alert)
+        .toList();
+  }
+
+  Future<void> dismissAnomaly(String anomalyId) async {
+    _dismissedAnomalyIds.add(anomalyId);
     final idx = _anomalies.indexWhere((a) => a.id == anomalyId);
     if (idx >= 0) {
       _anomalies[idx] = _anomalies[idx].copyWith(isDismissed: true);
       notifyListeners();
     }
+    await _persistDismissedAnomalies();
   }
 
   // ── Convenience accessors ─────────────────────────────────────────────────

@@ -655,6 +655,22 @@ class _FinancialHealthShortcut extends StatelessWidget {
             : current.overallScore >= 40
                 ? const Color(0xFFFF9500)
                 : AppStyles.loss(context);
+    final sortedDimensions = current == null
+        ? <HealthDimension>[]
+        : [...current.dimensions]..sort((a, b) => b.score.compareTo(a.score));
+    final strongest =
+        sortedDimensions.isEmpty ? null : sortedDimensions.first;
+    final weakest = sortedDimensions.isEmpty ? null : sortedDimensions.last;
+    final trendIcon = switch (current?.overallTrend) {
+      ScoreTrend.improving => CupertinoIcons.arrow_up_right,
+      ScoreTrend.declining => CupertinoIcons.arrow_down_right,
+      ScoreTrend.stable || null => CupertinoIcons.arrow_right,
+    };
+    final trendLabel = switch (current?.overallTrend) {
+      ScoreTrend.improving => 'Improving',
+      ScoreTrend.declining => 'Declining',
+      ScoreTrend.stable || null => 'Stable',
+    };
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -672,69 +688,265 @@ class _FinancialHealthShortcut extends StatelessWidget {
           borderRadius: BorderRadius.circular(Radii.lg),
           border: Border.all(color: color.withValues(alpha: 0.20)),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: color.withValues(alpha: 0.16),
-              ),
-              child: Center(
-                child: current == null
-                    ? Icon(CupertinoIcons.heart_fill, color: color, size: 20)
-                    : Text(
-                        current.overallScore.toStringAsFixed(0),
-                        style: TextStyle(
-                          color: color,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                        ),
+            Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color.withValues(alpha: 0.16),
+                  ),
+                  child: Center(
+                    child: current == null
+                        ? Icon(CupertinoIcons.heart_fill,
+                            color: color, size: 20)
+                        : Text(
+                            current.overallScore.toStringAsFixed(0),
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(width: Spacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Financial Health',
+                              style: TextStyle(
+                                color: AppStyles.getTextColor(context),
+                                fontSize: TypeScale.callout,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          if (current != null)
+                            Icon(
+                              CupertinoIcons.chevron_forward,
+                              size: 16,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                        ],
                       ),
-              ),
+                      const SizedBox(height: 3),
+                      Text(
+                        current == null
+                            ? 'Add more income, expense, budget, and account data to unlock the full score.'
+                            : '${current.overallLabel} • $trendLabel • 6-factor score',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: TypeScale.caption,
+                          height: 1.25,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: Spacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            if (current != null) ...[
+              const SizedBox(height: Spacing.sm),
+              Row(
                 children: [
-                  Text(
-                    'Financial Health',
-                    style: TextStyle(
-                      color: AppStyles.getTextColor(context),
-                      fontSize: TypeScale.callout,
-                      fontWeight: FontWeight.w800,
+                  Expanded(
+                    child: _HealthMiniFact(
+                      label: 'Strongest',
+                      value: strongest?.name ?? '-',
+                      icon: CupertinoIcons.checkmark_seal_fill,
+                      color: AppStyles.gain(context),
                     ),
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    current == null
-                        ? 'Add more income, expense, budget, and account data to unlock the full score.'
-                        : '${current.overallLabel} - tap to see the full scorecard breakdown',
-                    style: TextStyle(
-                      color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: TypeScale.caption,
-                      height: 1.25,
+                  const SizedBox(width: Spacing.sm),
+                  Expanded(
+                    child: _HealthMiniFact(
+                      label: 'Focus',
+                      value: weakest?.name ?? '-',
+                      icon: CupertinoIcons.exclamationmark_triangle_fill,
+                      color: color,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
-            ),
-            if (current != null) ...[
               const SizedBox(width: Spacing.sm),
-              Icon(
-                CupertinoIcons.chevron_forward,
-                size: 16,
-                color: AppStyles.getSecondaryTextColor(context),
+              const SizedBox(height: Spacing.sm),
+              Row(
+                children: [
+                  Icon(trendIcon, size: 14, color: color),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      weakest?.improvementTip ?? 'Open full scorecard',
+                      style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: TypeScale.caption,
+                        height: 1.25,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Spacing.sm),
+              _HealthDimensionBars(
+                dimensions: [
+                  current.cashFlow,
+                  current.savingsDiscipline,
+                  current.investmentConsistency,
+                ],
               ),
             ],
           ],
         ),
       ),
     );
+  }
+}
+
+class _HealthMiniFact extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  const _HealthMiniFact({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(Radii.md),
+        border: Border.all(color: color.withValues(alpha: 0.16)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: TypeScale.micro,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontSize: TypeScale.caption,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HealthDimensionBars extends StatelessWidget {
+  final List<HealthDimension> dimensions;
+
+  const _HealthDimensionBars({required this.dimensions});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: dimensions
+          .map(
+            (dimension) => Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 74,
+                    child: Text(
+                      _shortName(dimension.name),
+                      style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: TypeScale.micro,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(Radii.full),
+                      child: LinearProgressIndicator(
+                        minHeight: 5,
+                        value: (dimension.score / 100).clamp(0.0, 1.0),
+                        backgroundColor:
+                            AppStyles.getDividerColor(context).withValues(
+                          alpha: 0.45,
+                        ),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          _scoreColor(context, dimension.score),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 7),
+                  SizedBox(
+                    width: 26,
+                    child: Text(
+                      dimension.score.toStringAsFixed(0),
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontSize: TypeScale.micro,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  static String _shortName(String name) {
+    if (name == 'Savings Discipline') return 'Savings';
+    if (name == 'Investment Consistency') return 'Invest';
+    return name;
+  }
+
+  static Color _scoreColor(BuildContext context, double score) {
+    if (score >= 70) return AppStyles.gain(context);
+    if (score >= 40) return const Color(0xFFFF9500);
+    return AppStyles.loss(context);
   }
 }
 

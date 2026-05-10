@@ -5,6 +5,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/ai/local_financial_agent.dart';
 import 'package:vittara_fin_os/logic/ai/voice_controller.dart';
 import 'package:vittara_fin_os/logic/ai/voice_fill_engine.dart';
 import 'package:vittara_fin_os/logic/ai/voice_navigator.dart';
@@ -105,6 +106,18 @@ class AIVoiceCommandService {
         toast.showWarning(
           'Voice investment entry is not supported in Quick Entry yet',
         );
+        return true;
+      case VoiceIntent.setRecurring:
+        final execution = await LocalFinancialAgent.execute(
+          context,
+          result,
+          source: 'voice',
+        );
+        if (execution.success) {
+          await _speakAndToast(context, execution.message);
+        } else {
+          toast.showWarning(execution.message);
+        }
         return true;
       case VoiceIntent.navigate:
         final target = result.fields['navTarget'] ?? result.fields['target'];

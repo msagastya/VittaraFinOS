@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:speech_to_text/speech_to_text.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/contacts_controller.dart';
@@ -14,6 +13,7 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
+import 'package:vittara_fin_os/services/ai_voice_command_service.dart';
 import 'package:vittara_fin_os/ui/backup_restore_screen.dart';
 import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
@@ -639,8 +639,7 @@ class _GlobalSearchPage extends StatefulWidget {
   State<_GlobalSearchPage> createState() => _GlobalSearchPageState();
 }
 
-class _GlobalSearchPageState extends State<_GlobalSearchPage>
-    with SingleTickerProviderStateMixin {
+class _GlobalSearchPageState extends State<_GlobalSearchPage> {
   final _controller = TextEditingController();
   final _focus = FocusNode();
   Timer? _debounce;
@@ -653,77 +652,34 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
   bool _mlkitActive = false;
   String? _mlkitQueryTag;
 
-  // Voice
-  final _stt = SpeechToText();
-  bool _sttReady = false;
-  bool _isListening = false;
-  late AnimationController _pulseCtrl;
-  late Animation<double> _pulseAnim;
-
   @override
   void initState() {
     super.initState();
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    )..repeat(reverse: true);
-    _pulseAnim = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
     _loadRecentSearches();
-    _initStt();
     // Warm up ML Kit entity extractor in the background — doesn't block UI
     NLSearchEngine.instance.warmUp();
     WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
   }
 
-  Future<void> _initStt() async {
-    final ok = await _stt.initialize(onError: (_) {
-      if (mounted) setState(() => _isListening = false);
-    });
-    if (mounted) setState(() => _sttReady = ok);
-  }
-
   @override
   void dispose() {
     _debounce?.cancel();
-    _pulseCtrl.dispose();
     _controller.dispose();
     _focus.dispose();
-    _stt.stop();
     super.dispose();
   }
 
   // ── Voice ────────────────────────────────────────────────────────────────
 
-  Future<void> _toggleVoice() async {
+  Future<void> _openUnifiedVoiceAssistant() async {
     HapticFeedback.lightImpact();
-    if (_isListening) {
-      await _stt.stop();
-      setState(() => _isListening = false);
-      return;
-    }
-    if (!_sttReady) {
-      final ok = await _stt.initialize();
-      if (!ok || !mounted) return;
-      setState(() => _sttReady = ok);
-    }
-    setState(() => _isListening = true);
-    await _stt.listen(
-      onResult: (result) {
-        if (!mounted) return;
-        final text = result.recognizedWords;
-        _controller.text = text;
-        _onQueryChanged(text);
-        if (result.finalResult) {
-          setState(() => _isListening = false);
-        }
-      },
-      listenFor: const Duration(seconds: 20),
-      pauseFor: const Duration(milliseconds: 2500),
-      cancelOnError: true,
-      partialResults: true,
-      localeId: 'en_IN',
+    final nav = Navigator.of(context, rootNavigator: true);
+    final assistantContext = nav.context;
+    nav.pop();
+    await AIVoiceCommandService.openAssistant(
+      assistantContext,
+      source: 'search',
+      autoStart: true,
     );
   }
 
@@ -1272,28 +1228,19 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
                       clearButtonMode: OverlayVisibilityMode.editing,
                     ),
                   ),
-                  // Mic button
-                  if (_sttReady || !_isListening) ...[
-                    GestureDetector(
-                      onTap: _toggleVoice,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
-                        child: AnimatedBuilder(
-                          animation: _pulseAnim,
-                          builder: (_, __) => Icon(
-                            _isListening
-                                ? CupertinoIcons.mic_fill
-                                : CupertinoIcons.mic,
-                            size: 18,
-                            color: _isListening
-                                ? const Color(0xFF6C63FF)
-                                    .withValues(alpha: _pulseAnim.value)
-                                : AppStyles.getSecondaryTextColor(context),
-                          ),
-                        ),
+                  // Uses the same AI voice assistant as AI Entry, Quick Entry,
+                  // and the hardware double-press shortcut.
+                  GestureDetector(
+                    onTap: _openUnifiedVoiceAssistant,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Icon(
+                        CupertinoIcons.mic,
+                        size: 18,
+                        color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
-                  ],
+                  ),
                   CupertinoButton(
                     padding: EdgeInsets.zero,
                     minimumSize: Size.zero,
@@ -1310,8 +1257,6 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
                 ],
               ),
             ),
-            // Listening banner
-            if (_isListening) _buildListeningBanner(context),
             const SizedBox(height: Spacing.sm),
             // Results area
             Expanded(
@@ -1335,40 +1280,6 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
               ),
             ),
             const SizedBox(height: Spacing.md),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildListeningBanner(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _pulseAnim,
-      builder: (_, __) => Container(
-        margin: const EdgeInsets.fromLTRB(Spacing.md, Spacing.xs, Spacing.md, 0),
-        padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF6C63FF).withValues(alpha: 0.12 * _pulseAnim.value + 0.06),
-          borderRadius: BorderRadius.circular(Radii.lg),
-          border: Border.all(
-            color: const Color(0xFF6C63FF).withValues(alpha: 0.3),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(CupertinoIcons.mic_fill,
-                size: 14,
-                color: const Color(0xFF6C63FF).withValues(alpha: _pulseAnim.value)),
-            const SizedBox(width: 6),
-            Text(
-              'Listening… speak your query',
-              style: TextStyle(
-                fontSize: TypeScale.caption,
-                color: const Color(0xFF6C63FF),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ],
         ),
       ),

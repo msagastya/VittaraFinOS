@@ -11,6 +11,7 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/services/integrity_check_service.dart';
 import 'package:vittara_fin_os/services/security/device_security_service.dart';
 import 'package:vittara_fin_os/ui/backup_restore_screen.dart';
+import 'package:vittara_fin_os/ui/device_sync_screen.dart';
 import 'package:vittara_fin_os/ui/recovery_code_save_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -218,6 +219,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: SemanticColors.error,
               onTap: () => Navigator.of(context).push(
                 FadeScalePageRoute(page: const BackupRestoreScreen()),
+              ),
+            ),
+            _buildDivider(context),
+            _buildNavRow(
+              context,
+              icon: CupertinoIcons.arrow_2_circlepath,
+              title: 'Device Sync',
+              subtitle: 'Manual encrypted mobile ↔ Mac sync',
+              value: null,
+              color: AppStyles.aetherTeal,
+              onTap: () => Navigator.of(context).push(
+                FadeScalePageRoute(page: const DeviceSyncScreen()),
               ),
             ),
             _buildDivider(context),

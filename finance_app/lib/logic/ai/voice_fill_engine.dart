@@ -9,6 +9,7 @@ enum VoiceIntent {
   addIncome,
   addTransfer,
   addInvestment,
+  setRecurring,
   setBudget,
   setGoal,
   query,
@@ -25,6 +26,9 @@ class FillStep {
   final bool isComplete;
   final String? followUpQuestion;
   final String confirmationText;
+  final double confidence;
+  final String interpretation;
+  final List<String> reasoning;
 
   /// Fields that are uncertain — UI should highlight these for user review.
   final List<String> uncertainFields;
@@ -35,6 +39,9 @@ class FillStep {
     required this.isComplete,
     this.followUpQuestion,
     this.confirmationText = '',
+    this.confidence = 0,
+    this.interpretation = '',
+    this.reasoning = const [],
     this.uncertainFields = const [],
   });
 }
@@ -60,6 +67,7 @@ class VoiceFillEngine {
 
   Map<String, dynamic> _fields = {};
   List<String> _uncertainFields = [];
+  final List<String> _reasoning = [];
   VoiceIntent _intent = VoiceIntent.unknown;
 
   EntityExtractor? _extractor;
@@ -98,6 +106,7 @@ class VoiceFillEngine {
   void reset() {
     _fields = {};
     _uncertainFields = [];
+    _reasoning.clear();
     _intent = VoiceIntent.unknown;
   }
 
@@ -147,6 +156,7 @@ class VoiceFillEngine {
 
     // Mark uncertain fields for UI highlighting
     _markUncertainFields(lower);
+    _applyPersonalNlpMetadata(lower);
 
     return _evaluate();
   }
@@ -164,13 +174,26 @@ class VoiceFillEngine {
         final amt = _extractAmountRules(lower);
         if (amt != null) {
           _fields['amount'] = amt;
+          _reasoning.add('amount');
           _uncertainFields.remove('amount');
+          _applyPersonalNlpMetadata(lower);
         }
         break;
       case 'merchant':
         final w = answer.trim().split(' ').where((x) => x.length > 1).join(' ');
         _fields['merchant'] = _titleCase(w.isNotEmpty ? w : answer.trim());
+        _reasoning.add('merchant');
         _uncertainFields.remove('merchant');
+        _applyPersonalNlpMetadata(lower);
+        break;
+      case 'date':
+        final date = _extractDate(lower);
+        if (date != null) {
+          _fields['date'] = date;
+          _reasoning.add('date');
+          _uncertainFields.remove('date');
+          _applyPersonalNlpMetadata(lower);
+        }
         break;
     }
 
@@ -261,34 +284,56 @@ class VoiceFillEngine {
 
   void _extractFieldsRules(String raw, String lower) {
     final amt = _extractAmountRules(lower);
-    if (amt != null) _fields['amount'] = amt;
+    if (amt != null) {
+      _fields['amount'] = amt;
+      _reasoning.add('amount');
+    }
 
     final date = _extractDate(lower);
-    if (date != null) _fields['date'] = date;
+    if (date != null) {
+      _fields['date'] = date;
+      _reasoning.add('date');
+    }
 
     final acc = _matchAccount(lower);
-    if (acc != null) _fields['account'] = acc;
+    if (acc != null) {
+      _fields['account'] = acc;
+      _reasoning.add('account');
+    }
 
     if (_intent == VoiceIntent.addTransfer ||
         _anyOf(lower, [' to ', ' mein ', ' ke liye '])) {
       final toAcc = _extractToAccount(lower);
-      if (toAcc != null) _fields['toAccount'] = toAcc;
+      if (toAcc != null) {
+        _fields['toAccount'] = toAcc;
+        _reasoning.add('toAccount');
+      }
     }
 
     final cat = _matchCategory(lower);
-    if (cat != null) _fields['category'] = cat;
+    if (cat != null) {
+      _fields['category'] = cat;
+      _reasoning.add('category');
+    }
 
     final merchant = _extractMerchant(lower, raw);
-    if (merchant != null) _fields['merchant'] = merchant;
+    if (merchant != null) {
+      _fields['merchant'] = merchant;
+      _reasoning.add('merchant');
+    }
 
     final invType = _extractInvestmentType(lower);
-    if (invType != null) _fields['investmentType'] = invType;
+    if (invType != null) {
+      _fields['investmentType'] = invType;
+      _reasoning.add('investmentType');
+    }
 
     final up = _extractUnitsAndPrice(lower);
     if (up != null) {
       _fields['units'] = up.$1;
       _fields['pricePerUnit'] = up.$2;
       _fields['amount'] = up.$1 * up.$2;
+      _reasoning.add('unitsAndPrice');
     }
   }
 
@@ -329,6 +374,99 @@ class VoiceFillEngine {
     }
   }
 
+  void _applyPersonalNlpMetadata(String lower) {
+    var confidence = 0.18;
+    final reasons = _reasoning.toSet().toList()..sort();
+
+    if (_intent != VoiceIntent.unknown) confidence += 0.22;
+    if (_fields.containsKey('amount')) confidence += 0.22;
+    if (_fields.containsKey('category')) confidence += 0.12;
+    if (_fields.containsKey('account')) confidence += 0.10;
+    if (_fields.containsKey('merchant')) confidence += 0.10;
+    if (_fields.containsKey('date')) confidence += 0.04;
+    if (_fields.containsKey('investmentType')) confidence += 0.08;
+    if (_intent == VoiceIntent.addTransfer &&
+        _fields.containsKey('account') &&
+        _fields.containsKey('toAccount')) {
+      confidence += 0.10;
+    }
+
+    confidence -= _uncertainFields.length * 0.08;
+    if (lower.trim().split(RegExp(r'\s+')).length <= 2) confidence -= 0.08;
+    confidence = confidence.clamp(0.05, 0.98).toDouble();
+
+    _fields['nlpConfidence'] = confidence;
+    _fields['nlpReasoning'] = reasons;
+    _fields['nlpInterpretation'] = _buildInterpretation();
+  }
+
+  String _buildInterpretation() {
+    final amount = _fields['amount'] as double?;
+    final merchant = _fields['merchant'] as String?;
+    final category = _fields['category'] as String?;
+    final account = _fields['account'] as String?;
+    final toAccount = _fields['toAccount'] as String?;
+    final invType = _fields['investmentType'] as String?;
+    final target = merchant ?? category ?? invType;
+    final amountText = amount == null ? null : '₹${_fmtAmt(amount)}';
+
+    switch (_intent) {
+      case VoiceIntent.addExpense:
+        return [
+          'expense',
+          if (amountText != null) amountText,
+          if (target != null) target,
+          if (account != null) 'from $account',
+        ].join(' ');
+      case VoiceIntent.addIncome:
+        return [
+          'income',
+          if (amountText != null) amountText,
+          if (target != null) target,
+          if (account != null) 'to $account',
+        ].join(' ');
+      case VoiceIntent.addTransfer:
+        return [
+          'transfer',
+          if (amountText != null) amountText,
+          if (account != null) 'from $account',
+          if (toAccount != null) 'to $toAccount',
+        ].join(' ');
+      case VoiceIntent.addInvestment:
+        return [
+          'investment',
+          if (amountText != null) amountText,
+          if (invType != null) invType,
+        ].join(' ');
+      case VoiceIntent.setRecurring:
+        return [
+          'recurring',
+          if (amountText != null) amountText,
+          target ?? 'EMI',
+        ].join(' ');
+      case VoiceIntent.setBudget:
+        return [
+          'budget',
+          if (amountText != null) amountText,
+          if (category != null) category,
+        ].join(' ');
+      case VoiceIntent.setGoal:
+        return [
+          'goal',
+          if (amountText != null) amountText,
+          if (target != null) target,
+        ].join(' ');
+      case VoiceIntent.query:
+      case VoiceIntent.queryBalance:
+      case VoiceIntent.queryGoal:
+        return 'question';
+      case VoiceIntent.navigate:
+        return 'navigation';
+      case VoiceIntent.unknown:
+        return 'unknown';
+    }
+  }
+
   // ── Required fields ───────────────────────────────────────────────────────
 
   List<String> _missingRequired() {
@@ -337,9 +475,13 @@ class VoiceFillEngine {
       case VoiceIntent.addIncome:
       case VoiceIntent.addTransfer:
       case VoiceIntent.addInvestment:
+      case VoiceIntent.setRecurring:
       case VoiceIntent.setBudget:
       case VoiceIntent.setGoal:
         if (!_fields.containsKey('amount')) return ['amount'];
+        if (_intent == VoiceIntent.setRecurring && !_fields.containsKey('date')) {
+          return ['date'];
+        }
         return [];
       default:
         return [];
@@ -356,6 +498,9 @@ class VoiceFillEngine {
         fields: Map.from(_fields),
         isComplete: false,
         followUpQuestion: _questionFor(missing.first),
+        confidence: (_fields['nlpConfidence'] as double?) ?? 0,
+        interpretation: _fields['nlpInterpretation'] as String? ?? '',
+        reasoning: List<String>.from(_fields['nlpReasoning'] as List? ?? const []),
         uncertainFields: List.from(_uncertainFields),
       );
     }
@@ -364,6 +509,9 @@ class VoiceFillEngine {
       fields: Map.from(_fields),
       isComplete: true,
       confirmationText: _buildConfirmation(),
+      confidence: (_fields['nlpConfidence'] as double?) ?? 0,
+      interpretation: _fields['nlpInterpretation'] as String? ?? '',
+      reasoning: List<String>.from(_fields['nlpReasoning'] as List? ?? const []),
       uncertainFields: List.from(_uncertainFields),
     );
   }
@@ -431,6 +579,22 @@ class VoiceFillEngine {
       'lagaya',
       'lagaye',
     ])) return VoiceIntent.addInvestment;
+
+    // Budget
+    if (_anyOf(lower, [
+      'set emi',
+      'emi due',
+      'emi reminder',
+      'loan emi',
+      'monthly emi',
+      'remind emi',
+      'recurring emi',
+      'bill reminder',
+      'recurring bill',
+      'monthly bill',
+      'autopay',
+      'auto pay',
+    ])) return VoiceIntent.setRecurring;
 
     // Budget
     if (_anyOf(lower, [
@@ -1020,9 +1184,10 @@ class VoiceFillEngine {
   // ── Account matching ──────────────────────────────────────────────────────
 
   String? _matchAccount(String lower) {
-    // Direct name match (case-insensitive, fuzzy-normalised)
-    for (final name in accountNames) {
-      if (_fuzzyContains(lower, name)) return name;
+    final direct = _bestNamedMatch(lower, accountNames, minimumScore: 0.72);
+    if (direct != null) {
+      _reasoning.add('fuzzyAccount');
+      return direct;
     }
     // Type aliases
     const aliases = <String, List<String>>{
@@ -1284,8 +1449,10 @@ class VoiceFillEngine {
 
   String? _matchCategory(String lower) {
     // 1. Check user-defined category names (fuzzy match)
-    for (final name in categoryNames) {
-      if (_fuzzyContains(lower, name)) return name;
+    final direct = _bestNamedMatch(lower, categoryNames, minimumScore: 0.74);
+    if (direct != null) {
+      _reasoning.add('fuzzyCategory');
+      return direct;
     }
 
     // 2. Check built-in keyword map
@@ -1332,6 +1499,104 @@ class VoiceFillEngine {
   /// Fuzzy contains — normalises both sides before checking.
   bool _fuzzyContains(String haystack, String needle) {
     return _normCategoryName(haystack).contains(_normCategoryName(needle));
+  }
+
+  String? _bestNamedMatch(
+    String utterance,
+    List<String> names, {
+    required double minimumScore,
+  }) {
+    String? bestName;
+    var bestScore = 0.0;
+    final normalizedUtterance = _normalizeMatchText(utterance);
+    final utteranceTokens = normalizedUtterance
+        .split(RegExp(r'\s+'))
+        .where((t) => t.length > 1)
+        .toList();
+
+    for (final name in names) {
+      final normalizedName = _normalizeMatchText(name);
+      if (normalizedName.isEmpty) continue;
+
+      var score = 0.0;
+      if (normalizedUtterance.contains(normalizedName)) {
+        score = 1.0;
+      } else {
+        final nameTokens = normalizedName
+            .split(RegExp(r'\s+'))
+            .where((t) => t.length > 1)
+            .toList();
+        if (nameTokens.isNotEmpty) {
+          var tokenScore = 0.0;
+          for (final token in nameTokens) {
+            tokenScore += _bestTokenSimilarity(token, utteranceTokens);
+          }
+          score = tokenScore / nameTokens.length;
+        }
+
+        final acronym = nameTokens.map((t) => t[0]).join();
+        if (acronym.length >= 2 &&
+            RegExp('\\b$acronym\\b').hasMatch(normalizedUtterance)) {
+          score = math.max(score, 0.88);
+        }
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestName = name;
+      }
+    }
+
+    return bestScore >= minimumScore ? bestName : null;
+  }
+
+  String _normalizeMatchText(String value) {
+    return _normCategoryName(value)
+        .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
+        .replaceAll(RegExp(r'\b(?:bank|account|card|wallet|savings?)\b'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  double _bestTokenSimilarity(String token, List<String> candidates) {
+    if (candidates.isEmpty) return 0;
+    var best = 0.0;
+    for (final candidate in candidates) {
+      if (candidate == token) return 1.0;
+      if (candidate.contains(token) || token.contains(candidate)) {
+        best = math.max(best, 0.86);
+        continue;
+      }
+      best = math.max(best, _similarity(token, candidate));
+    }
+    return best;
+  }
+
+  double _similarity(String a, String b) {
+    if (a.isEmpty || b.isEmpty) return 0;
+    final distance = _levenshtein(a, b);
+    final maxLen = math.max(a.length, b.length);
+    return 1 - (distance / maxLen);
+  }
+
+  int _levenshtein(String a, String b) {
+    final previous = List<int>.generate(b.length + 1, (i) => i);
+    final current = List<int>.filled(b.length + 1, 0);
+
+    for (var i = 0; i < a.length; i++) {
+      current[0] = i + 1;
+      for (var j = 0; j < b.length; j++) {
+        final cost = a.codeUnitAt(i) == b.codeUnitAt(j) ? 0 : 1;
+        current[j + 1] = math.min(
+          math.min(current[j] + 1, previous[j + 1] + 1),
+          previous[j] + cost,
+        );
+      }
+      for (var j = 0; j < previous.length; j++) {
+        previous[j] = current[j];
+      }
+    }
+    return previous[b.length];
   }
 
   // ── Merchant extraction ───────────────────────────────────────────────────
@@ -1621,6 +1886,25 @@ class VoiceFillEngine {
       return today.subtract(const Duration(days: 7));
     }
 
+    final dayOfMonth = RegExp(
+      r'\b(?:every|on|due|date|tarikh|tareekh)?\s*(\d{1,2})(?:st|nd|rd|th)?\b',
+      caseSensitive: false,
+    ).allMatches(lower).map((m) => int.tryParse(m.group(1)!)).whereType<int>();
+    for (final day in dayOfMonth) {
+      if (day >= 1 && day <= 31) {
+        final maxThisMonth = DateTime(now.year, now.month + 1, 0).day;
+        final safeDayThisMonth = day.clamp(1, maxThisMonth);
+        var candidate = DateTime(now.year, now.month, safeDayThisMonth);
+        if (candidate.isBefore(today)) {
+          final nextMonth = now.month == 12 ? 1 : now.month + 1;
+          final nextYear = now.month == 12 ? now.year + 1 : now.year;
+          final maxNextMonth = DateTime(nextYear, nextMonth + 1, 0).day;
+          candidate = DateTime(nextYear, nextMonth, day.clamp(1, maxNextMonth));
+        }
+        return candidate;
+      }
+    }
+
     // Named weekdays (past)
     const days = [
       'monday',
@@ -1692,6 +1976,8 @@ class VoiceFillEngine {
         return 'Kitna tha? (How much was it?)';
       case 'merchant':
         return 'Kahan pe? (What was it for or where?)';
+      case 'date':
+        return 'Kis date ko due hai? For example, say "5th every month".';
       default:
         return 'Can you say that again?';
     }
@@ -1729,6 +2015,11 @@ class VoiceFillEngine {
           return '${units.toInt()} $type at ₹${price?.toInt() ?? 0} each — $amtStr. Save?';
         }
         return '$amtStr in $type. Save?';
+      case VoiceIntent.setRecurring:
+        final date = _fields['date'] as DateTime?;
+        final name = merchant ?? cat ?? 'EMI';
+        final due = date == null ? '' : ' due every month on ${date.day}';
+        return 'Set monthly $name reminder for $amtStr$due. Save?';
       case VoiceIntent.setBudget:
         return 'Set ${cat ?? "category"} budget to $amtStr. Save?';
       case VoiceIntent.setGoal:
@@ -1748,9 +2039,9 @@ class VoiceFillEngine {
       .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
       .join(' ');
   String _fmtAmt(double v) {
-    if (v >= 10000000) return '₹${(v / 10000000).toStringAsFixed(1)}Cr';
-    if (v >= 100000) return '₹${(v / 100000).toStringAsFixed(1)}L';
-    if (v >= 1000) return '₹${(v / 1000).toStringAsFixed(0)}K';
-    return '₹${v.toInt()}';
+    if (v >= 10000000) return '${(v / 10000000).toStringAsFixed(1)}Cr';
+    if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
+    return v.toInt().toString();
   }
 }

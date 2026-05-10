@@ -357,6 +357,8 @@ class _VoiceResultCardState extends State<VoiceResultCard> {
         return CupertinoColors.systemBlue;
       case VoiceIntent.addInvestment:
         return const Color(0xFF6C63FF);
+      case VoiceIntent.setRecurring:
+        return CupertinoColors.systemIndigo;
       case VoiceIntent.setBudget:
         return const Color(0xFFFF9800);
       case VoiceIntent.setGoal:
@@ -376,6 +378,8 @@ class _VoiceResultCardState extends State<VoiceResultCard> {
         return CupertinoIcons.arrow_right_arrow_left;
       case VoiceIntent.addInvestment:
         return CupertinoIcons.chart_bar_square_fill;
+      case VoiceIntent.setRecurring:
+        return CupertinoIcons.repeat;
       case VoiceIntent.setBudget:
         return CupertinoIcons.gauge;
       case VoiceIntent.setGoal:
@@ -395,6 +399,8 @@ class _VoiceResultCardState extends State<VoiceResultCard> {
         return 'Transfer';
       case VoiceIntent.addInvestment:
         return 'Investment';
+      case VoiceIntent.setRecurring:
+        return 'Recurring';
       case VoiceIntent.setBudget:
         return 'Set Budget';
       case VoiceIntent.setGoal:

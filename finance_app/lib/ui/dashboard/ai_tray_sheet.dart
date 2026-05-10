@@ -17,7 +17,6 @@ import 'package:vittara_fin_os/ui/ocr/screenshot_import_sheet.dart';
 import 'package:vittara_fin_os/ui/ocr/statement_import_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
-import 'package:vittara_fin_os/ui/voice/voice_overlay_widget.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 
 /// Semi-transparent floating button that sits above the SMS button (or in its
@@ -131,13 +130,11 @@ class _AITraySheet extends StatelessWidget {
             subtitle: 'Say it → review in Quick Entry',
             onTap: () async {
               Navigator.pop(context);
-              final result = await VoiceOverlayWidget.show(
+              await AIVoiceCommandService.openAssistant(
                 rootContext,
-                showConfirmation: false,
+                source: 'aiTray',
+                autoStart: true,
               );
-              if (result != null && rootContext.mounted) {
-                await AIVoiceCommandService.handleResult(rootContext, result);
-              }
             },
           ),
           _AITrayRow(

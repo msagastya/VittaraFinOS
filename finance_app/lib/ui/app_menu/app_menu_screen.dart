@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/services/ai_voice_command_service.dart';
 import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
+import 'package:vittara_fin_os/ui/device_sync_screen.dart';
 import 'package:vittara_fin_os/ui/settings/csv_import_screen.dart';
 import 'package:vittara_fin_os/ui/manage/reports_analysis_screen.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
@@ -105,6 +106,15 @@ class DashboardAppMenuScreen extends StatelessWidget {
                       color: SemanticColors.tags,
                       onTap: () => Navigator.of(context).push(
                         FadeScalePageRoute(page: const SettingsScreen()),
+                      ),
+                    ),
+                    _MenuItem(
+                      title: 'Device Sync',
+                      subtitle: 'Encrypted manual sync between mobile and Mac',
+                      icon: CupertinoIcons.arrow_2_circlepath,
+                      color: AppStyles.aetherTeal,
+                      onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(page: const DeviceSyncScreen()),
                       ),
                     ),
                     _MenuItem(

@@ -42,6 +42,7 @@ class VoiceTransactionHandler {
         return false;
       case VoiceIntent.setBudget:
       case VoiceIntent.setGoal:
+      case VoiceIntent.setRecurring:
         // Future: push creation wizard pre-filled
         return false;
       case VoiceIntent.unknown:

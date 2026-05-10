@@ -50,5 +50,42 @@ void main() {
     expect(step.intent, VoiceIntent.addInvestment);
     expect(step.isComplete, isTrue);
     expect(step.fields['amount'], 10000);
+    expect(step.fields['nlpConfidence'], greaterThan(0.5));
+  });
+
+  test('adds local NLP confidence and interpretation metadata', () async {
+    final step = await engine.processAsync('paid 500 on Swiggy from SBI');
+
+    expect(step.confidence, greaterThan(0.7));
+    expect(step.interpretation.toLowerCase(), contains('expense'));
+    expect(step.reasoning, contains('amount'));
+    expect(step.fields['nlpReasoning'], contains('account'));
+  });
+
+  test('fuzzy matches minor account typo locally', () async {
+    final step = await engine.processAsync('paid 500 for lunch from sbii');
+
+    expect(step.intent, VoiceIntent.addExpense);
+    expect(step.fields['account'], 'SBI Savings');
+    expect(step.uncertainFields, isNot(contains('amount')));
+  });
+
+  test('parses EMI recurring reminder with due date', () async {
+    final step = await engine.processAsync('set emi 12000 every 5th from SBI');
+
+    expect(step.intent, VoiceIntent.setRecurring);
+    expect(step.isComplete, isTrue);
+    expect(step.fields['amount'], 12000);
+    expect(step.fields['date'], isA<DateTime>());
+    expect((step.fields['date'] as DateTime).day, 5);
+    expect(step.confirmationText.toLowerCase(), contains('monthly'));
+  });
+
+  test('asks EMI due date follow-up when date is missing', () async {
+    final step = await engine.processAsync('set emi 12000 from SBI');
+
+    expect(step.intent, VoiceIntent.setRecurring);
+    expect(step.isComplete, isFalse);
+    expect(step.followUpQuestion?.toLowerCase(), contains('date'));
   });
 }
