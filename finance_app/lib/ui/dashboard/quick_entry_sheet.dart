@@ -1344,7 +1344,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
             top: false,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: AppStyles.sheetMaxHeight(context),
+                maxHeight: RLayout.adaptiveSheetMaxHeight(context),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart' as sp;
 import 'package:vittara_fin_os/ui/styles/app_springs.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CardDeckView — Bloomberg-level swipeable card deck
@@ -64,6 +65,7 @@ class _CardDeckViewState extends State<CardDeckView>
 
   /// Drives the one-shot swipe-hint animation (15dp right → spring back).
   late final AnimationController _hintController;
+  String? _layoutClass;
 
   @override
   void initState() {
@@ -99,6 +101,27 @@ class _CardDeckViewState extends State<CardDeckView>
     _hintController = AnimationController.unbounded(vsync: this);
 
     _checkSwipeHint();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nextClass = Breakpoints.sizeClass(context);
+    if (_layoutClass == null) {
+      _layoutClass = nextClass;
+      return;
+    }
+    if (_layoutClass == nextClass) return;
+    _layoutClass = nextClass;
+    _swipeController.stop();
+    _returnController.stop();
+    _promotionController.stop();
+    _hintController.stop();
+    setState(() {
+      _dragOffset = 0;
+      _isSwiping = false;
+      _swipingRight = false;
+    });
   }
 
   Future<void> _checkSwipeHint() async {
@@ -248,12 +271,10 @@ class _CardDeckViewState extends State<CardDeckView>
     final baseOpacity = 1.0 - depth * 0.15;
 
     // During promotion, depth[1] approaches depth[0] values, depth[2] approaches depth[1]
-    final targetScale = depth > 0
-        ? (1.0 - (depth - 1) * widget.depthScaleStep)
-        : 1.0;
-    final targetTranslateY = depth > 0
-        ? ((depth - 1) * widget.depthTranslateStep)
-        : 0.0;
+    final targetScale =
+        depth > 0 ? (1.0 - (depth - 1) * widget.depthScaleStep) : 1.0;
+    final targetTranslateY =
+        depth > 0 ? ((depth - 1) * widget.depthTranslateStep) : 0.0;
     final targetOpacity = depth > 0 ? (1.0 - (depth - 1) * 0.15) : 1.0;
 
     double scale, translateY, opacity;
@@ -291,16 +312,18 @@ class _CardDeckViewState extends State<CardDeckView>
             screenWidth *
             1.3 *
             _swipeController.value;
-        rotationZ = (_swipingRight ? 1 : -1) *
-            0.3 *
-            _swipeController.value;
+        rotationZ = (_swipingRight ? 1 : -1) * 0.3 * _swipeController.value;
       }
     }
 
     return Positioned.fill(
       child: AnimatedBuilder(
-        animation: Listenable.merge(
-            [_swipeController, _returnController, _promotionController, _hintController]),
+        animation: Listenable.merge([
+          _swipeController,
+          _returnController,
+          _promotionController,
+          _hintController
+        ]),
         builder: (context, child) {
           // Recalculate live values inside AnimatedBuilder for smooth animation
           double liveScale = scale;
@@ -323,10 +346,10 @@ class _CardDeckViewState extends State<CardDeckView>
           if (_promotionController.isAnimating && depth > 0) {
             final p = _promotionController.value;
             liveScale = baseScale + (targetScale - baseScale) * p;
-            liveTranslateY = baseTranslateY +
-                (targetTranslateY - baseTranslateY) * p;
-            liveOpacity =
-                (baseOpacity + (targetOpacity - baseOpacity) * p).clamp(0.0, 1.0);
+            liveTranslateY =
+                baseTranslateY + (targetTranslateY - baseTranslateY) * p;
+            liveOpacity = (baseOpacity + (targetOpacity - baseOpacity) * p)
+                .clamp(0.0, 1.0);
           }
 
           if (_returnController.isAnimating && depth == 0) {

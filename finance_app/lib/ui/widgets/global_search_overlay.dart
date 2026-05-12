@@ -35,13 +35,22 @@ import 'package:vittara_fin_os/ui/manage/goals/goal_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/logic/search/nl_search_engine.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 const String _kRecentSearchesKey = 'global_search_recent';
 const int _kMaxRecentSearches = 10;
 
-enum _ResultType { transaction, account, investment, goal, budget, contact, action }
+enum _ResultType {
+  transaction,
+  account,
+  investment,
+  goal,
+  budget,
+  contact,
+  action
+}
 
 class _SearchResult {
   final _ResultType type;
@@ -51,6 +60,7 @@ class _SearchResult {
   final double? amount;
   final IconData icon;
   final Color color;
+
   /// Called after the search overlay is dismissed.
   final VoidCallback onNavigate;
 
@@ -96,7 +106,6 @@ class _ParsedQuery {
 /// Strategy: normalise synonyms → match date/type/amount signals (longest
 /// match wins) → category hints → anything left = keyword filter.
 class _NLQueryParser {
-
   // ── Synonym normalisation — applied before everything else ────────────────
   static String _normaliseSynonyms(String q) {
     var s = q;
@@ -104,9 +113,10 @@ class _NLQueryParser {
     s = s.replaceAll(RegExp(r'\s*&\s*'), ' and ');
     s = s.replaceAll(RegExp(r'\s*\+\s*'), ' and ');
     // Currency words
-    s = s.replaceAll(RegExp(r'\b(?:rupaye|rupaiye|rupaye|paisa|paise|rupe)\b'), 'rupees');
+    s = s.replaceAll(
+        RegExp(r'\b(?:rupaye|rupaiye|rupaye|paisa|paise|rupe)\b'), 'rupees');
     // Devanagari digits → ASCII
-    const d = ['०','१','२','३','४','५','६','७','८','९'];
+    const d = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
     for (int i = 0; i < d.length; i++) s = s.replaceAll(d[i], '$i');
     return s;
   }
@@ -114,80 +124,320 @@ class _NLQueryParser {
   // ── Category signals — English + Hindi + Hinglish ─────────────────────────
   static const _catMap = <String, List<String>>{
     'Food': [
-      'food', 'eat', 'eating', 'ate', 'lunch', 'dinner', 'breakfast',
-      'snack', 'snacks', 'cafe', 'coffee', 'chai', 'tea', 'restaurant',
-      'dining', 'swiggy', 'zomato', 'dunzo', 'khaana', 'khana', 'bhojan',
-      'khaya', 'nashta', 'pizza', 'burger', 'biryani', 'sandwich', 'hotel',
-      'dhaba', 'tapri', 'dominos', 'kfc', 'mcdonalds', 'subway', 'starbucks',
-      'chaayos', 'barbeque', 'mithai', 'sweets', 'juice', 'ice cream',
-      'haldiram', 'bikanervala', 'wow momo', 'pizza hut', 'burger king',
+      'food',
+      'eat',
+      'eating',
+      'ate',
+      'lunch',
+      'dinner',
+      'breakfast',
+      'snack',
+      'snacks',
+      'cafe',
+      'coffee',
+      'chai',
+      'tea',
+      'restaurant',
+      'dining',
+      'swiggy',
+      'zomato',
+      'dunzo',
+      'khaana',
+      'khana',
+      'bhojan',
+      'khaya',
+      'nashta',
+      'pizza',
+      'burger',
+      'biryani',
+      'sandwich',
+      'hotel',
+      'dhaba',
+      'tapri',
+      'dominos',
+      'kfc',
+      'mcdonalds',
+      'subway',
+      'starbucks',
+      'chaayos',
+      'barbeque',
+      'mithai',
+      'sweets',
+      'juice',
+      'ice cream',
+      'haldiram',
+      'bikanervala',
+      'wow momo',
+      'pizza hut',
+      'burger king',
     ],
     'Groceries': [
-      'grocery', 'groceries', 'vegetables', 'veggies', 'sabzi', 'subzi',
-      'fruits', 'milk', 'doodh', 'kiryana', 'kirana', 'ration', 'dal',
-      'chawal', 'rice', 'atta', 'flour', 'oil', 'blinkit', 'zepto',
-      'bigbasket', 'dmart', 'reliance fresh', 'more supermarket', 'grofers',
-      'instamart', 'jiomart', 'smart bazaar',
+      'grocery',
+      'groceries',
+      'vegetables',
+      'veggies',
+      'sabzi',
+      'subzi',
+      'fruits',
+      'milk',
+      'doodh',
+      'kiryana',
+      'kirana',
+      'ration',
+      'dal',
+      'chawal',
+      'rice',
+      'atta',
+      'flour',
+      'oil',
+      'blinkit',
+      'zepto',
+      'bigbasket',
+      'dmart',
+      'reliance fresh',
+      'more supermarket',
+      'grofers',
+      'instamart',
+      'jiomart',
+      'smart bazaar',
     ],
     'Transport': [
-      'transport', 'travel', 'uber', 'ola', 'rapido', 'cab', 'taxi', 'auto',
-      'rickshaw', 'metro', 'bus', 'train', 'local', 'petrol', 'fuel',
-      'diesel', 'cng', 'irctc', 'flight', 'airport', 'namma yatri',
-      'yatri', 'gaadi', 'bike', 'ride', 'makemytrip', 'goibibo', 'cleartrip',
-      'ixigo', 'redbus', 'abhibus', 'toll', 'fastag', 'indigo', 'air india',
-      'spicejet', 'safar',
+      'transport',
+      'travel',
+      'uber',
+      'ola',
+      'rapido',
+      'cab',
+      'taxi',
+      'auto',
+      'rickshaw',
+      'metro',
+      'bus',
+      'train',
+      'local',
+      'petrol',
+      'fuel',
+      'diesel',
+      'cng',
+      'irctc',
+      'flight',
+      'airport',
+      'namma yatri',
+      'yatri',
+      'gaadi',
+      'bike',
+      'ride',
+      'makemytrip',
+      'goibibo',
+      'cleartrip',
+      'ixigo',
+      'redbus',
+      'abhibus',
+      'toll',
+      'fastag',
+      'indigo',
+      'air india',
+      'spicejet',
+      'safar',
     ],
     'Shopping': [
-      'shopping', 'shop', 'amazon', 'flipkart', 'myntra', 'meesho', 'ajio',
-      'nykaa', 'tata cliq', 'snapdeal', 'shopsy', 'clothes', 'clothing',
-      'shoes', 'kapde', 'dress', 'shirt', 'pant', 'jeans', 'kurta', 'saree',
-      'watch', 'gadget', 'electronics', 'mobile', 'laptop', 'kharidna',
+      'shopping',
+      'shop',
+      'amazon',
+      'flipkart',
+      'myntra',
+      'meesho',
+      'ajio',
+      'nykaa',
+      'tata cliq',
+      'snapdeal',
+      'shopsy',
+      'clothes',
+      'clothing',
+      'shoes',
+      'kapde',
+      'dress',
+      'shirt',
+      'pant',
+      'jeans',
+      'kurta',
+      'saree',
+      'watch',
+      'gadget',
+      'electronics',
+      'mobile',
+      'laptop',
+      'kharidna',
       'kharid',
     ],
     'Entertainment': [
-      'entertainment', 'netflix', 'prime', 'hotstar', 'disney', 'spotify',
-      'youtube', 'zee5', 'sonyliv', 'jiosaavn', 'wynk', 'movie', 'cinema',
-      'film', 'pvr', 'inox', 'cinepolis', 'multiplex', 'bookmyshow',
-      'game', 'gaming', 'play', 'concert', 'show', 'event', 'ticket',
-      'tamaasha', 'timepass',
+      'entertainment',
+      'netflix',
+      'prime',
+      'hotstar',
+      'disney',
+      'spotify',
+      'youtube',
+      'zee5',
+      'sonyliv',
+      'jiosaavn',
+      'wynk',
+      'movie',
+      'cinema',
+      'film',
+      'pvr',
+      'inox',
+      'cinepolis',
+      'multiplex',
+      'bookmyshow',
+      'game',
+      'gaming',
+      'play',
+      'concert',
+      'show',
+      'event',
+      'ticket',
+      'tamaasha',
+      'timepass',
     ],
     'Health': [
-      'health', 'medical', 'doctor', 'hospital', 'clinic', 'pharmacy',
-      'medicine', 'dawa', 'dawai', 'davai', 'tablet', 'syrup', 'gym',
-      'fitness', 'yoga', 'dentist', 'apollo', 'practo', 'medplus',
-      'netmeds', '1mg', 'pharmeasy', 'wellness', 'cult fit', 'ilaj',
+      'health',
+      'medical',
+      'doctor',
+      'hospital',
+      'clinic',
+      'pharmacy',
+      'medicine',
+      'dawa',
+      'dawai',
+      'davai',
+      'tablet',
+      'syrup',
+      'gym',
+      'fitness',
+      'yoga',
+      'dentist',
+      'apollo',
+      'practo',
+      'medplus',
+      'netmeds',
+      '1mg',
+      'pharmeasy',
+      'wellness',
+      'cult fit',
+      'ilaj',
     ],
     'Utilities': [
-      'electricity', 'light bill', 'bijli', 'water bill', 'internet', 'wifi',
-      'broadband', 'mobile recharge', 'recharge', 'postpaid', 'prepaid',
-      'dth', 'tata sky', 'airtel xstream', 'gas', 'cylinder', 'lpg',
-      'utility', 'bill', 'jio', 'airtel', 'bsnl', 'bijli bill',
+      'electricity',
+      'light bill',
+      'bijli',
+      'water bill',
+      'internet',
+      'wifi',
+      'broadband',
+      'mobile recharge',
+      'recharge',
+      'postpaid',
+      'prepaid',
+      'dth',
+      'tata sky',
+      'airtel xstream',
+      'gas',
+      'cylinder',
+      'lpg',
+      'utility',
+      'bill',
+      'jio',
+      'airtel',
+      'bsnl',
+      'bijli bill',
     ],
     'Rent': [
-      'rent', 'kiraya', 'house rent', 'pg', 'hostel', 'maintenance',
-      'society', 'housing', 'flat', 'room', 'makaan',
+      'rent',
+      'kiraya',
+      'house rent',
+      'pg',
+      'hostel',
+      'maintenance',
+      'society',
+      'housing',
+      'flat',
+      'room',
+      'makaan',
     ],
     'Insurance': [
-      'insurance', 'lic', 'premium', 'policy', 'term plan', 'health insurance',
-      'bima', 'mediclaim', 'life insurance',
+      'insurance',
+      'lic',
+      'premium',
+      'policy',
+      'term plan',
+      'health insurance',
+      'bima',
+      'mediclaim',
+      'life insurance',
     ],
     'Investment': [
-      'invest', 'investment', 'sip', 'mutual fund', 'mf', 'stocks', 'shares',
-      'nifty', 'zerodha', 'groww', 'upstox', 'angel', 'nps', 'ppf', 'elss',
-      'fd', 'fixed deposit', 'gold', 'crypto', 'bitcoin', 'nivesh',
+      'invest',
+      'investment',
+      'sip',
+      'mutual fund',
+      'mf',
+      'stocks',
+      'shares',
+      'nifty',
+      'zerodha',
+      'groww',
+      'upstox',
+      'angel',
+      'nps',
+      'ppf',
+      'elss',
+      'fd',
+      'fixed deposit',
+      'gold',
+      'crypto',
+      'bitcoin',
+      'nivesh',
     ],
     'Subscription': [
-      'subscription', 'subscribe', 'plan', 'renewal', 'annual', 'monthly plan',
-      'membership', 'pass',
+      'subscription',
+      'subscribe',
+      'plan',
+      'renewal',
+      'annual',
+      'monthly plan',
+      'membership',
+      'pass',
     ],
     'Education': [
-      'school', 'college', 'fees', 'tuition', 'coaching', 'course', 'books',
-      'stationery', 'udemy', 'coursera', 'byju', 'unacademy', 'vedantu',
+      'school',
+      'college',
+      'fees',
+      'tuition',
+      'coaching',
+      'course',
+      'books',
+      'stationery',
+      'udemy',
+      'coursera',
+      'byju',
+      'unacademy',
+      'vedantu',
       'padhai',
     ],
     'Personal Care': [
-      'salon', 'parlour', 'haircut', 'spa', 'massage', 'beauty', 'nykaa',
-      'shampoo', 'soap', 'toiletries', 'laundry', 'dhobi',
+      'salon',
+      'parlour',
+      'haircut',
+      'spa',
+      'massage',
+      'beauty',
+      'nykaa',
+      'shampoo',
+      'soap',
+      'toiletries',
+      'laundry',
+      'dhobi',
     ],
     'Friends and Relatives': [
       // All surface variants of this common user-created category
@@ -197,12 +447,27 @@ class _NLQueryParser {
       'birthday', 'anniversary', 'party',
     ],
     'Petrol': [
-      'petrol', 'diesel', 'cng', 'pump', 'petrol pump', 'iocl', 'bpcl',
-      'hpcl', 'indian oil', 'bharat petroleum', 'nayara',
+      'petrol',
+      'diesel',
+      'cng',
+      'pump',
+      'petrol pump',
+      'iocl',
+      'bpcl',
+      'hpcl',
+      'indian oil',
+      'bharat petroleum',
+      'nayara',
     ],
     'EMI': [
-      'emi', 'loan emi', 'home loan', 'car loan', 'bike emi',
-      'installment', 'kist', 'kisht',
+      'emi',
+      'loan emi',
+      'home loan',
+      'car loan',
+      'bike emi',
+      'installment',
+      'kist',
+      'kisht',
     ],
   };
 
@@ -273,8 +538,16 @@ class _NLQueryParser {
     'paisa aaya', 'salary aayi', 'jama hua', 'aa gaya',
   ];
   static const _transferWords = [
-    'transfer', 'transfers', 'transferred', 'sent', 'send', 'moved',
-    'bheja', 'bhejo', 'bhej diya', 'upi transfer',
+    'transfer',
+    'transfers',
+    'transferred',
+    'sent',
+    'send',
+    'moved',
+    'bheja',
+    'bhejo',
+    'bhej diya',
+    'upi transfer',
   ];
 
   static _ParsedQuery? parse(String rawInput) {
@@ -294,7 +567,8 @@ class _NLQueryParser {
     final today = DateTime(now.year, now.month, now.day);
 
     // ── 1. "N days/din ago" relative date ─────────────────────────────────────
-    final daysAgoRx = RegExp(r'\b(\d+)\s+(?:days?\s+ago|din\s+(?:pehle|pahle))\b');
+    final daysAgoRx =
+        RegExp(r'\b(\d+)\s+(?:days?\s+ago|din\s+(?:pehle|pahle))\b');
     final daysAgoM = daysAgoRx.firstMatch(q);
     if (daysAgoM != null) {
       final n = int.tryParse(daysAgoM.group(1)!) ?? 0;
@@ -323,12 +597,32 @@ class _NLQueryParser {
       // Month name matching (English + Hindi)
       if (dateKey == null) {
         const months = [
-          'january', 'february', 'march', 'april', 'may', 'june',
-          'july', 'august', 'september', 'october', 'november', 'december',
+          'january',
+          'february',
+          'march',
+          'april',
+          'may',
+          'june',
+          'july',
+          'august',
+          'september',
+          'october',
+          'november',
+          'december',
         ];
         const shortMonths = [
-          'jan', 'feb', 'mar', 'apr', 'may', 'jun',
-          'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
+          'jan',
+          'feb',
+          'mar',
+          'apr',
+          'may',
+          'jun',
+          'jul',
+          'aug',
+          'sep',
+          'oct',
+          'nov',
+          'dec',
         ];
         const hindiMonths = [
           'january', 'february', 'march', 'april', 'may', 'june',
@@ -347,8 +641,20 @@ class _NLQueryParser {
           }
         }
         // Hindi months
-        const hm = ['janvari', 'farvari', 'march', 'april', 'mai', 'june',
-            'july', 'august', 'september', 'october', 'november', 'december'];
+        const hm = [
+          'janvari',
+          'farvari',
+          'march',
+          'april',
+          'mai',
+          'june',
+          'july',
+          'august',
+          'september',
+          'october',
+          'november',
+          'december'
+        ];
         if (dateKey == null) {
           for (int i = 0; i < hm.length; i++) {
             if (q.contains(hm[i])) {
@@ -363,7 +669,9 @@ class _NLQueryParser {
       if (dateKey != null) {
         switch (dateKey) {
           case 'today':
-            from = today; to = now; tags.add('Today');
+            from = today;
+            to = now;
+            tags.add('Today');
             break;
           case 'yesterday':
             final y = today.subtract(const Duration(days: 1));
@@ -379,7 +687,8 @@ class _NLQueryParser {
             break;
           case 'thisweek':
             from = today.subtract(Duration(days: today.weekday - 1));
-            to = now; tags.add('This week');
+            to = now;
+            tags.add('This week');
             break;
           case 'lastweek':
             final sw = today.subtract(Duration(days: today.weekday - 1));
@@ -388,37 +697,45 @@ class _NLQueryParser {
             tags.add('Last week');
             break;
           case 'thismonth':
-            from = DateTime(now.year, now.month, 1); to = now;
+            from = DateTime(now.year, now.month, 1);
+            to = now;
             tags.add('This month');
             break;
           case 'lastmonth':
             final lm = DateTime(now.year, now.month - 1, 1);
             from = lm;
-            to = DateTime(lm.year, lm.month + 1, 1).subtract(const Duration(seconds: 1));
+            to = DateTime(lm.year, lm.month + 1, 1)
+                .subtract(const Duration(seconds: 1));
             tags.add('Last month');
             break;
           case 'last7':
-            from = today.subtract(const Duration(days: 7)); to = now;
+            from = today.subtract(const Duration(days: 7));
+            to = now;
             tags.add('Last 7 days');
             break;
           case 'last14':
-            from = today.subtract(const Duration(days: 14)); to = now;
+            from = today.subtract(const Duration(days: 14));
+            to = now;
             tags.add('Last 14 days');
             break;
           case 'last30':
-            from = today.subtract(const Duration(days: 30)); to = now;
+            from = today.subtract(const Duration(days: 30));
+            to = now;
             tags.add('Last 30 days');
             break;
           case 'last3m':
-            from = DateTime(now.year, now.month - 3, 1); to = now;
+            from = DateTime(now.year, now.month - 3, 1);
+            to = now;
             tags.add('Last 3 months');
             break;
           case 'last6m':
-            from = DateTime(now.year, now.month - 6, 1); to = now;
+            from = DateTime(now.year, now.month - 6, 1);
+            to = now;
             tags.add('Last 6 months');
             break;
           case 'thisyear':
-            from = DateTime(now.year, 1, 1); to = now;
+            from = DateTime(now.year, 1, 1);
+            to = now;
             tags.add('This year');
             break;
           case 'lastyear':
@@ -433,7 +750,20 @@ class _NLQueryParser {
               if (mi > now.month) yr--;
               from = DateTime(yr, mi, 1);
               to = DateTime(yr, mi + 1, 1).subtract(const Duration(seconds: 1));
-              const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+              const mn = [
+                'Jan',
+                'Feb',
+                'Mar',
+                'Apr',
+                'May',
+                'Jun',
+                'Jul',
+                'Aug',
+                'Sep',
+                'Oct',
+                'Nov',
+                'Dec'
+              ];
               tags.add(mn[mi - 1]);
             }
         }
@@ -545,10 +875,11 @@ class _NLQueryParser {
 
     // ── 5. Clean up residual — strip noise words ───────────────────────────────
     residual = residual
-        .replaceAll(RegExp(
-            r'\b(?:show|me|all|my|the|in|for|on|of|from|to|with|a|an|'
-            r'transactions?|entries?|records?|history|list|find|search|get|'
-            r'dikhao|dikha|batao|bata)\b'), ' ')
+        .replaceAll(
+            RegExp(r'\b(?:show|me|all|my|the|in|for|on|of|from|to|with|a|an|'
+                r'transactions?|entries?|records?|history|list|find|search|get|'
+                r'dikhao|dikha|batao|bata)\b'),
+            ' ')
         .replaceAll(RegExp(r'\s{2,}'), ' ')
         .trim();
 
@@ -599,12 +930,9 @@ class _NLQueryParser {
 
 /// Opens the global search overlay.
 Future<void> showGlobalSearch(BuildContext context) async {
-  // Lock orientation for the duration of the search overlay so keyboard
-  // appearance and rotation events don't collapse or scramble the layout.
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  // Compact phones keep the old safe behavior. Wide/tablet/desktop surfaces
+  // should preserve their layout while search is open.
+  await RLayout.lockPortraitForCompactPhone(context);
   await showGeneralDialog(
     context: context,
     barrierDismissible: true,
@@ -614,8 +942,8 @@ Future<void> showGlobalSearch(BuildContext context) async {
     pageBuilder: (context, animation, secondaryAnimation) =>
         const _GlobalSearchPage(),
     transitionBuilder: (context, animation, secondaryAnimation, child) {
-      final curved = CurvedAnimation(
-          parent: animation, curve: Curves.easeOutCubic);
+      final curved =
+          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
       return FadeTransition(
         opacity: curved,
         child: SlideTransition(
@@ -629,7 +957,7 @@ Future<void> showGlobalSearch(BuildContext context) async {
     },
   );
   // Restore all orientations once the overlay is gone.
-  await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+  await RLayout.restoreOrientations();
 }
 
 class _GlobalSearchPage extends StatefulWidget {
@@ -722,7 +1050,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
       return;
     }
     setState(() => _searching = true);
-    _debounce = Timer(const Duration(milliseconds: 250), () => _runSearch(value));
+    _debounce =
+        Timer(const Duration(milliseconds: 250), () => _runSearch(value));
   }
 
   void _runSearch(String q) {
@@ -746,7 +1075,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
     // ── Transactions ──────────────────────────────────────────────────────────
     for (final tx in txCtrl.transactions) {
-      if (results.where((r) => r.type == _ResultType.transaction).length >= 20) break;
+      if (results.where((r) => r.type == _ResultType.transaction).length >= 20)
+        break;
 
       if (parsed != null) {
         // NL filter mode
@@ -755,8 +1085,10 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
         // Plain keyword mode
         final desc = tx.description.toLowerCase();
         final amt = tx.amount.toString();
-        final cat = (tx.metadata?['categoryName'] as String? ?? '').toLowerCase();
-        final merchant = (tx.metadata?['merchant'] as String? ?? '').toLowerCase();
+        final cat =
+            (tx.metadata?['categoryName'] as String? ?? '').toLowerCase();
+        final merchant =
+            (tx.metadata?['merchant'] as String? ?? '').toLowerCase();
         final tags = (tx.metadata?['tags'] as List? ?? [])
             .map((t) => t.toString().toLowerCase())
             .join(' ');
@@ -796,7 +1128,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
     if (parsed == null) {
       // ── Accounts ────────────────────────────────────────────────────────────
       for (final acc in accCtrl.accounts) {
-        if (results.where((r) => r.type == _ResultType.account).length >= 5) break;
+        if (results.where((r) => r.type == _ResultType.account).length >= 5)
+          break;
         final typeLabel = _accountTypeLabel(acc.type.name);
         if (!acc.name.toLowerCase().contains(raw) &&
             !acc.bankName.toLowerCase().contains(raw) &&
@@ -819,7 +1152,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
       // ── Investments ──────────────────────────────────────────────────────────
       for (final inv in invCtrl.investments) {
-        if (results.where((r) => r.type == _ResultType.investment).length >= 5) break;
+        if (results.where((r) => r.type == _ResultType.investment).length >= 5)
+          break;
         if (!inv.name.toLowerCase().contains(raw) &&
             !(inv.broker ?? '').toLowerCase().contains(raw) &&
             !inv.getTypeLabel().toLowerCase().contains(raw)) continue;
@@ -827,7 +1161,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
           type: _ResultType.investment,
           id: inv.id,
           title: inv.name,
-          subtitle: '${inv.getTypeLabel()}${inv.broker != null ? " · ${inv.broker}" : ""}',
+          subtitle:
+              '${inv.getTypeLabel()}${inv.broker != null ? " · ${inv.broker}" : ""}',
           amount: inv.amount,
           icon: CupertinoIcons.chart_bar_square_fill,
           color: AppStyles.violet(context),
@@ -846,7 +1181,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
           type: _ResultType.goal,
           id: goal.id,
           title: goal.name,
-          subtitle: 'Goal · ${_fmt(goal.currentAmount)} / ${_fmt(goal.targetAmount)}',
+          subtitle:
+              'Goal · ${_fmt(goal.currentAmount)} / ${_fmt(goal.targetAmount)}',
           amount: goal.targetAmount,
           icon: CupertinoIcons.flag_fill,
           color: AppStyles.gold(context),
@@ -858,7 +1194,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
       // ── Budgets ──────────────────────────────────────────────────────────────
       for (final budget in budgetCtrl.budgets) {
-        if (results.where((r) => r.type == _ResultType.budget).length >= 5) break;
+        if (results.where((r) => r.type == _ResultType.budget).length >= 5)
+          break;
         if (!budget.name.toLowerCase().contains(raw) &&
             !(budget.categoryName ?? '').toLowerCase().contains(raw)) continue;
         final capturedId = budget.id;
@@ -866,7 +1203,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
           type: _ResultType.budget,
           id: budget.id,
           title: budget.name,
-          subtitle: 'Budget · ${_fmt(budget.spentAmount)} / ${_fmt(budget.limitAmount)}',
+          subtitle:
+              'Budget · ${_fmt(budget.spentAmount)} / ${_fmt(budget.limitAmount)}',
           amount: budget.limitAmount,
           icon: CupertinoIcons.chart_pie_fill,
           color: AppStyles.info(context),
@@ -878,7 +1216,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
       // ── Contacts ─────────────────────────────────────────────────────────────
       for (final contact in contactCtrl.contacts) {
-        if (results.where((r) => r.type == _ResultType.contact).length >= 5) break;
+        if (results.where((r) => r.type == _ResultType.contact).length >= 5)
+          break;
         if (!contact.name.toLowerCase().contains(raw) &&
             !(contact.phoneNumber ?? '').contains(raw)) continue;
         results.add(_SearchResult(
@@ -931,10 +1270,9 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
     final mlkitToDate = hints.toDate;
     final mlkitAmt = hints.amountMin;
 
-    final bool addsDate = mlkitFromDate != null &&
-        ruleBasedParsed?.fromDate == null;
-    final bool addsAmt = mlkitAmt != null &&
-        ruleBasedParsed?.minAmount == null;
+    final bool addsDate =
+        mlkitFromDate != null && ruleBasedParsed?.fromDate == null;
+    final bool addsAmt = mlkitAmt != null && ruleBasedParsed?.minAmount == null;
 
     if (!addsDate && !addsAmt) {
       if (mounted) setState(() => _mlkitActive = false);
@@ -1022,94 +1360,199 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
     final isDark = settingsCtrl.themeMode == ThemeMode.dark;
     // ── Navigation ─────────────────────────────────────────────────────────────
-    action('nav_investments', 'Open Investments', 'Stocks, MF, FD, Crypto…',
-        CupertinoIcons.chart_bar_square_fill, const Color(0xFF6C63FF),
-        ['invest', 'stock', 'portfolio', 'mutual fund', 'sip', 'fd', 'mf', 'crypto', 'gold', 'nps'],
+    action(
+        'nav_investments',
+        'Open Investments',
+        'Stocks, MF, FD, Crypto…',
+        CupertinoIcons.chart_bar_square_fill,
+        const Color(0xFF6C63FF),
+        [
+          'invest',
+          'stock',
+          'portfolio',
+          'mutual fund',
+          'sip',
+          'fd',
+          'mf',
+          'crypto',
+          'gold',
+          'nps'
+        ],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const InvestmentsScreen())));
 
-    action('nav_goals', 'Open Goals', 'Your savings targets',
-        CupertinoIcons.flag_fill, const Color(0xFFFFB300),
+    action(
+        'nav_goals',
+        'Open Goals',
+        'Your savings targets',
+        CupertinoIcons.flag_fill,
+        const Color(0xFFFFB300),
         ['goal', 'goals', 'saving for', 'target', 'dreams'],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const GoalsScreen())));
 
-    action('nav_budgets', 'Open Budgets', 'Monthly spending limits',
-        CupertinoIcons.chart_pie_fill, const Color(0xFF26A69A),
+    action(
+        'nav_budgets',
+        'Open Budgets',
+        'Monthly spending limits',
+        CupertinoIcons.chart_pie_fill,
+        const Color(0xFF26A69A),
         ['budget', 'budgets', 'limit', 'spending limit'],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const BudgetsScreen())));
 
-    action('nav_accounts', 'Open Accounts', 'Bank accounts & wallets',
-        CupertinoIcons.creditcard_fill, AppStyles.teal(context),
+    action(
+        'nav_accounts',
+        'Open Accounts',
+        'Bank accounts & wallets',
+        CupertinoIcons.creditcard_fill,
+        AppStyles.teal(context),
         ['account', 'accounts', 'bank', 'wallet', 'my accounts', 'cards'],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const AccountsScreen())));
 
-    action('nav_history', 'Transaction History', 'All your transactions',
-        CupertinoIcons.doc_text, AppStyles.teal(context),
-        ['history', 'all transactions', 'transaction history', 'transactions list'],
+    action(
+        'nav_history',
+        'Transaction History',
+        'All your transactions',
+        CupertinoIcons.doc_text,
+        AppStyles.teal(context),
+        [
+          'history',
+          'all transactions',
+          'transaction history',
+          'transactions list'
+        ],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const TransactionHistoryScreen())));
 
-    action('nav_networth', 'Net Worth', 'Total assets & liabilities',
-        CupertinoIcons.sum, const Color(0xFF4CAF50),
+    action(
+        'nav_networth',
+        'Net Worth',
+        'Total assets & liabilities',
+        CupertinoIcons.sum,
+        const Color(0xFF4CAF50),
         ['net worth', 'networth', 'wealth', 'total wealth', 'assets'],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const NetWorthPage())));
 
-    action('nav_insights', 'Spending Insights', 'Analytics & patterns',
-        CupertinoIcons.sparkles, const Color(0xFF6C63FF),
-        ['insight', 'insights', 'analysis', 'analytics', 'spending pattern', 'report', 'reports'],
+    action(
+        'nav_insights',
+        'Spending Insights',
+        'Analytics & patterns',
+        CupertinoIcons.sparkles,
+        const Color(0xFF6C63FF),
+        [
+          'insight',
+          'insights',
+          'analysis',
+          'analytics',
+          'spending pattern',
+          'report',
+          'reports'
+        ],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const SpendingInsightsScreen())));
 
-    action('nav_calendar', 'Financial Calendar', 'Upcoming payments & events',
-        CupertinoIcons.calendar, const Color(0xFF42A5F5),
+    action(
+        'nav_calendar',
+        'Financial Calendar',
+        'Upcoming payments & events',
+        CupertinoIcons.calendar,
+        const Color(0xFF42A5F5),
         ['calendar', 'schedule', 'upcoming', 'planned', 'recurring'],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const FinancialCalendarScreen())));
 
-    action('nav_lending', 'Lending & Borrowing', 'Track money given or taken',
-        CupertinoIcons.arrow_right_arrow_left_circle_fill, const Color(0xFFFF7043),
+    action(
+        'nav_lending',
+        'Lending & Borrowing',
+        'Track money given or taken',
+        CupertinoIcons.arrow_right_arrow_left_circle_fill,
+        const Color(0xFFFF7043),
         ['lend', 'lending', 'borrow', 'loan', 'borrowed', 'owed', 'due'],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const LendingBorrowingScreen())));
 
-    action('nav_archive', 'Transaction Archive', 'Deleted & archived entries',
-        CupertinoIcons.archivebox_fill, AppStyles.getSecondaryTextColor(context),
+    action(
+        'nav_archive',
+        'Transaction Archive',
+        'Deleted & archived entries',
+        CupertinoIcons.archivebox_fill,
+        AppStyles.getSecondaryTextColor(context),
         ['archive', 'archived', 'deleted', 'old transaction', 'trash'],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const TransactionsArchiveScreen())));
 
-    action('nav_settings', 'Open Settings', 'Preferences & configuration',
-        CupertinoIcons.settings_solid, AppStyles.getSecondaryTextColor(context),
+    action(
+        'nav_settings',
+        'Open Settings',
+        'Preferences & configuration',
+        CupertinoIcons.settings_solid,
+        AppStyles.getSecondaryTextColor(context),
         ['setting', 'settings', 'preferences', 'configure', 'configuration'],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const SettingsScreen())));
 
     // ── Settings actions ───────────────────────────────────────────────────────
-    action('act_theme', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+    action(
+        'act_theme',
+        isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
         isDark ? 'Turn off AMOLED dark mode' : 'Turn on AMOLED dark mode',
         isDark ? CupertinoIcons.sun_max_fill : CupertinoIcons.moon_fill,
         const Color(0xFF6C63FF),
-        ['dark mode', 'light mode', 'theme', 'change theme', 'dark', 'night mode', 'amoled'],
-        () => settingsCtrl.setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark));
+        [
+          'dark mode',
+          'light mode',
+          'theme',
+          'change theme',
+          'dark',
+          'night mode',
+          'amoled'
+        ],
+        () => settingsCtrl
+            .setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark));
 
-    action('act_backup', 'Backup & Restore', 'Export or import your data',
-        CupertinoIcons.arrow_clockwise_circle_fill, const Color(0xFF26A69A),
-        ['backup', 'restore', 'export data', 'import data', 'sync', 'save data'],
+    action(
+        'act_backup',
+        'Backup & Restore',
+        'Export or import your data',
+        CupertinoIcons.arrow_clockwise_circle_fill,
+        const Color(0xFF26A69A),
+        [
+          'backup',
+          'restore',
+          'export data',
+          'import data',
+          'sync',
+          'save data'
+        ],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const BackupRestoreScreen())));
 
-    action('act_csv', 'Import CSV Statement', 'Import from bank CSV/Excel',
-        CupertinoIcons.doc_text_fill, const Color(0xFF42A5F5),
-        ['import csv', 'csv', 'excel', 'import statement', 'bank csv', 'upload statement'],
+    action(
+        'act_csv',
+        'Import CSV Statement',
+        'Import from bank CSV/Excel',
+        CupertinoIcons.doc_text_fill,
+        const Color(0xFF42A5F5),
+        [
+          'import csv',
+          'csv',
+          'excel',
+          'import statement',
+          'bank csv',
+          'upload statement'
+        ],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const CsvImportScreen())));
 
-    action('act_categories', 'Manage Categories', 'Add or edit categories',
-        CupertinoIcons.tag_fill, const Color(0xFFFF9800),
+    action(
+        'act_categories',
+        'Manage Categories',
+        'Add or edit categories',
+        CupertinoIcons.tag_fill,
+        const Color(0xFFFF9800),
         ['categor', 'categories', 'category', 'manage categories', 'tags'],
         () => Navigator.of(context, rootNavigator: true)
             .push(FadeScalePageRoute(page: const CategoriesScreen())));
@@ -1119,8 +1562,10 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
   bool _matchesParsed(Transaction tx, _ParsedQuery parsed, String rawQuery) {
     // Date range
-    if (parsed.fromDate != null && tx.dateTime.isBefore(parsed.fromDate!)) return false;
-    if (parsed.toDate != null && tx.dateTime.isAfter(parsed.toDate!)) return false;
+    if (parsed.fromDate != null && tx.dateTime.isBefore(parsed.fromDate!))
+      return false;
+    if (parsed.toDate != null && tx.dateTime.isAfter(parsed.toDate!))
+      return false;
 
     // Type
     if (parsed.type != null && tx.type != parsed.type) return false;
@@ -1133,20 +1578,25 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
     if (parsed.categoryHints.isNotEmpty) {
       final cat = (tx.metadata?['categoryName'] as String? ?? '').toLowerCase();
       final desc = tx.description.toLowerCase();
-      final merchant = (tx.metadata?['merchant'] as String? ?? '').toLowerCase();
+      final merchant =
+          (tx.metadata?['merchant'] as String? ?? '').toLowerCase();
       // Normalise stored category name for fuzzy compare (& → and, etc.)
       final normCat = _NLQueryParser._normaliseSynonyms(cat);
       final normDesc = _NLQueryParser._normaliseSynonyms(desc);
       final normMerchant = _NLQueryParser._normaliseSynonyms(merchant);
       final matched = parsed.categoryHints.any((hint) {
         final hintNorm = _NLQueryParser._normaliseSynonyms(hint.toLowerCase());
-        if (normCat.contains(hintNorm) || normDesc.contains(hintNorm) ||
+        if (normCat.contains(hintNorm) ||
+            normDesc.contains(hintNorm) ||
             normMerchant.contains(hintNorm)) {
           return true;
         }
         // Check against the category's keyword list
         final kws = _NLQueryParser._catMap[hint] ?? [];
-        return kws.any((kw) => normDesc.contains(kw) || normMerchant.contains(kw) || normCat.contains(kw));
+        return kws.any((kw) =>
+            normDesc.contains(kw) ||
+            normMerchant.contains(kw) ||
+            normCat.contains(kw));
       });
       if (!matched) return false;
     }
@@ -1155,9 +1605,11 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
     if (parsed.keyword != null && parsed.keyword!.isNotEmpty) {
       final kw = parsed.keyword!.toLowerCase();
       final desc = tx.description.toLowerCase();
-      final merchant = (tx.metadata?['merchant'] as String? ?? '').toLowerCase();
+      final merchant =
+          (tx.metadata?['merchant'] as String? ?? '').toLowerCase();
       final cat = (tx.metadata?['categoryName'] as String? ?? '').toLowerCase();
-      if (!desc.contains(kw) && !merchant.contains(kw) && !cat.contains(kw)) return false;
+      if (!desc.contains(kw) && !merchant.contains(kw) && !cat.contains(kw))
+        return false;
     }
 
     return true;
@@ -1186,8 +1638,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
           children: [
             // Search bar
             Container(
-              margin: const EdgeInsets.fromLTRB(Spacing.md, Spacing.md,
-                  Spacing.md, 0),
+              margin: const EdgeInsets.fromLTRB(
+                  Spacing.md, Spacing.md, Spacing.md, 0),
               padding: const EdgeInsets.symmetric(
                   horizontal: Spacing.sm, vertical: 4),
               decoration: BoxDecoration(
@@ -1301,8 +1753,7 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(CupertinoIcons.search,
-                size: 36,
-                color: AppStyles.getSecondaryTextColor(context)),
+                size: 36, color: AppStyles.getSecondaryTextColor(context)),
             const SizedBox(height: Spacing.sm),
             Text(
               'No results for "$_query"',
@@ -1358,10 +1809,13 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
       final txCount = byType[_ResultType.transaction]?.length ?? 0;
       tiles.add(
         Container(
-          margin: const EdgeInsets.fromLTRB(Spacing.md, Spacing.md, Spacing.md, Spacing.xs),
-          padding: const EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: 8),
+          margin: const EdgeInsets.fromLTRB(
+              Spacing.md, Spacing.md, Spacing.md, Spacing.xs),
+          padding:
+              const EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF6C63FF).withValues(alpha: isDark ? 0.12 : 0.07),
+            color:
+                const Color(0xFF6C63FF).withValues(alpha: isDark ? 0.12 : 0.07),
             borderRadius: BorderRadius.circular(Radii.lg),
           ),
           child: Row(
@@ -1400,8 +1854,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
       // Skip section header for transactions when NL mode (chip already explains)
       if (type != _ResultType.transaction || _parsedQuery == null) {
         tiles.add(Padding(
-          padding: const EdgeInsets.fromLTRB(Spacing.md, Spacing.md,
-              Spacing.md, Spacing.xs),
+          padding: const EdgeInsets.fromLTRB(
+              Spacing.md, Spacing.md, Spacing.md, Spacing.xs),
           child: Text(typeLabels[type]!,
               style: TextStyle(
                   fontSize: TypeScale.caption,
@@ -1496,8 +1950,7 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
               onDelete: () {
                 setState(() => _recentSearches.remove(q));
                 SharedPreferences.getInstance().then((prefs) =>
-                    prefs.setStringList(
-                        _kRecentSearchesKey, _recentSearches));
+                    prefs.setStringList(_kRecentSearchesKey, _recentSearches));
               },
             )),
       ],
@@ -1513,22 +1966,40 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
   String _fmtDate(DateTime dt) {
     const months = [
-      'Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return '${dt.day} ${months[dt.month - 1]}';
   }
 
   String _accountTypeLabel(String typeName) {
     switch (typeName) {
-      case 'savings': return 'Savings';
-      case 'current': return 'Current';
-      case 'credit': return 'Credit Card';
-      case 'payLater': return 'Pay Later';
-      case 'wallet': return 'Wallet';
-      case 'cash': return 'Cash';
-      case 'investment': return 'Investment';
-      default: return typeName;
+      case 'savings':
+        return 'Savings';
+      case 'current':
+        return 'Current';
+      case 'credit':
+        return 'Credit Card';
+      case 'payLater':
+        return 'Pay Later';
+      case 'wallet':
+        return 'Wallet';
+      case 'cash':
+        return 'Cash';
+      case 'investment':
+        return 'Investment';
+      default:
+        return typeName;
     }
   }
 
@@ -1685,8 +2156,7 @@ class _RecentSearchTile extends StatelessWidget {
           child: Row(
             children: [
               Icon(CupertinoIcons.clock,
-                  size: 16,
-                  color: AppStyles.getSecondaryTextColor(context)),
+                  size: 16, color: AppStyles.getSecondaryTextColor(context)),
               const SizedBox(width: Spacing.sm),
               Expanded(
                 child: Text(query,
@@ -1699,8 +2169,7 @@ class _RecentSearchTile extends StatelessWidget {
                 minimumSize: Size.zero,
                 onPressed: onDelete,
                 child: Icon(CupertinoIcons.xmark,
-                    size: 14,
-                    color: AppStyles.getSecondaryTextColor(context)),
+                    size: 14, color: AppStyles.getSecondaryTextColor(context)),
               ),
             ],
           ),

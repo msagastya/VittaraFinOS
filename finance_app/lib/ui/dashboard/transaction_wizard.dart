@@ -42,7 +42,8 @@ class TransactionWizard extends StatefulWidget {
   final SmsParseResult? prefillFromSms;
   final TransactionWizardBranch? initialBranch;
 
-  const TransactionWizard({super.key, this.cloneFrom, this.prefillFromSms, this.initialBranch});
+  const TransactionWizard(
+      {super.key, this.cloneFrom, this.prefillFromSms, this.initialBranch});
 
   @override
   State<TransactionWizard> createState() => _TransactionWizardState();
@@ -151,223 +152,226 @@ class _TransactionWizardState extends State<TransactionWizard> {
       builder: (ctx) => RLayout.tabletConstrain(
         ctx,
         StatefulBuilder(
-        builder: (ctx, setS) {
-          final isDark = AppStyles.isDarkMode(ctx);
-          final btnBg =
-              isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6;
-          final opColor = _branch == TransactionWizardBranch.income
-              ? AppStyles.gain(ctx)
-              : _branch == TransactionWizardBranch.expense
-                  ? AppStyles.loss(ctx)
-                  : CupertinoColors.systemBlue;
+          builder: (ctx, setS) {
+            final isDark = AppStyles.isDarkMode(ctx);
+            final btnBg =
+                isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6;
+            final opColor = _branch == TransactionWizardBranch.income
+                ? AppStyles.gain(ctx)
+                : _branch == TransactionWizardBranch.expense
+                    ? AppStyles.loss(ctx)
+                    : CupertinoColors.systemBlue;
 
-          void onDigit(String d) => setS(() {
-                if (justEvaled || display == '0') {
-                  display = d;
-                  justEvaled = false;
-                } else {
-                  display += d;
-                }
-              });
+            void onDigit(String d) => setS(() {
+                  if (justEvaled || display == '0') {
+                    display = d;
+                    justEvaled = false;
+                  } else {
+                    display += d;
+                  }
+                });
 
-          void onDecimal() => setS(() {
-                if (justEvaled) {
-                  display = '0.';
-                  justEvaled = false;
-                } else if (!display.contains('.')) {
-                  display += '.';
-                }
-              });
+            void onDecimal() => setS(() {
+                  if (justEvaled) {
+                    display = '0.';
+                    justEvaled = false;
+                  } else if (!display.contains('.')) {
+                    display += '.';
+                  }
+                });
 
-          void onOp(String op) => setS(() {
-                pendingValue = double.tryParse(display) ?? 0;
-                pendingOp = op;
-                justEvaled = true;
-              });
+            void onOp(String op) => setS(() {
+                  pendingValue = double.tryParse(display) ?? 0;
+                  pendingOp = op;
+                  justEvaled = true;
+                });
 
-          void onEquals() {
-            if (pendingOp == null || pendingValue == null) return;
-            final cur = double.tryParse(display) ?? 0;
-            double r;
-            switch (pendingOp) {
-              case '+':
-                r = pendingValue! + cur;
-              case '-':
-                r = pendingValue! - cur;
-              case '×':
-                r = pendingValue! * cur;
-              case '÷':
-                r = cur != 0 ? pendingValue! / cur : 0;
-              default:
-                r = cur;
-            }
-            setS(() {
-              display = r == r.truncateToDouble()
-                  ? r.toStringAsFixed(0)
-                  : r.toStringAsFixed(2);
-              pendingOp = null;
-              pendingValue = null;
-              justEvaled = true;
-            });
-          }
-
-          void onClear() => setS(() {
-                display = '0';
+            void onEquals() {
+              if (pendingOp == null || pendingValue == null) return;
+              final cur = double.tryParse(display) ?? 0;
+              double r;
+              switch (pendingOp) {
+                case '+':
+                  r = pendingValue! + cur;
+                case '-':
+                  r = pendingValue! - cur;
+                case '×':
+                  r = pendingValue! * cur;
+                case '÷':
+                  r = cur != 0 ? pendingValue! / cur : 0;
+                default:
+                  r = cur;
+              }
+              setS(() {
+                display = r == r.truncateToDouble()
+                    ? r.toStringAsFixed(0)
+                    : r.toStringAsFixed(2);
                 pendingOp = null;
                 pendingValue = null;
-                justEvaled = false;
+                justEvaled = true;
               });
+            }
 
-          void onBack() => setS(() {
-                if (display.length > 1) {
-                  display = display.substring(0, display.length - 1);
-                } else {
+            void onClear() => setS(() {
                   display = '0';
-                }
-              });
+                  pendingOp = null;
+                  pendingValue = null;
+                  justEvaled = false;
+                });
 
-          Widget btn(String label,
-              {VoidCallback? onTap, Color? bg, Color? fg, bool wide = false}) {
-            return Expanded(
-              flex: wide ? 2 : 1,
-              child: Padding(
-                padding: const EdgeInsets.all(3),
-                child: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  color: bg ?? btnBg,
-                  borderRadius: BorderRadius.circular(Radii.md),
-                  minimumSize: const Size(0, 52),
-                  onPressed: onTap ?? () {},
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: TypeScale.title3,
-                      fontWeight: FontWeight.w600,
-                      color: fg ?? AppStyles.getTextColor(ctx),
+            void onBack() => setS(() {
+                  if (display.length > 1) {
+                    display = display.substring(0, display.length - 1);
+                  } else {
+                    display = '0';
+                  }
+                });
+
+            Widget btn(String label,
+                {VoidCallback? onTap,
+                Color? bg,
+                Color? fg,
+                bool wide = false}) {
+              return Expanded(
+                flex: wide ? 2 : 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    color: bg ?? btnBg,
+                    borderRadius: BorderRadius.circular(Radii.md),
+                    minimumSize: const Size(0, 52),
+                    onPressed: onTap ?? () {},
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: TypeScale.title3,
+                        fontWeight: FontWeight.w600,
+                        color: fg ?? AppStyles.getTextColor(ctx),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          }
+              );
+            }
 
-          return Container(
-            height: AppStyles.sheetMaxHeight(ctx),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  const SizedBox(height: 12),
-                  const ModalHandle(),
-                  const SizedBox(height: 4),
-                  if (pendingOp != null)
+            return Container(
+              height: RLayout.adaptiveSheetMaxHeight(ctx),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    const ModalHandle(),
+                    const SizedBox(height: 4),
+                    if (pendingOp != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            '₹$pendingValue $pendingOp',
+                            style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(ctx),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 8),
                       child: Align(
                         alignment: Alignment.centerRight,
                         child: Text(
-                          '₹$pendingValue $pendingOp',
+                          '₹$display',
                           style: TextStyle(
-                            color: AppStyles.getSecondaryTextColor(ctx),
-                            fontSize: 14,
+                            fontSize: RT.hero(ctx),
+                            fontWeight: FontWeight.bold,
+                            color: AppStyles.getTextColor(ctx),
                           ),
                         ),
                       ),
                     ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        '₹$display',
-                        style: TextStyle(
-                          fontSize: RT.hero(ctx),
-                          fontWeight: FontWeight.bold,
-                          color: AppStyles.getTextColor(ctx),
+                    Divider(color: AppStyles.getDividerColor(ctx), height: 1),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Column(
+                          children: [
+                            Row(children: [
+                              btn('C',
+                                  onTap: onClear,
+                                  bg: AppStyles.loss(ctx)
+                                      .withValues(alpha: 0.12),
+                                  fg: AppStyles.loss(ctx)),
+                              btn('←', onTap: onBack),
+                              btn('÷',
+                                  onTap: () => onOp('÷'),
+                                  bg: opColor.withValues(alpha: 0.12),
+                                  fg: opColor),
+                              btn('×',
+                                  onTap: () => onOp('×'),
+                                  bg: opColor.withValues(alpha: 0.12),
+                                  fg: opColor),
+                            ]),
+                            Row(children: [
+                              btn('7', onTap: () => onDigit('7')),
+                              btn('8', onTap: () => onDigit('8')),
+                              btn('9', onTap: () => onDigit('9')),
+                              btn('-',
+                                  onTap: () => onOp('-'),
+                                  bg: opColor.withValues(alpha: 0.12),
+                                  fg: opColor),
+                            ]),
+                            Row(children: [
+                              btn('4', onTap: () => onDigit('4')),
+                              btn('5', onTap: () => onDigit('5')),
+                              btn('6', onTap: () => onDigit('6')),
+                              btn('+',
+                                  onTap: () => onOp('+'),
+                                  bg: opColor.withValues(alpha: 0.12),
+                                  fg: opColor),
+                            ]),
+                            Row(children: [
+                              btn('1', onTap: () => onDigit('1')),
+                              btn('2', onTap: () => onDigit('2')),
+                              btn('3', onTap: () => onDigit('3')),
+                              btn('=',
+                                  onTap: onEquals,
+                                  bg: opColor.withValues(alpha: 0.15),
+                                  fg: opColor),
+                            ]),
+                            Row(children: [
+                              btn('0', onTap: () => onDigit('0'), wide: true),
+                              btn('.', onTap: onDecimal),
+                              btn('✓', onTap: () {
+                                onEquals();
+                                final val = double.tryParse(display) ?? 0;
+                                if (val > 0) {
+                                  _amountController.text =
+                                      val == val.truncateToDouble()
+                                          ? val.toStringAsFixed(0)
+                                          : val.toStringAsFixed(2);
+                                  setState(() {});
+                                }
+                                Navigator.pop(ctx);
+                              }, bg: opColor, fg: CupertinoColors.white),
+                            ]),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                  Divider(color: AppStyles.getDividerColor(ctx), height: 1),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: Column(
-                        children: [
-                          Row(children: [
-                            btn('C',
-                                onTap: onClear,
-                                bg: AppStyles.loss(ctx)
-                                    .withValues(alpha: 0.12),
-                                fg: AppStyles.loss(ctx)),
-                            btn('←', onTap: onBack),
-                            btn('÷',
-                                onTap: () => onOp('÷'),
-                                bg: opColor.withValues(alpha: 0.12),
-                                fg: opColor),
-                            btn('×',
-                                onTap: () => onOp('×'),
-                                bg: opColor.withValues(alpha: 0.12),
-                                fg: opColor),
-                          ]),
-                          Row(children: [
-                            btn('7', onTap: () => onDigit('7')),
-                            btn('8', onTap: () => onDigit('8')),
-                            btn('9', onTap: () => onDigit('9')),
-                            btn('-',
-                                onTap: () => onOp('-'),
-                                bg: opColor.withValues(alpha: 0.12),
-                                fg: opColor),
-                          ]),
-                          Row(children: [
-                            btn('4', onTap: () => onDigit('4')),
-                            btn('5', onTap: () => onDigit('5')),
-                            btn('6', onTap: () => onDigit('6')),
-                            btn('+',
-                                onTap: () => onOp('+'),
-                                bg: opColor.withValues(alpha: 0.12),
-                                fg: opColor),
-                          ]),
-                          Row(children: [
-                            btn('1', onTap: () => onDigit('1')),
-                            btn('2', onTap: () => onDigit('2')),
-                            btn('3', onTap: () => onDigit('3')),
-                            btn('=',
-                                onTap: onEquals,
-                                bg: opColor.withValues(alpha: 0.15),
-                                fg: opColor),
-                          ]),
-                          Row(children: [
-                            btn('0', onTap: () => onDigit('0'), wide: true),
-                            btn('.', onTap: onDecimal),
-                            btn('✓', onTap: () {
-                              onEquals();
-                              final val = double.tryParse(display) ?? 0;
-                              if (val > 0) {
-                                _amountController.text =
-                                    val == val.truncateToDouble()
-                                        ? val.toStringAsFixed(0)
-                                        : val.toStringAsFixed(2);
-                                setState(() {});
-                              }
-                              Navigator.pop(ctx);
-                            }, bg: opColor, fg: CupertinoColors.white),
-                          ]),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -397,8 +401,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
     final sms = widget.prefillFromSms;
     // When a branch is pre-selected (e.g. from Quick Add), skip step 0
     // entirely — the PageController starts on page 1 so there is no flash.
-    final startStep =
-        (widget.initialBranch != null && sms == null) ? 1 : 0;
+    final startStep = (widget.initialBranch != null && sms == null) ? 1 : 0;
     _currentStep = startStep;
     _pageController = PageController(initialPage: startStep);
     if (startStep > 0) {
@@ -652,11 +655,13 @@ class _TransactionWizardState extends State<TransactionWizard> {
         _selectedDate.month,
         _selectedDate.day,
       ).add(const Duration(days: 2));
-      final dateTypeDuplicate = transactionsController.transactions.where((t) =>
-          t.amount == amount &&
-          t.type == txType &&
-          t.dateTime.isAfter(dayStart) &&
-          t.dateTime.isBefore(dayEnd)).firstOrNull;
+      final dateTypeDuplicate = transactionsController.transactions
+          .where((t) =>
+              t.amount == amount &&
+              t.type == txType &&
+              t.dateTime.isAfter(dayStart) &&
+              t.dateTime.isBefore(dayEnd))
+          .firstOrNull;
       if (dateTypeDuplicate != null) {
         if (!mounted) return;
         final proceed = await showCupertinoDialog<bool>(
@@ -763,9 +768,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
 
     // Snapshot balance after transaction for historical display
     if (_selectedAccount != null) {
-      final snapped = accountsController.accounts
-          .firstWhere((a) => a.id == _selectedAccount!.id,
-              orElse: () => _selectedAccount!);
+      final snapped = accountsController.accounts.firstWhere(
+          (a) => a.id == _selectedAccount!.id,
+          orElse: () => _selectedAccount!);
       metadata['sourceBalanceAfter'] = snapped.balance;
       if (snapped.creditLimit != null) {
         metadata['sourceCreditLimit'] = snapped.creditLimit;
@@ -946,70 +951,74 @@ class _TransactionWizardState extends State<TransactionWizard> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _previousStep();
-      },
-      child: CupertinoPageScaffold(
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: const Text('Transaction Wizard'),
-        leading: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _previousStep,
-          child: Icon(
-            _currentStep == 0 ? CupertinoIcons.xmark : CupertinoIcons.back,
-            color: AppStyles.getTextColor(context),
-          ),
-        ),
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            _buildProgressBar(),
-            const SizedBox(height: Spacing.md),
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _totalSteps,
-                itemBuilder: (context, index) {
-                  switch (index) {
-                    case 0:
-                      return _buildBranchPage();
-                    case 1:
-                      return _buildAmountPage();
-                    case 2:
-                      return _buildDatePage();
-                    case 3:
-                      return _buildPaymentTypePage();
-                    case 4:
-                      return _buildAccountPage();
-                    case 5:
-                      return _buildPaymentAppPage();
-                    case 6:
-                      return _buildCashbackPage();
-                    case 7:
-                      return _buildCategoryPage();
-                    case 8:
-                      return _buildMerchantPage();
-                    case 9:
-                      return _buildDescriptionPage();
-                    case 10:
-                      return _buildTagsPage();
-                    case 11:
-                      return _buildReviewPage();
-                    default:
-                      return const SizedBox.shrink();
-                  }
-                },
-              ),
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _previousStep();
+        },
+        child: CupertinoPageScaffold(
+          navigationBar: AppStyles.isLandscape(context)
+              ? null
+              : CupertinoNavigationBar(
+                  middle: const Text('Transaction Wizard'),
+                  leading: CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: _previousStep,
+                    child: Icon(
+                      _currentStep == 0
+                          ? CupertinoIcons.xmark
+                          : CupertinoIcons.back,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                  backgroundColor: AppStyles.getBackground(context),
+                  border: null,
+                ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildProgressBar(),
+                const SizedBox(height: Spacing.md),
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _totalSteps,
+                    itemBuilder: (context, index) {
+                      switch (index) {
+                        case 0:
+                          return _buildBranchPage();
+                        case 1:
+                          return _buildAmountPage();
+                        case 2:
+                          return _buildDatePage();
+                        case 3:
+                          return _buildPaymentTypePage();
+                        case 4:
+                          return _buildAccountPage();
+                        case 5:
+                          return _buildPaymentAppPage();
+                        case 6:
+                          return _buildCashbackPage();
+                        case 7:
+                          return _buildCategoryPage();
+                        case 8:
+                          return _buildMerchantPage();
+                        case 9:
+                          return _buildDescriptionPage();
+                        case 10:
+                          return _buildTagsPage();
+                        case 11:
+                          return _buildReviewPage();
+                        default:
+                          return const SizedBox.shrink();
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    ));
+          ),
+        ));
   }
 
   Widget _buildBranchPage() {
@@ -1175,152 +1184,155 @@ class _TransactionWizardState extends State<TransactionWizard> {
       builder: (ctx) => RLayout.tabletConstrain(
         ctx,
         StatefulBuilder(
-        builder: (ctx, setModalState) => Container(
-          padding: EdgeInsets.only(
-            left: Spacing.xl,
-            right: Spacing.xl,
-            top: Spacing.xl,
-            bottom: Spacing.xl + MediaQuery.of(ctx).viewInsets.bottom,
-          ),
-          decoration: BoxDecoration(
-            color: AppStyles.getCardColor(ctx),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Center(child: ModalHandle()),
-                const SizedBox(height: Spacing.xl),
-                Text('Save Recurring Template',
-                    style: AppStyles.titleStyle(ctx)),
-                const SizedBox(height: Spacing.lg),
-                Text('Template name',
-                    style: TextStyle(
-                        color: AppStyles.getSecondaryTextColor(ctx),
-                        fontSize: TypeScale.footnote)),
-                const SizedBox(height: Spacing.xs),
-                CupertinoTextField(
-                  controller: nameController,
-                  placeholder: 'e.g. Netflix, Rent, Salary…',
-                  padding: const EdgeInsets.all(Spacing.md),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getBackground(ctx),
-                    borderRadius: BorderRadius.circular(10),
+          builder: (ctx, setModalState) => Container(
+            padding: EdgeInsets.only(
+              left: Spacing.xl,
+              right: Spacing.xl,
+              top: Spacing.xl,
+              bottom: Spacing.xl + MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(ctx),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Center(child: ModalHandle()),
+                  const SizedBox(height: Spacing.xl),
+                  Text('Save Recurring Template',
+                      style: AppStyles.titleStyle(ctx)),
+                  const SizedBox(height: Spacing.lg),
+                  Text('Template name',
+                      style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(ctx),
+                          fontSize: TypeScale.footnote)),
+                  const SizedBox(height: Spacing.xs),
+                  CupertinoTextField(
+                    controller: nameController,
+                    placeholder: 'e.g. Netflix, Rent, Salary…',
+                    padding: const EdgeInsets.all(Spacing.md),
+                    decoration: BoxDecoration(
+                      color: AppStyles.getBackground(ctx),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    style: TextStyle(color: AppStyles.getTextColor(ctx)),
                   ),
-                  style: TextStyle(color: AppStyles.getTextColor(ctx)),
-                ),
-                const SizedBox(height: Spacing.lg),
-                Text('Frequency',
-                    style: TextStyle(
-                        color: AppStyles.getSecondaryTextColor(ctx),
-                        fontSize: TypeScale.footnote)),
-                const SizedBox(height: Spacing.xs),
-                Row(
-                  children: [
-                    for (final f in ['daily', 'weekly', 'monthly', 'yearly'])
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setModalState(() => frequency = f),
-                          child: Container(
-                            margin:
-                                EdgeInsets.only(right: f == 'yearly' ? 0 : 6),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: frequency == f
-                                  ? AppStyles.getPrimaryColor(ctx)
-                                      .withValues(alpha: 0.15)
-                                  : AppStyles.getBackground(ctx),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
+                  const SizedBox(height: Spacing.lg),
+                  Text('Frequency',
+                      style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(ctx),
+                          fontSize: TypeScale.footnote)),
+                  const SizedBox(height: Spacing.xs),
+                  Row(
+                    children: [
+                      for (final f in ['daily', 'weekly', 'monthly', 'yearly'])
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setModalState(() => frequency = f),
+                            child: Container(
+                              margin:
+                                  EdgeInsets.only(right: f == 'yearly' ? 0 : 6),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
                                 color: frequency == f
                                     ? AppStyles.getPrimaryColor(ctx)
-                                    : AppStyles.getSecondaryTextColor(ctx)
-                                        .withValues(alpha: 0.2),
+                                        .withValues(alpha: 0.15)
+                                    : AppStyles.getBackground(ctx),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: frequency == f
+                                      ? AppStyles.getPrimaryColor(ctx)
+                                      : AppStyles.getSecondaryTextColor(ctx)
+                                          .withValues(alpha: 0.2),
+                                ),
                               ),
-                            ),
-                            child: Text(
-                              f[0].toUpperCase() + f.substring(1),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: TypeScale.caption,
-                                fontWeight: frequency == f
-                                    ? FontWeight.w700
-                                    : FontWeight.w400,
-                                color: frequency == f
-                                    ? AppStyles.getPrimaryColor(ctx)
-                                    : AppStyles.getSecondaryTextColor(ctx),
+                              child: Text(
+                                f[0].toUpperCase() + f.substring(1),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: TypeScale.caption,
+                                  fontWeight: frequency == f
+                                      ? FontWeight.w700
+                                      : FontWeight.w400,
+                                  color: frequency == f
+                                      ? AppStyles.getPrimaryColor(ctx)
+                                      : AppStyles.getSecondaryTextColor(ctx),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: Spacing.xl),
-                SizedBox(
-                  width: double.infinity,
-                  child: CupertinoButton.filled(
-                    onPressed: () {
-                      final name = nameController.text.trim();
-                      if (name.isEmpty) return;
-                      final amount =
-                          double.tryParse(_amountController.text) ?? 0;
-                      // Compute next due date
-                      final now = DateTime.now();
-                      DateTime nextDue;
-                      switch (frequency) {
-                        case 'daily':
-                          nextDue = now.add(const Duration(days: 1));
-                          break;
-                        case 'weekly':
-                          nextDue = now.add(const Duration(days: 7));
-                          break;
-                        case 'yearly':
-                          nextDue = DateTime(now.year + 1, now.month, now.day);
-                          break;
-                        default:
-                          nextDue = DateTime(now.year, now.month + 1, now.day);
-                      }
-                      final template = RecurringTemplate(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        name: name,
-                        branch: _branch == TransactionWizardBranch.income
-                            ? 'income'
-                            : 'expense',
-                        amount: amount,
-                        categoryId: _selectedCategory?.id,
-                        categoryName: _selectedCategory?.name,
-                        accountId: _selectedAccount?.id,
-                        accountName: _selectedAccount?.name,
-                        paymentType: _paymentType?.name,
-                        paymentApp: _selectedPaymentApp,
-                        merchant: _merchantController.text.isNotEmpty
-                            ? _merchantController.text
-                            : null,
-                        description: _descriptionController.text.isNotEmpty
-                            ? _descriptionController.text
-                            : null,
-                        tags: List.from(_selectedTags),
-                        frequency: frequency,
-                        nextDueDate: nextDue,
-                        createdAt: now,
-                      );
-                      Provider.of<RecurringTemplatesController>(context,
-                              listen: false)
-                          .addTemplate(template);
-                      Navigator.pop(ctx);
-                      toast_lib.toast.showSuccess('Template "$name" saved');
-                    },
-                    child: const Text('Save Template'),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: Spacing.xl),
+                  SizedBox(
+                    width: double.infinity,
+                    child: CupertinoButton.filled(
+                      onPressed: () {
+                        final name = nameController.text.trim();
+                        if (name.isEmpty) return;
+                        final amount =
+                            double.tryParse(_amountController.text) ?? 0;
+                        // Compute next due date
+                        final now = DateTime.now();
+                        DateTime nextDue;
+                        switch (frequency) {
+                          case 'daily':
+                            nextDue = now.add(const Duration(days: 1));
+                            break;
+                          case 'weekly':
+                            nextDue = now.add(const Duration(days: 7));
+                            break;
+                          case 'yearly':
+                            nextDue =
+                                DateTime(now.year + 1, now.month, now.day);
+                            break;
+                          default:
+                            nextDue =
+                                DateTime(now.year, now.month + 1, now.day);
+                        }
+                        final template = RecurringTemplate(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          name: name,
+                          branch: _branch == TransactionWizardBranch.income
+                              ? 'income'
+                              : 'expense',
+                          amount: amount,
+                          categoryId: _selectedCategory?.id,
+                          categoryName: _selectedCategory?.name,
+                          accountId: _selectedAccount?.id,
+                          accountName: _selectedAccount?.name,
+                          paymentType: _paymentType?.name,
+                          paymentApp: _selectedPaymentApp,
+                          merchant: _merchantController.text.isNotEmpty
+                              ? _merchantController.text
+                              : null,
+                          description: _descriptionController.text.isNotEmpty
+                              ? _descriptionController.text
+                              : null,
+                          tags: List.from(_selectedTags),
+                          frequency: frequency,
+                          nextDueDate: nextDue,
+                          createdAt: now,
+                        );
+                        Provider.of<RecurringTemplatesController>(context,
+                                listen: false)
+                            .addTemplate(template);
+                        Navigator.pop(ctx);
+                        toast_lib.toast.showSuccess('Template "$name" saved');
+                      },
+                      child: const Text('Save Template'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
       ),
     ).whenComplete(nameController.dispose);
   }
@@ -1331,78 +1343,79 @@ class _TransactionWizardState extends State<TransactionWizard> {
       builder: (ctx) => RLayout.tabletConstrain(
         ctx,
         Container(
-        decoration: BoxDecoration(
-          color: AppStyles.getCardColor(ctx),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: Spacing.lg),
-              const ModalHandle(),
-              const SizedBox(height: Spacing.lg),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
-                child: Text('Recurring Templates',
-                    style: AppStyles.titleStyle(ctx)),
-              ),
-              const SizedBox(height: Spacing.md),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 320),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: ctrl.templates.length,
-                  itemBuilder: (_, i) {
-                    final t = ctrl.templates[i];
-                    final color = t.branch == 'income'
-                        ? AppStyles.gain(ctx)
-                        : AppStyles.loss(ctx);
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: Spacing.xl, vertical: Spacing.xs),
-                      child: Row(
-                        children: [
-                          Icon(CupertinoIcons.repeat, size: 16, color: color),
-                          const SizedBox(width: Spacing.sm),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(t.name,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: AppStyles.getTextColor(ctx))),
-                                Text(
-                                    '₹${t.amount.toStringAsFixed(0)} • ${t.frequency}',
-                                    style: TextStyle(
-                                        fontSize: TypeScale.caption,
-                                        color: AppStyles.getSecondaryTextColor(
-                                            ctx))),
-                              ],
-                            ),
-                          ),
-                          CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            onPressed: () {
-                              ctrl.deleteTemplate(t.id);
-                              Navigator.pop(ctx);
-                            },
-                            child: Icon(CupertinoIcons.trash,
-                                size: 18, color: AppStyles.loss(ctx)),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(ctx),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: Spacing.lg),
+                const ModalHandle(),
+                const SizedBox(height: Spacing.lg),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
+                  child: Text('Recurring Templates',
+                      style: AppStyles.titleStyle(ctx)),
                 ),
-              ),
-              const SizedBox(height: Spacing.lg),
-            ],
+                const SizedBox(height: Spacing.md),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 320),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: ctrl.templates.length,
+                    itemBuilder: (_, i) {
+                      final t = ctrl.templates[i];
+                      final color = t.branch == 'income'
+                          ? AppStyles.gain(ctx)
+                          : AppStyles.loss(ctx);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: Spacing.xl, vertical: Spacing.xs),
+                        child: Row(
+                          children: [
+                            Icon(CupertinoIcons.repeat, size: 16, color: color),
+                            const SizedBox(width: Spacing.sm),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(t.name,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          color: AppStyles.getTextColor(ctx))),
+                                  Text(
+                                      '₹${t.amount.toStringAsFixed(0)} • ${t.frequency}',
+                                      style: TextStyle(
+                                          fontSize: TypeScale.caption,
+                                          color:
+                                              AppStyles.getSecondaryTextColor(
+                                                  ctx))),
+                                ],
+                              ),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              onPressed: () {
+                                ctrl.deleteTemplate(t.id);
+                                Navigator.pop(ctx);
+                              },
+                              child: Icon(CupertinoIcons.trash,
+                                  size: 18, color: AppStyles.loss(ctx)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: Spacing.lg),
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
@@ -2500,51 +2513,56 @@ class _TransactionWizardState extends State<TransactionWizard> {
                         builder: (context, constraints) {
                           const cols = 2;
                           const spacing = Spacing.sm;
-                          final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+                          final itemW =
+                              (constraints.maxWidth - (cols - 1) * spacing) /
+                                  cols;
                           return GridView.count(
-                        crossAxisCount: cols,
-                        childAspectRatio: itemW / (itemW / 3.0),
-                        crossAxisSpacing: spacing,
-                        mainAxisSpacing: spacing,
-                        children: categories.map((category) {
-                          final selected = _selectedCategory?.id == category.id;
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() => _selectedCategory = category);
-                              _saveLastCategory(category);
-                              _nextStep();
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: Spacing.sm),
-                              decoration: BoxDecoration(
-                                color: selected
-                                    ? category.color.withValues(alpha: 0.2)
-                                    : AppStyles.getCardColor(context),
-                                borderRadius: BorderRadius.circular(Radii.md),
-                                border: Border.all(
+                            crossAxisCount: cols,
+                            childAspectRatio: itemW / (itemW / 3.0),
+                            crossAxisSpacing: spacing,
+                            mainAxisSpacing: spacing,
+                            children: categories.map((category) {
+                              final selected =
+                                  _selectedCategory?.id == category.id;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() => _selectedCategory = category);
+                                  _saveLastCategory(category);
+                                  _nextStep();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: Spacing.sm),
+                                  decoration: BoxDecoration(
                                     color: selected
-                                        ? category.color
-                                        : Colors.transparent),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(category.icon, color: category.color),
-                                  const SizedBox(width: Spacing.sm),
-                                  Expanded(
-                                    child: Text(
-                                      category.name,
-                                      style: TextStyle(
-                                          color:
-                                              AppStyles.getTextColor(context)),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                        ? category.color.withValues(alpha: 0.2)
+                                        : AppStyles.getCardColor(context),
+                                    borderRadius:
+                                        BorderRadius.circular(Radii.md),
+                                    border: Border.all(
+                                        color: selected
+                                            ? category.color
+                                            : Colors.transparent),
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                                  child: Row(
+                                    children: [
+                                      Icon(category.icon,
+                                          color: category.color),
+                                      const SizedBox(width: Spacing.sm),
+                                      Expanded(
+                                        child: Text(
+                                          category.name,
+                                          style: TextStyle(
+                                              color: AppStyles.getTextColor(
+                                                  context)),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           );
                         },
                       ),
@@ -2805,78 +2823,78 @@ class _TransactionWizardState extends State<TransactionWizard> {
       builder: (ctx) => RLayout.tabletConstrain(
         ctx,
         Container(
-        padding: EdgeInsets.fromLTRB(
-          24,
-          24,
-          24,
-          24 + MediaQuery.of(ctx).viewInsets.bottom,
-        ),
-        decoration: BoxDecoration(
-          color: AppStyles.getCardColor(ctx),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Add person', style: AppStyles.titleStyle(ctx)),
-                const SizedBox(height: Spacing.md),
-                CupertinoTextField(
-                  controller: nameController,
-                  autofocus: true,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) {
-                    final name = nameController.text.trim();
-                    if (name.isEmpty) return;
-                    final contact = Contact(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: name,
-                      createdDate: DateTime.now(),
-                    );
-                    controller.addContact(contact);
-                    setState(() => _merchantController.text = contact.name);
-                    Navigator.pop(ctx);
-                    _nextStep();
-                  },
-                  placeholder: 'Name',
-                  padding: const EdgeInsets.all(Spacing.lg),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getBackground(ctx),
-                    borderRadius: BorderRadius.circular(Radii.md),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            24,
+            24,
+            24 + MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(ctx),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Add person', style: AppStyles.titleStyle(ctx)),
+                  const SizedBox(height: Spacing.md),
+                  CupertinoTextField(
+                    controller: nameController,
+                    autofocus: true,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) {
+                      final name = nameController.text.trim();
+                      if (name.isEmpty) return;
+                      final contact = Contact(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        name: name,
+                        createdDate: DateTime.now(),
+                      );
+                      controller.addContact(contact);
+                      setState(() => _merchantController.text = contact.name);
+                      Navigator.pop(ctx);
+                      _nextStep();
+                    },
+                    placeholder: 'Name',
+                    padding: const EdgeInsets.all(Spacing.lg),
+                    decoration: BoxDecoration(
+                      color: AppStyles.getBackground(ctx),
+                      borderRadius: BorderRadius.circular(Radii.md),
+                    ),
                   ),
-                ),
-                const SizedBox(height: Spacing.md),
-                CupertinoButton(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    _showPhoneContactsPicker(
-                      controller: controller,
-                      advanceAfterPick: true,
-                    );
-                  },
-                  child: const Text('Pick from phone contacts'),
-                ),
-                const SizedBox(height: Spacing.sm),
-                CupertinoButton.filled(
-                  onPressed: () {
-                    final name = nameController.text.trim();
-                    if (name.isEmpty) return;
-                    final contact = Contact(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: name,
-                      createdDate: DateTime.now(),
-                    );
-                    controller.addContact(contact);
-                    setState(() => _merchantController.text = contact.name);
-                    Navigator.pop(ctx);
-                    _nextStep();
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
-            )),
-      ),
+                  const SizedBox(height: Spacing.md),
+                  CupertinoButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showPhoneContactsPicker(
+                        controller: controller,
+                        advanceAfterPick: true,
+                      );
+                    },
+                    child: const Text('Pick from phone contacts'),
+                  ),
+                  const SizedBox(height: Spacing.sm),
+                  CupertinoButton.filled(
+                    onPressed: () {
+                      final name = nameController.text.trim();
+                      if (name.isEmpty) return;
+                      final contact = Contact(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        name: name,
+                        createdDate: DateTime.now(),
+                      );
+                      controller.addContact(contact);
+                      setState(() => _merchantController.text = contact.name);
+                      Navigator.pop(ctx);
+                      _nextStep();
+                    },
+                    child: const Text('Save'),
+                  ),
+                ],
+              )),
+        ),
       ),
     ).whenComplete(nameController.dispose);
   }
@@ -3055,8 +3073,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
     );
   }
 
-  static const List<({String code, String label, String? limit})>
-      _taxSections = [
+  static const List<({String code, String label, String? limit})> _taxSections =
+      [
     (code: '80C', label: '80C – Investments', limit: '₹1,50,000'),
     (code: '80D', label: '80D – Health Insurance', limit: '₹25,000'),
     (code: 'HRA', label: 'HRA – House Rent Allowance', limit: null),
@@ -3074,8 +3092,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
         Row(
           children: [
             Icon(CupertinoIcons.doc_text,
-                size: 13,
-                color: AppStyles.gold(context)),
+                size: 13, color: AppStyles.gold(context)),
             const SizedBox(width: 6),
             Text(
               'Tax Section (Optional)',
@@ -3123,8 +3140,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
               return GestureDetector(
                 onTap: () => setState(() => _selectedTaxTag = section.code),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 7),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppStyles.gold(context).withValues(alpha: 0.2)
@@ -3393,7 +3410,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
     }).toList();
 
     return Container(
-      height: AppStyles.sheetMaxHeight(context),
+      height: RLayout.adaptiveSheetMaxHeight(context),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),

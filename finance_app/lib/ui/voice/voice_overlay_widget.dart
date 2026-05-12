@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/ai/voice_controller.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'voice_result_card.dart';
 
 /// Full-screen voice interaction overlay.
@@ -28,12 +29,9 @@ class VoiceOverlayWidget extends StatefulWidget {
     bool showConfirmation = true,
     bool autoStart = false,
   }) async {
-    // Lock to portrait so orientation changes cannot interrupt an active
-    // voice session mid-utterance or cause the overlay to misbehave.
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    // Compact phones keep the old safe behavior. Wide/tablet/desktop surfaces
+    // stay in their current layout so voice does not collapse the app to phone.
+    await RLayout.lockPortraitForCompactPhone(context);
     final voice = context.read<VoiceController>();
     final accounts = context.read<AccountsController>().accounts;
     final categories = context.read<CategoriesController>().categories;
@@ -62,7 +60,7 @@ class VoiceOverlayWidget extends StatefulWidget {
       ),
     );
     // Restore all orientations after the overlay is dismissed.
-    await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    await RLayout.restoreOrientations();
     // Guarantee mic is dead regardless of how the modal was closed.
     if (voice.state != VoiceState.idle) voice.cancel();
     return result;

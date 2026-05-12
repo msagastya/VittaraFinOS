@@ -22,6 +22,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -66,11 +67,11 @@ class Breakpoints {
     // Fold inner: wide but near-square (both dimensions large)
     if (w >= 720 && w < 900 && ratio < 1.4) return AppBreakpoint.foldInner;
     if (w >= 1024) return AppBreakpoint.tabletLarge;
-    if (w >= 768)  return AppBreakpoint.tablet;
-    if (w >= 480)  return AppBreakpoint.xl;
-    if (w >= 412)  return AppBreakpoint.lg;
-    if (w >= 393)  return AppBreakpoint.md;
-    if (w >= 360)  return AppBreakpoint.sm;
+    if (w >= 768) return AppBreakpoint.tablet;
+    if (w >= 480) return AppBreakpoint.xl;
+    if (w >= 412) return AppBreakpoint.lg;
+    if (w >= 393) return AppBreakpoint.md;
+    if (w >= 360) return AppBreakpoint.sm;
     return AppBreakpoint.xs;
   }
 
@@ -101,6 +102,23 @@ class Breakpoints {
   /// True in landscape OR on tablet/fold inner (both should show split layout)
   static bool shouldShowSplitLayout(BuildContext context) =>
       AppStyles.isLandscape(context) || isTabletOrLarger(context);
+
+  /// True when modal content should no longer stretch edge-to-edge.
+  /// Covers landscape phones, tablets, folds, desktop, and macOS windows.
+  static bool isWideSurface(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return size.width >= 600 || size.width > size.height;
+  }
+
+  /// Stable layout-mode key for rebuilding fragile gesture/layout surfaces
+  /// when the user rotates or resizes the window.
+  static String sizeClass(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    if (size.width >= 1024) return 'desktop';
+    if (isTabletOrLarger(context)) return 'tablet';
+    if (size.width > size.height) return 'phone-landscape';
+    return 'phone-portrait';
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -122,13 +140,13 @@ class RS {
       (MediaQuery.of(context).size.width / 480.0).clamp(0.78, 1.15);
 
   // Scaled spacing values — drop-in replacements for Spacing.*
-  static double xxs(BuildContext context)  => Spacing.xxs  * factor(context);
-  static double xs(BuildContext context)   => Spacing.xs   * factor(context);
-  static double sm(BuildContext context)   => Spacing.sm   * factor(context);
-  static double md(BuildContext context)   => Spacing.md   * factor(context);
-  static double lg(BuildContext context)   => Spacing.lg   * factor(context);
-  static double xl(BuildContext context)   => Spacing.xl   * factor(context);
-  static double xxl(BuildContext context)  => Spacing.xxl  * factor(context);
+  static double xxs(BuildContext context) => Spacing.xxs * factor(context);
+  static double xs(BuildContext context) => Spacing.xs * factor(context);
+  static double sm(BuildContext context) => Spacing.sm * factor(context);
+  static double md(BuildContext context) => Spacing.md * factor(context);
+  static double lg(BuildContext context) => Spacing.lg * factor(context);
+  static double xl(BuildContext context) => Spacing.xl * factor(context);
+  static double xxl(BuildContext context) => Spacing.xxl * factor(context);
   static double xxxl(BuildContext context) => Spacing.xxxl * factor(context);
   static double huge(BuildContext context) => Spacing.huge * factor(context);
 
@@ -167,8 +185,7 @@ class RS {
       EdgeInsets.symmetric(horizontal: lg(context));
 
   /// Standard card padding (responsive)
-  static EdgeInsets card(BuildContext context) =>
-      EdgeInsets.all(xl(context));
+  static EdgeInsets card(BuildContext context) => EdgeInsets.all(xl(context));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -186,51 +203,49 @@ class RT {
   /// Scale factor per breakpoint
   static double factor(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    if (w < 360) return 0.86;   // xs  — very small budget phones
-    if (w < 393) return 0.91;   // sm  — Motorola G-series (critical)
-    if (w < 412) return 0.96;   // md  — iPhone 14/15, Pixel 7
-    if (w < 480) return 1.00;   // lg  — Galaxy S22/S23
-    if (w >= 768) return 1.10;  // tablet / tabletLarge
-    return 1.04;                 // xl  — Galaxy S24 Ultra (reference)
+    if (w < 360) return 0.86; // xs  — very small budget phones
+    if (w < 393) return 0.91; // sm  — Motorola G-series (critical)
+    if (w < 412) return 0.96; // md  — iPhone 14/15, Pixel 7
+    if (w < 480) return 1.00; // lg  — Galaxy S22/S23
+    if (w >= 768) return 1.10; // tablet / tabletLarge
+    return 1.04; // xl  — Galaxy S24 Ultra (reference)
   }
 
   // Display / Hero — largest sizes, most impact on narrow screens
   static double display(BuildContext context) =>
-      TypeScale.display     * factor(context);
+      TypeScale.display * factor(context);
   static double displayLarge(BuildContext context) =>
       TypeScale.displayLarge * factor(context);
-  static double hero(BuildContext context) =>
-      TypeScale.hero        * factor(context);
+  static double hero(BuildContext context) => TypeScale.hero * factor(context);
 
   // Titles
   static double largeTitle(BuildContext context) =>
-      TypeScale.largeTitle  * factor(context);
+      TypeScale.largeTitle * factor(context);
   static double title1(BuildContext context) =>
-      TypeScale.title1      * factor(context);
+      TypeScale.title1 * factor(context);
   static double title2(BuildContext context) =>
-      TypeScale.title2      * factor(context);
+      TypeScale.title2 * factor(context);
   static double title3(BuildContext context) =>
-      TypeScale.title3      * factor(context);
+      TypeScale.title3 * factor(context);
 
   // Body
   static double headline(BuildContext context) =>
-      TypeScale.headline    * factor(context);
-  static double body(BuildContext context) =>
-      TypeScale.body        * factor(context);
+      TypeScale.headline * factor(context);
+  static double body(BuildContext context) => TypeScale.body * factor(context);
   static double callout(BuildContext context) =>
-      TypeScale.callout     * factor(context);
+      TypeScale.callout * factor(context);
   static double subhead(BuildContext context) =>
-      TypeScale.subhead     * factor(context);
+      TypeScale.subhead * factor(context);
 
   // Small — clamped to readable minimums
   static double footnote(BuildContext context) =>
       (TypeScale.footnote * factor(context)).clamp(11.0, 14.0);
   static double caption(BuildContext context) =>
-      (TypeScale.caption  * factor(context)).clamp(10.0, 13.0);
+      (TypeScale.caption * factor(context)).clamp(10.0, 13.0);
   static double label(BuildContext context) =>
-      (TypeScale.label    * factor(context)).clamp(9.0,  12.0);
+      (TypeScale.label * factor(context)).clamp(9.0, 12.0);
   static double micro(BuildContext context) =>
-      (TypeScale.micro    * factor(context)).clamp(8.0,  10.0);
+      (TypeScale.micro * factor(context)).clamp(8.0, 10.0);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -240,20 +255,60 @@ class RT {
 class RLayout {
   RLayout._();
 
-  /// Max width for modal/sheet content on tablet and fold inner screens.
-  /// Returns double.infinity on phones (no constraint needed).
+  /// Max width for modal/sheet content on wide surfaces.
+  /// Returns double.infinity on compact portrait phones.
   static double sheetMaxWidth(BuildContext context) =>
-      Breakpoints.isTabletOrLarger(context) ? 560.0 : double.infinity;
+      Breakpoints.isWideSurface(context) ? 560.0 : double.infinity;
 
-  /// Wraps [child] in a centered ConstrainedBox(maxWidth: 560) on
-  /// tablet/fold inner, passthrough on phones.
+  static double modalSideInset(BuildContext context) =>
+      Breakpoints.isWideSurface(context) ? 16.0 : 0.0;
+
+  /// Wraps [child] in a centered ConstrainedBox(maxWidth: 560) on landscape
+  /// phones, tablets, folds, and desktop. Compact portrait phones still get
+  /// native full-width bottom sheets.
   static Widget tabletConstrain(BuildContext context, Widget child) {
-    if (!Breakpoints.isTabletOrLarger(context)) return child;
+    if (!Breakpoints.isWideSurface(context)) return child;
     return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
-        child: child,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: modalSideInset(context)),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: sheetMaxWidth(context)),
+          child: child,
+        ),
       ),
+    );
+  }
+
+  /// Lock fragile full-screen flows only on compact portrait phones. Wide
+  /// layouts should keep their current orientation instead of collapsing.
+  static Future<void> lockPortraitForCompactPhone(BuildContext context) async {
+    final size = MediaQuery.of(context).size;
+    if (size.width < 600 && size.width < size.height) {
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    }
+  }
+
+  static Future<void> restoreOrientations() =>
+      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+
+  static double adaptiveSheetMaxHeight(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Breakpoints.isWideSurface(context)
+        ? size.height * 0.92
+        : size.height * 0.85;
+  }
+
+  static Widget orientationKeyed({
+    required BuildContext context,
+    required Widget child,
+    String? suffix,
+  }) {
+    return KeyedSubtree(
+      key: ValueKey('${Breakpoints.sizeClass(context)}:${suffix ?? ''}'),
+      child: child,
     );
   }
 
@@ -281,9 +336,9 @@ class RLayout {
     double crossAxisSpacing = 12.0,
     double targetHeightRatio = 1.1,
   }) {
-    final itemWidth = (constraints.maxWidth -
-            (crossAxisCount - 1) * crossAxisSpacing) /
-        crossAxisCount;
+    final itemWidth =
+        (constraints.maxWidth - (crossAxisCount - 1) * crossAxisSpacing) /
+            crossAxisCount;
     final itemHeight = itemWidth * targetHeightRatio;
     return itemWidth / itemHeight;
   }
