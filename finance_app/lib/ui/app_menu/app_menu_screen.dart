@@ -26,8 +26,7 @@ import 'package:vittara_fin_os/ui/widgets/monthly_statement_sheet.dart';
 
 const String _appName = 'VittaraFinOS';
 const String _appTagline = 'Track Wealth, Master Life';
-const String _appVersion = '1.0.0+1';
-const String _supportEmail = 'support@vittarafinos.app';
+const String _appVersion = '1.0.0+2013';
 
 class DashboardAppMenuScreen extends StatelessWidget {
   const DashboardAppMenuScreen({super.key});
@@ -130,7 +129,7 @@ class DashboardAppMenuScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: Spacing.lg),
                 _MenuSectionCard(
-                  title: 'Product & Support',
+                  title: 'Product',
                   items: [
                     _MenuItem(
                       title: 'About',
@@ -162,11 +161,11 @@ class DashboardAppMenuScreen extends StatelessWidget {
                       ),
                     ),
                     _MenuItem(
-                      title: 'Contact Support',
-                      subtitle: 'Copy support email and diagnostics',
-                      icon: CupertinoIcons.chat_bubble_text_fill,
+                      title: 'Help & Diagnostics',
+                      subtitle: 'Copy app diagnostics for bug reports',
+                      icon: CupertinoIcons.doc_text_search,
                       color: SemanticColors.lending,
-                      onTap: () => _showSupportOptions(context),
+                      onTap: () => _showDiagnosticsOptions(context),
                     ),
                     _MenuItem(
                       title: 'App Information',
@@ -411,38 +410,32 @@ class DashboardAppMenuScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _showSupportOptions(BuildContext context) async {
+  Future<void> _showDiagnosticsOptions(BuildContext context) async {
     await showCupertinoModalPopup<void>(
       context: context,
       builder: (ctx) => RLayout.tabletConstrain(
         ctx,
         CupertinoActionSheet(
-          title: const Text('Contact Support'),
+          title: const Text('Help & Diagnostics'),
           message: const Text(
-            'Share your issue with relevant details. Include screenshots and steps to reproduce for faster resolution.',
+            'This app does not have built-in customer support yet. Copy diagnostics and attach them when you report an issue manually.',
           ),
           actions: [
-            CupertinoActionSheetAction(
-              onPressed: () async {
-                await Clipboard.setData(
-                  const ClipboardData(text: _supportEmail),
-                );
-                if (ctx.mounted) Navigator.of(ctx).pop();
-                toast.showSuccess('Support email copied');
-              },
-              child: const Text('Copy Support Email'),
-            ),
             CupertinoActionSheetAction(
               onPressed: () async {
                 final text = StringBuffer()
                   ..writeln('App: $_appName')
                   ..writeln('Version: $_appVersion')
-                  ..writeln('Platform: Flutter');
+                  ..writeln('Platform: Flutter')
+                  ..writeln('Issue:')
+                  ..writeln('Steps to reproduce:')
+                  ..writeln('Expected:')
+                  ..writeln('Actual:');
                 await Clipboard.setData(ClipboardData(text: text.toString()));
                 if (ctx.mounted) Navigator.of(ctx).pop();
                 toast.showInfo('Diagnostic info copied');
               },
-              child: const Text('Copy Diagnostic Summary'),
+              child: const Text('Copy Diagnostic Template'),
             ),
           ],
           cancelButton: CupertinoActionSheetAction(
@@ -720,99 +713,6 @@ class AboutAppScreen extends StatelessWidget {
   }
 }
 
-class FAQsScreen extends StatelessWidget {
-  const FAQsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final faqs = <_FaqEntry>[
-      const _FaqEntry(
-        question: 'How is Scorecard calculated?',
-        answer:
-            'Your Scorecard combines all positive assets and subtracts credit liabilities. Cash, banks, and investments contribute positively while used credit reduces the total.',
-      ),
-      const _FaqEntry(
-        question: 'How do transfers affect reports?',
-        answer:
-            'Transfers move value between accounts. They do not represent spending by default, but charges and cashback are tracked for transparency.',
-      ),
-      const _FaqEntry(
-        question: 'Can I customize categories and icons?',
-        answer:
-            'Yes. You can create, edit, and delete categories including icon and color customization from Manage > Categories.',
-      ),
-      const _FaqEntry(
-        question: 'Can I track cash outside bank accounts?',
-        answer:
-            'Yes. Use Manage > Cash to track wallet cash, withdrawals, deposits, and ongoing cash balance updates.',
-      ),
-      const _FaqEntry(
-        question: 'How secure is local data?',
-        answer:
-            'App data is stored on-device. Security options such as app lock and related settings are available under Settings.',
-      ),
-      const _FaqEntry(
-        question: 'How can I request support?',
-        answer:
-            'Use Menu > Contact Support to copy support email and diagnostics before raising your issue.',
-      ),
-    ];
-
-    return CupertinoPageScaffold(
-      backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context)
-          ? null
-          : CupertinoNavigationBar(
-              middle: Text('FAQs',
-                  style: TextStyle(color: AppStyles.getTextColor(context))),
-              previousPageTitle: 'Back',
-              backgroundColor: AppStyles.getBackground(context),
-              border: null,
-            ),
-      child: SafeArea(
-        child: ListView.separated(
-          padding: const EdgeInsets.all(Spacing.lg),
-          itemBuilder: (context, index) {
-            final faq = faqs[index];
-            return Container(
-              padding: const EdgeInsets.all(Spacing.lg),
-              decoration: AppStyles.sectionDecoration(
-                context,
-                tint: SemanticColors.warning.withValues(alpha: 0.8),
-                radius: Radii.lg,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    faq.question,
-                    style: TextStyle(
-                      color: AppStyles.getTextColor(context),
-                      fontWeight: FontWeight.w700,
-                      fontSize: TypeScale.callout,
-                    ),
-                  ),
-                  const SizedBox(height: Spacing.sm),
-                  Text(
-                    faq.answer,
-                    style: TextStyle(
-                      color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: TypeScale.body,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-          separatorBuilder: (_, __) => const SizedBox(height: Spacing.md),
-          itemCount: faqs.length,
-        ),
-      ),
-    );
-  }
-}
-
 class AppInformationScreen extends StatelessWidget {
   const AppInformationScreen({super.key});
 
@@ -878,10 +778,7 @@ class AppInformationScreen extends StatelessWidget {
                   label: 'Major Modules',
                   value: 'Dashboard, Manage, Reports, AI Planner, Goals',
                 ),
-                const _InfoStatRow(
-                  label: 'Support Contact',
-                  value: _supportEmail,
-                ),
+                const _InfoStatRow(label: 'Diagnostics', value: 'Available'),
               ],
             ),
           ),
@@ -897,11 +794,11 @@ class WhatsNewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const changes = [
-      'Enhanced category management with icon/color edit support.',
-      'Improved transfer and cashback routing clarity.',
-      'AI planner refinements for SIP/RD and structured outflow visibility.',
-      'Cash management integration in Manage section.',
-      'Dashboard menu experience with support, legal, and product pages.',
+      'Adaptive portrait, landscape, tablet, and macOS sheet behavior.',
+      'Manual encrypted device sync between mobile and Mac.',
+      'Quick Access refresh with Manage, Import, Statements, Reports, Achievements, and Settings.',
+      'Financial Health now reads direct investments from Manage > Investments.',
+      'Dashboard menu cleanup with diagnostics, legal, and product information.',
     ];
 
     return CupertinoPageScaffold(
@@ -1227,16 +1124,6 @@ class _InfoStatRow extends StatelessWidget {
   }
 }
 
-class _FaqEntry {
-  final String question;
-  final String answer;
-
-  const _FaqEntry({
-    required this.question,
-    required this.answer,
-  });
-}
-
 class LegalSection {
   final String heading;
   final String content;
@@ -1264,9 +1151,9 @@ const List<LegalSection> _privacySections = [
         'Security settings such as lock preferences and authentication flow are user-configurable. You are responsible for securing device-level access and credentials.',
   ),
   LegalSection(
-    heading: '4. Support and Diagnostics',
+    heading: '4. Diagnostics',
     content:
-        'When contacting support, only details you explicitly share are transmitted. Avoid including sensitive credentials or full card/account numbers.',
+        'The app can copy a diagnostic issue template that you may share manually. Avoid including sensitive credentials or full card/account numbers.',
   ),
 ];
 

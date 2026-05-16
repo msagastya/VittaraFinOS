@@ -8,14 +8,29 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 class WhatsNewSheet extends StatelessWidget {
   const WhatsNewSheet({super.key});
 
-  static const currentVersion = '2.0.0';
+  static const currentVersion = '1.0.0+2013';
 
   static const _features = [
-    ('Financial Calendar', 'All SIP dates, FD maturities, and EMI dues in one place.'),
-    ('Loan & EMI Tracker', 'Track principal, interest, tenure and amortization.'),
-    ('Insurance Tracker', 'Manage health, life, and vehicle insurance renewals.'),
-    ('Finance Pulse', 'Active SIPs, investment alerts, and cash flow at a glance.'),
-    ('Financial Health Score', 'A 0–100 score based on savings, budgets, investments and debt.'),
+    (
+      'Adaptive Layouts',
+      'Improved portrait, landscape, tablet, and macOS sheet behavior.'
+    ),
+    (
+      'Device Sync',
+      'Manual encrypted sync flow for moving data between mobile and Mac.'
+    ),
+    (
+      'Quick Access Refresh',
+      'Dashboard shortcuts now focus on Manage, Import, Statements, Reports, Achievements, and Settings.'
+    ),
+    (
+      'Financial Health',
+      'Health scoring now reads investments added directly through Manage > Investments.'
+    ),
+    (
+      'Menu Cleanup',
+      'Product pages now avoid fake support promises and provide diagnostics instead.'
+    ),
   ];
 
   @override

@@ -19,7 +19,6 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
-import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
@@ -529,35 +528,12 @@ class _ManageScreenState extends State<ManageScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                    if (item['comingSoon'] == true) ...[
-                      const SizedBox(height: Spacing.xxs),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: Spacing.sm, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: SemanticColors.warning.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'Coming Soon',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: SemanticColors.warning,
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
               Icon(
-                item['comingSoon'] == true
-                    ? CupertinoIcons.lock_fill
-                    : CupertinoIcons.arrow_right_circle_fill,
-                color: item['comingSoon'] == true
-                    ? AppStyles.getSecondaryTextColor(context)
-                    : item['color'],
+                CupertinoIcons.arrow_right_circle_fill,
+                color: item['color'],
                 size: IconSizes.md,
               ),
             ],
@@ -688,10 +664,6 @@ class _ManageScreenState extends State<ManageScreen> {
   // ── Actions ────────────────────────────────────────────────────────────────
 
   Future<void> _onCardPressed(Map<String, dynamic> item) async {
-    if (item['comingSoon'] == true) {
-      toast_lib.toast.showInfo('${item['title']} – Coming Soon');
-      return;
-    }
     if (item['id'] == 'archived') {
       final settings = context.read<SettingsController>();
       if (settings.isArchivedTransactionsEnabled) {

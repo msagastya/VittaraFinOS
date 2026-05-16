@@ -251,7 +251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: CupertinoIcons.info_circle_fill,
               title: 'About VittaraFinOS',
               subtitle: null,
-              value: 'v1.0.0',
+              value: 'v1.0.0+2013',
               color: AppStyles.getPrimaryColor(context),
               onTap: () => _showAboutDialog(context),
             ),
@@ -461,24 +461,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: AppStyles.cardDecoration(context),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(CupertinoIcons.person_crop_circle, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: CupertinoTextField(
-              placeholder: 'Your name (shown in greeting)',
-              controller: _displayNameCtrl,
-              focusNode: _displayNameFocus,
-              onChanged: (v) => settings.setDisplayName(v),
-              style: TextStyle(
+          Row(
+            children: [
+              const Icon(CupertinoIcons.person_crop_circle, size: 20),
+              const SizedBox(width: 12),
+              Text(
+                'Dashboard Greeting Name',
+                style: AppTypography.callout(
                   color: AppStyles.getTextColor(context),
-                  fontSize: TypeScale.body),
-              placeholderStyle: TextStyle(
-                  color: AppStyles.getSecondaryTextColor(context),
-                  fontSize: TypeScale.body),
-              padding: EdgeInsets.zero,
-              decoration: const BoxDecoration(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.sm),
+          CupertinoTextField(
+            placeholder: 'Enter a name, or leave blank for "there"',
+            controller: _displayNameCtrl,
+            focusNode: _displayNameFocus,
+            onChanged: (v) => settings.setDisplayName(v),
+            style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontSize: TypeScale.body),
+            placeholderStyle: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.body),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppStyles.getDividerColor(context).withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(Radii.md),
+            ),
+          ),
+          const SizedBox(height: Spacing.xs),
+          Text(
+            'This controls the dashboard text: “Good Morning, <name>”.',
+            style: AppTypography.footnote(
+              color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
         ],
@@ -494,7 +514,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       (true, 'Encrypted database'),
       (settings.isBiometricEnabled, 'Biometric enabled'),
       (settings.lockOnMinimize, 'Lock on minimize'),
-      (false, 'Screenshots currently allowed'),
+      (settings.requireBiometricForSensitiveScreens, 'Sensitive screens gated'),
       if (dss.isCompromised) (false, 'Rooted device detected'),
     ];
     final teal = AppStyles.gain(context);
@@ -1161,9 +1181,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (ctx) => CupertinoAlertDialog(
         title: const Text('VittaraFinOS'),
         content: const Text(
-          'Version 1.0.0\n\n'
-          'All your financial data is stored 100% on-device — '
-          'no cloud sync, no servers, no third-party access.',
+          'Version 1.0.0+2013\n\n'
+          'VittaraFinOS is local-first. Core financial records stay on-device. '
+          'Manual device sync is user-controlled, and online access is only used for features such as market value refreshes when enabled.',
         ),
         actions: [
           CupertinoDialogAction(
