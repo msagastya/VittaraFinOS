@@ -8,6 +8,8 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/services/ai_voice_command_service.dart';
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
+import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/settings/csv_import_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -42,10 +44,10 @@ class OnboardingActivationScreen extends StatefulWidget {
 
 class _OnboardingActivationScreenState extends State<OnboardingActivationScreen>
     with SingleTickerProviderStateMixin {
-  int _step = 0; // 0-3 = steps, 4 = completion
+  int _step = 0; // 0-1 = essential steps, 2 = completion
   bool _showConfetti = false;
 
-  static const _totalSteps = 4;
+  static const _totalSteps = 2;
 
   void _advance() {
     if (_step < _totalSteps - 1) {
@@ -107,14 +109,8 @@ class _OnboardingActivationScreenState extends State<OnboardingActivationScreen>
       case 0:
         return _Step1Account(key: const ValueKey(0), onComplete: _advance);
       case 1:
-        return _Step2Import(
+        return _Step2FirstEntry(
             key: const ValueKey(1), onComplete: _advance, onSkip: _skip);
-      case 2:
-        return _Step3Goal(
-            key: const ValueKey(2), onComplete: _advance, onSkip: _skip);
-      case 3:
-        return _Step4AI(
-            key: const ValueKey(3), onComplete: _advance, onSkip: _skip);
       default:
         return _CompletionView(
           key: const ValueKey('complete'),
@@ -187,7 +183,7 @@ class _Step1AccountState extends State<_Step1Account> {
           _StepLabel(index: 1),
           const SizedBox(height: Spacing.sm),
           Text(
-            'Link your first account',
+            'Start with Cash in Hand',
             style: TextStyle(
               fontSize: TypeScale.largeTitle,
               fontWeight: FontWeight.w800,
@@ -197,7 +193,7 @@ class _Step1AccountState extends State<_Step1Account> {
           ),
           const SizedBox(height: Spacing.sm),
           Text(
-            'Add a savings, credit, or cash account so VittaraFinOS can track your money.',
+            'We create a Cash in Hand account for you automatically. Set it now, or continue and add bank, UPI, and wallet accounts later.',
             style: TextStyle(
               fontSize: TypeScale.body,
               color: AppStyles.getSecondaryTextColor(context),
@@ -260,7 +256,7 @@ class _Step1AccountState extends State<_Step1Account> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Add an Account',
+                            'Add Bank / UPI / Cash',
                             style: TextStyle(
                               fontSize: TypeScale.subhead,
                               fontWeight: FontWeight.w700,
@@ -269,7 +265,7 @@ class _Step1AccountState extends State<_Step1Account> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Savings, credit card, cash, wallet',
+                            'Optional now. Cash tracking can start first.',
                             style: TextStyle(
                               fontSize: TypeScale.footnote,
                               color: AppStyles.getSecondaryTextColor(context),
@@ -285,6 +281,11 @@ class _Step1AccountState extends State<_Step1Account> {
                 ),
               ),
             ),
+            const SizedBox(height: Spacing.lg),
+            _PrimaryButton(
+              label: 'Continue with Cash in Hand',
+              onPressed: widget.onComplete,
+            ),
           ],
         ],
       ),
@@ -295,6 +296,152 @@ class _Step1AccountState extends State<_Step1Account> {
     if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
     if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
     return v.toStringAsFixed(0);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 2: Add first entry
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _Step2FirstEntry extends StatelessWidget {
+  final VoidCallback onComplete;
+  final VoidCallback onSkip;
+  const _Step2FirstEntry(
+      {super.key, required this.onComplete, required this.onSkip});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(Spacing.xl, 0, Spacing.xl, Spacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _StepLabel(index: 2),
+          const SizedBox(height: Spacing.sm),
+          Text(
+            'Add one money entry',
+            style: TextStyle(
+              fontSize: TypeScale.largeTitle,
+              fontWeight: FontWeight.w800,
+              color: AppStyles.getTextColor(context),
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: Spacing.sm),
+          Text(
+            'Start with something simple: chai, groceries, petrol, salary, rent, or UPI. Budgets, reports, AI, and achievements unlock later when the app has data.',
+            style: TextStyle(
+              fontSize: TypeScale.body,
+              color: AppStyles.getSecondaryTextColor(context),
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: Spacing.xxl),
+          Row(
+            children: [
+              Expanded(
+                child: _EntryStarterCard(
+                  title: 'Expense',
+                  subtitle: '₹50 chai, ₹200 petrol',
+                  icon: CupertinoIcons.arrow_up_circle_fill,
+                  color: AppStyles.loss(context),
+                  onTap: () => showQuickEntrySheet(context,
+                      branch: TransactionWizardBranch.expense),
+                ),
+              ),
+              const SizedBox(width: Spacing.md),
+              Expanded(
+                child: _EntryStarterCard(
+                  title: 'Income',
+                  subtitle: 'Salary, cashback, cash received',
+                  icon: CupertinoIcons.arrow_down_circle_fill,
+                  color: AppStyles.gain(context),
+                  onTap: () => showQuickEntrySheet(context,
+                      branch: TransactionWizardBranch.income),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.xxl),
+          _PrimaryButton(
+            label: 'Go to Dashboard',
+            onPressed: onComplete,
+          ),
+          const SizedBox(height: Spacing.md),
+          Align(
+            alignment: Alignment.centerRight,
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: onSkip,
+              child: Text(
+                'Skip for now',
+                style: TextStyle(
+                  fontSize: TypeScale.footnote,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EntryStarterCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _EntryStarterCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyButton(
+      onPressed: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(Spacing.lg),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: color.withValues(alpha: 0.24)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: Spacing.sm),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: TypeScale.subhead,
+                fontWeight: FontWeight.w800,
+                color: AppStyles.getTextColor(context),
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: TypeScale.caption,
+                color: AppStyles.getSecondaryTextColor(context),
+                height: 1.25,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

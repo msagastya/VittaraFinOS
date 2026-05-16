@@ -20,11 +20,13 @@ import 'package:vittara_fin_os/ui/settings_screen.dart';
 import 'package:vittara_fin_os/ui/manage/reports_analysis_screen.dart';
 import 'package:vittara_fin_os/ui/settings/csv_import_screen.dart';
 import 'package:vittara_fin_os/ui/engagement/achievements_screen.dart';
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/ui/widgets/monthly_statement_sheet.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 
 // ---------------------------------------------------------------------------
 // EngagementStripWidget — single compact row replacing the two tall cards.
@@ -890,6 +892,7 @@ _NextMoveItem? _computeNextMove({
   required List transactions,
 }) {
   final hasAccounts = accounts.isNotEmpty;
+  final txCount = transactions.whereType<Transaction>().length;
   final hasIncome = transactions.any((tx) =>
       tx is Transaction &&
       (tx.type == TransactionType.income ||
@@ -906,6 +909,30 @@ _NextMoveItem? _computeNextMove({
         context: context,
         builder: (_) => AccountWizard(),
       ),
+    );
+  }
+
+  if (txCount == 0) {
+    return _NextMoveItem(
+      shortTitle: 'Add expense',
+      title: 'Log your first transaction',
+      body: 'Start simple: tea, groceries, petrol, rent, salary, or UPI.',
+      icon: CupertinoIcons.arrow_right_arrow_left_circle_fill,
+      color: AppStyles.aetherTeal,
+      onAction: () =>
+          showQuickEntrySheet(context, branch: TransactionWizardBranch.expense),
+    );
+  }
+
+  if (txCount < 5) {
+    return _NextMoveItem(
+      shortTitle: '$txCount/5 entries',
+      title: 'Build your money habit',
+      body:
+          'Log ${5 - txCount} more entry${5 - txCount == 1 ? '' : 'ies'} before budgets and reports unlock.',
+      icon: CupertinoIcons.list_bullet_below_rectangle,
+      color: AppStyles.aetherTeal,
+      onAction: () => showQuickEntrySheet(context),
     );
   }
 

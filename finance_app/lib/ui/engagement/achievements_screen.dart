@@ -6,6 +6,13 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart' show Share;
 
 import 'package:vittara_fin_os/logic/engagement_service.dart';
+import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
+import 'package:vittara_fin_os/ui/manage/accounts_screen.dart';
+import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
+import 'package:vittara_fin_os/ui/manage/goals/goals_screen.dart';
+import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
+import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -112,8 +119,7 @@ class _AchievementUnlockOverlayState extends State<AchievementUnlockOverlay>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(CupertinoIcons.sparkles,
-                        size: 14, color: color),
+                    Icon(CupertinoIcons.sparkles, size: 14, color: color),
                     const SizedBox(width: 6),
                     Text(
                       'Achievement Unlocked',
@@ -233,8 +239,7 @@ class _AchievementUnlockOverlayState extends State<AchievementUnlockOverlay>
                                   vertical: Spacing.md),
                               decoration: BoxDecoration(
                                 color: color.withValues(alpha: 0.12),
-                                borderRadius:
-                                    BorderRadius.circular(Radii.md),
+                                borderRadius: BorderRadius.circular(Radii.md),
                                 border: Border.all(
                                     color: color.withValues(alpha: 0.25)),
                               ),
@@ -268,8 +273,7 @@ class _AchievementUnlockOverlayState extends State<AchievementUnlockOverlay>
                                 gradient: LinearGradient(
                                   colors: [color, color.withValues(alpha: 0.8)],
                                 ),
-                                borderRadius:
-                                    BorderRadius.circular(Radii.md),
+                                borderRadius: BorderRadius.circular(Radii.md),
                               ),
                               child: const Text(
                                 'Awesome!',
@@ -331,8 +335,7 @@ class AchievementsScreen extends StatelessWidget {
               ...AchievementTier.values.map((tier) {
                 final tierAch =
                     kAchievements.where((a) => a.tier == tier).toList();
-                return _buildTierSection(
-                    context, tier, tierAch, unlocked, eng);
+                return _buildTierSection(context, tier, tierAch, unlocked, eng);
               }),
               const SliverToBoxAdapter(child: SizedBox(height: 80)),
             ],
@@ -342,8 +345,7 @@ class AchievementsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressHeader(
-      BuildContext context, int unlocked, int total) {
+  Widget _buildProgressHeader(BuildContext context, int unlocked, int total) {
     final frac = total > 0 ? unlocked / total : 0.0;
     return GlassCard(
       child: Column(
@@ -367,7 +369,7 @@ class AchievementsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Your Achievements',
+                      'Money Missions',
                       style: TextStyle(
                         fontSize: TypeScale.callout,
                         fontWeight: FontWeight.w700,
@@ -375,11 +377,13 @@ class AchievementsScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '$unlocked of $total unlocked',
+                      '$unlocked of $total complete — tap any locked mission for the next action',
                       style: TextStyle(
                         fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -436,8 +440,8 @@ class AchievementsScreen extends StatelessWidget {
 
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-            Spacing.lg, 0, Spacing.lg, Spacing.md),
+        padding:
+            const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -526,10 +530,89 @@ const _kUnlockHints = <String, String>{
   'M04': 'Save 10%+ of income for 12 consecutive weeks.',
   'M05': 'Grow your net worth every month for 6 consecutive months.',
   'M06': 'Add at least one entry in every major section of the app.',
-  'L01': 'In one calendar month: all budgets under, savings above 20%, no new debt.',
+  'L01':
+      'In one calendar month: all budgets under, savings above 20%, no new debt.',
   'L02': 'Achieve a perfect Financial Health Score of 100.',
   'L03': 'Maintain a budget streak for 26 consecutive weeks.',
 };
+
+String _missionActionLabel(String id) {
+  switch (id) {
+    case 'F01':
+      return 'Open Accounts';
+    case 'F02':
+      return 'Add Account Type';
+    case 'F03':
+    case 'D01':
+    case 'L03':
+      return 'Open Budgets';
+    case 'F04':
+    case 'F07':
+    case 'D04':
+    case 'D05':
+    case 'M01':
+      return 'Open Goals';
+    case 'F05':
+    case 'D02':
+    case 'D03':
+    case 'M04':
+    case 'L01':
+      return 'Add Entry';
+    case 'F06':
+    case 'M02':
+      return 'Open Investments';
+    case 'M03':
+    case 'L02':
+      return 'Improve Health';
+    case 'M05':
+    case 'M06':
+      return 'Open Manage';
+    default:
+      return 'Take Action';
+  }
+}
+
+void _runMissionAction(BuildContext context, String id) {
+  Navigator.of(context).pop();
+  switch (id) {
+    case 'F01':
+    case 'F02':
+      Navigator.of(context).push(CupertinoPageRoute(
+        builder: (_) =>
+            const AccountsScreen(initialCategoryType: AccountType.cash),
+      ));
+      return;
+    case 'F03':
+    case 'D01':
+    case 'L03':
+      Navigator.of(context)
+          .push(CupertinoPageRoute(builder: (_) => const BudgetsScreen()));
+      return;
+    case 'F04':
+    case 'F07':
+    case 'D04':
+    case 'D05':
+    case 'M01':
+      Navigator.of(context)
+          .push(CupertinoPageRoute(builder: (_) => const GoalsScreen()));
+      return;
+    case 'F05':
+    case 'D02':
+    case 'D03':
+    case 'M04':
+    case 'L01':
+      showQuickEntrySheet(context);
+      return;
+    case 'F06':
+    case 'M02':
+      Navigator.of(context)
+          .push(CupertinoPageRoute(builder: (_) => const InvestmentsScreen()));
+      return;
+    default:
+      Navigator.of(context)
+          .push(CupertinoPageRoute(builder: (_) => const ManageScreen()));
+  }
+}
 
 class _AchievementCard extends StatefulWidget {
   final Achievement achievement;
@@ -629,21 +712,24 @@ class _AchievementCardState extends State<_AchievementCard>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: color.withValues(alpha: 0.12),
-                  border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+                  border: Border.all(
+                      color: color.withValues(alpha: 0.3), width: 1.5),
                 ),
                 child: Icon(
                   widget.isUnlocked
                       ? _tierIcon(widget.achievement.tier)
                       : CupertinoIcons.lock_fill,
                   size: 32,
-                  color: widget.isUnlocked ? color : color.withValues(alpha: 0.45),
+                  color:
+                      widget.isUnlocked ? color : color.withValues(alpha: 0.45),
                 ),
               ),
               const SizedBox(height: 16),
 
               // Tier badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(Radii.full),
@@ -743,23 +829,47 @@ class _AchievementCardState extends State<_AchievementCard>
 
               const SizedBox(height: 24),
 
-              // Close button
+              // Action button: achievements are missions, not passive badges.
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: CupertinoButton(
-                    color: color,
-                    borderRadius: BorderRadius.circular(Radii.md),
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text(
-                      'Got it',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CupertinoButton(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        borderRadius: BorderRadius.circular(Radii.md),
+                        color: AppStyles.getSecondaryTextColor(context)
+                            .withValues(alpha: 0.12),
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          'Close',
+                          style: TextStyle(
+                            color: AppStyles.getTextColor(context),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: Spacing.md),
+                    Expanded(
+                      child: CupertinoButton(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        color: color,
+                        borderRadius: BorderRadius.circular(Radii.md),
+                        onPressed: () =>
+                            _runMissionAction(context, widget.achievement.id),
+                        child: Text(
+                          widget.isUnlocked
+                              ? 'Open'
+                              : _missionActionLabel(widget.achievement.id),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -792,119 +902,145 @@ class _AchievementCardState extends State<_AchievementCard>
     return Stack(
       clipBehavior: Clip.none,
       children: [
-    GestureDetector(
-      onTap: () => _showDetail(context),
-      child: AnimatedBuilder(
-        animation: _shimmerCtrl,
-        builder: (_, child) {
-          // Subtle shimmer border on unlocked cards
-          final shimmerAlpha = widget.isUnlocked
-              ? 0.25 + (_shimmerCtrl.value * 0.15)
-              : (isDark ? 0.18 : 0.15);
-          return Container(
-            decoration: BoxDecoration(
-              color: widget.isUnlocked
-                  ? AppStyles.getCardColor(context)
-                  : Color.alphaBlend(
-                      color.withValues(alpha: isDark ? 0.06 : 0.04),
-                      AppStyles.getCardColor(context),
-                    ),
-              borderRadius: BorderRadius.circular(Radii.lg),
-              border: Border.all(
-                color: color.withValues(alpha: shimmerAlpha),
-                width: widget.isUnlocked ? 1.0 : 0.8,
-              ),
-              boxShadow: widget.isUnlocked
-                  ? [
-                      BoxShadow(
-                        color: color.withValues(alpha: 0.10 + _shimmerCtrl.value * 0.06),
-                        blurRadius: 12,
-                        offset: const Offset(0, 3),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: child,
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(Spacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+        GestureDetector(
+          onTap: () => _showDetail(context),
+          child: AnimatedBuilder(
+            animation: _shimmerCtrl,
+            builder: (_, child) {
+              // Subtle shimmer border on unlocked cards
+              final shimmerAlpha = widget.isUnlocked
+                  ? 0.25 + (_shimmerCtrl.value * 0.15)
+                  : (isDark ? 0.18 : 0.15);
+              return Container(
+                decoration: BoxDecoration(
+                  color: widget.isUnlocked
+                      ? AppStyles.getCardColor(context)
+                      : Color.alphaBlend(
+                          color.withValues(alpha: isDark ? 0.06 : 0.04),
+                          AppStyles.getCardColor(context),
+                        ),
+                  borderRadius: BorderRadius.circular(Radii.lg),
+                  border: Border.all(
+                    color: color.withValues(alpha: shimmerAlpha),
+                    width: widget.isUnlocked ? 1.0 : 0.8,
+                  ),
+                  boxShadow: widget.isUnlocked
+                      ? [
+                          BoxShadow(
+                            color: color.withValues(
+                                alpha: 0.10 + _shimmerCtrl.value * 0.06),
+                            blurRadius: 12,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: child,
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(Spacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: iconBg,
-                      borderRadius: BorderRadius.circular(Radii.sm),
-                    ),
-                    child: Icon(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: iconBg,
+                          borderRadius: BorderRadius.circular(Radii.sm),
+                        ),
+                        child: Icon(
+                          widget.isUnlocked
+                              ? _tierIcon(widget.achievement.tier)
+                              : CupertinoIcons.lock_fill,
+                          size: 17,
+                          color: iconColor,
+                        ),
+                      ),
                       widget.isUnlocked
-                          ? _tierIcon(widget.achievement.tier)
-                          : CupertinoIcons.lock_fill,
-                      size: 17,
-                      color: iconColor,
-                    ),
+                          ? Icon(CupertinoIcons.checkmark_seal_fill,
+                              size: 14, color: color)
+                          : Icon(CupertinoIcons.info_circle,
+                              size: 14, color: color.withValues(alpha: 0.35)),
+                    ],
                   ),
-                  widget.isUnlocked
-                      ? Icon(CupertinoIcons.checkmark_seal_fill,
-                          size: 14, color: color)
-                      : Icon(CupertinoIcons.info_circle,
-                          size: 14,
-                          color: color.withValues(alpha: 0.35)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.achievement.name,
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w700,
+                          color: nameColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      if (widget.date != null)
+                        Text(
+                          '${widget.date!.day}/${widget.date!.month}/${widget.date!.year}',
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: color.withValues(alpha: 0.6),
+                          ),
+                        )
+                      else
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.achievement.label,
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                color: subColor,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(Radii.full),
+                                border: Border.all(
+                                    color: color.withValues(alpha: 0.18)),
+                              ),
+                              child: Text(
+                                _missionActionLabel(widget.achievement.id),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: color,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
                 ],
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.achievement.name,
-                    style: TextStyle(
-                      fontSize: TypeScale.footnote,
-                      fontWeight: FontWeight.w700,
-                      color: nameColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  if (widget.date != null)
-                    Text(
-                      '${widget.date!.day}/${widget.date!.month}/${widget.date!.year}',
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: color.withValues(alpha: 0.6),
-                      ),
-                    )
-                  else
-                    Text(
-                      widget.achievement.label,
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: subColor,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
-    ), // GestureDetector
-    // Particle burst overlay for newly unlocked achievements
-    if (_showBurst)
-      Positioned.fill(
-        child: IgnorePointer(
-          child: _ParticleBurst(color: color),
-        ),
-      ),
+        ), // GestureDetector
+        // Particle burst overlay for newly unlocked achievements
+        if (_showBurst)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: _ParticleBurst(color: color),
+            ),
+          ),
       ], // Stack children
     ); // Stack
   }

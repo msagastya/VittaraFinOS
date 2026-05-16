@@ -56,6 +56,7 @@ import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_action_sheet.dart';
 import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
+import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/dashboard/ai_tray_sheet.dart';
 import 'package:vittara_fin_os/ui/notifications_page.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -77,6 +78,7 @@ import 'package:vittara_fin_os/ui/manage/savings/savings_planners_screen.dart';
 import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.dart';
 import 'package:vittara_fin_os/ui/manage/reports_analysis_screen.dart';
 import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
+import 'package:vittara_fin_os/ui/manage/accounts_screen.dart';
 import 'package:vittara_fin_os/ui/app_menu/app_menu_screen.dart';
 import 'package:vittara_fin_os/ui/sms/sms_review_screen.dart';
 import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
@@ -929,8 +931,7 @@ class _SplashScreenState extends State<SplashScreen>
         FadeScalePageRoute(
           page: Builder(
             builder: (activationContext) => OnboardingActivationScreen(
-              onComplete: () =>
-                  _goToDashboard(routeContext: activationContext),
+              onComplete: () => _goToDashboard(routeContext: activationContext),
             ),
           ),
         ),
@@ -1920,28 +1921,37 @@ class _DashboardScreenContent extends StatelessWidget {
 
           // RIGHT PANEL ── the card deck fills the rest
           Expanded(
-            child: Column(
-              children: [
-                const EngagementStripWidget(),
-                const SizedBox(height: Spacing.sm),
-                const AIInsightsStrip(),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                        top: Spacing.xs, bottom: Spacing.sm),
-                    child: Selector<AccountsController, bool>(
-                      selector: (_, ctrl) => ctrl.accounts.isEmpty,
-                      builder: (_, hasNoAccounts, __) => hasNoAccounts
-                          ? const _SetupCard()
-                          : CardDeckView(
-                              cards: cards,
-                              onCardChanged: (_) {},
-                            ),
+            child: Consumer3<AccountsController, TransactionsController,
+                BudgetsController>(
+              builder: (context, accCtrl, txCtrl, budgetCtrl, _) {
+                final beginner = _isBeginnerDashboard(
+                  accounts: accCtrl.accounts,
+                  transactions: txCtrl.transactions,
+                  hasBudget: budgetCtrl.budgets.isNotEmpty,
+                );
+                return Column(
+                  children: [
+                    const EngagementStripWidget(),
+                    if (!beginner) ...[
+                      const SizedBox(height: Spacing.sm),
+                      const AIInsightsStrip(),
+                    ],
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                            top: Spacing.xs, bottom: Spacing.sm),
+                        child: beginner
+                            ? const _BeginnerDashboard()
+                            : CardDeckView(
+                                cards: cards,
+                                onCardChanged: (_) {},
+                              ),
+                      ),
                     ),
-                  ),
-                ),
-                const _EngagementChecker(),
-              ],
+                    const _EngagementChecker(),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -1949,37 +1959,60 @@ class _DashboardScreenContent extends StatelessWidget {
     }
 
     // ── PORTRAIT: original layout ────────────────────────────────────────────
-    return Column(
-      children: [
-        // PROFESSIONAL HEADER — natural height so no artificial gap opens
-        // between the hero and engagement row.
-        _buildHeaderSection(context),
+    return Consumer3<AccountsController, TransactionsController,
+        BudgetsController>(
+      builder: (context, accCtrl, txCtrl, budgetCtrl, _) {
+        final beginner = _isBeginnerDashboard(
+          accounts: accCtrl.accounts,
+          transactions: txCtrl.transactions,
+          hasBudget: budgetCtrl.budgets.isNotEmpty,
+        );
+        return Column(
+          children: [
+            // PROFESSIONAL HEADER — natural height so no artificial gap opens
+            // between the hero and engagement row.
+            _buildHeaderSection(context),
 
-        // ENGAGEMENT: compact strip
-        const EngagementStripWidget(),
+            // ENGAGEMENT: compact strip
+            const EngagementStripWidget(),
 
-        // AI INSIGHTS: proactive cards (hidden when no content)
-        const SizedBox(height: Spacing.sm),
-        const AIInsightsStrip(),
+            if (!beginner) ...[
+              // AI INSIGHTS: proactive cards (hidden when no content)
+              const SizedBox(height: Spacing.sm),
+              const AIInsightsStrip(),
+            ],
 
-        // CARD DECK — swipe left/right
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: Spacing.md, bottom: Spacing.sm),
-            child: Selector<AccountsController, bool>(
-              selector: (_, ctrl) => ctrl.accounts.isEmpty,
-              builder: (_, hasNoAccounts, __) => hasNoAccounts
-                  ? const _SetupCard()
-                  : CardDeckView(cards: cards, onCardChanged: (_) {}),
+            Expanded(
+              child: Padding(
+                padding:
+                    const EdgeInsets.only(top: Spacing.md, bottom: Spacing.sm),
+                child: beginner
+                    ? const _BeginnerDashboard()
+                    : CardDeckView(cards: cards, onCardChanged: (_) {}),
+              ),
             ),
-          ),
-        ),
 
-        // Engagement checker
-        const _EngagementChecker(),
-      ],
+            // Engagement checker
+            const _EngagementChecker(),
+          ],
+        );
+      },
     );
   }
+
+  bool _isBeginnerDashboard({
+    required List<Account> accounts,
+    required List<Transaction> transactions,
+    required bool hasBudget,
+  }) {
+    final realAccounts = accounts.where((a) => !a.isHidden).length;
+    return transactions.length < 5 || realAccounts <= 1 && !hasBudget;
+  }
+
+  /// Beginner mode keeps the first-week experience focused on one habit:
+  /// record money movements before exposing the full financial cockpit.
+  /// Advanced cards automatically return once the user has enough data.
+  static const _beginnerMinTransactions = 5;
 
   /// Shown when the user has no accounts yet — guides them to set up their first account.
   Widget _buildSetupCard(BuildContext context) {
@@ -3800,6 +3833,342 @@ class _LockDialog extends StatelessWidget {
           child: const LockScreen(),
         );
       },
+    );
+  }
+}
+
+class _BeginnerDashboard extends StatelessWidget {
+  const _BeginnerDashboard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer3<AccountsController, TransactionsController,
+        BudgetsController>(
+      builder: (context, accCtrl, txCtrl, budgetCtrl, _) {
+        final accounts = accCtrl.accounts.where((a) => !a.isHidden).toList();
+        final cashAccounts =
+            accounts.where((a) => a.type == AccountType.cash).toList();
+        final cash = cashAccounts.isEmpty ? null : cashAccounts.first;
+        final txCount = txCtrl.transactions.length;
+        final remaining =
+            (_DashboardScreenContent._beginnerMinTransactions - txCount)
+                .clamp(0, 99);
+
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(
+              Spacing.lg, Spacing.sm, Spacing.lg, Spacing.xxl),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(Spacing.lg),
+              decoration: AppStyles.sectionDecoration(
+                context,
+                tint: AppStyles.aetherTeal,
+                radius: 24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: AppStyles.aetherTeal.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(CupertinoIcons.sparkles,
+                            color: AppStyles.aetherTeal, size: 20),
+                      ),
+                      const SizedBox(width: Spacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Simple Start Mode',
+                              style: TextStyle(
+                                fontSize: TypeScale.headline,
+                                fontWeight: FontWeight.w800,
+                                color: AppStyles.getTextColor(context),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              remaining == 0
+                                  ? 'Add a budget or another account to unlock the full dashboard.'
+                                  : '$remaining more entr${remaining == 1 ? 'y' : 'ies'} unlock budgets, reports, and advanced insights.',
+                              style: TextStyle(
+                                fontSize: TypeScale.footnote,
+                                color: AppStyles.getSecondaryTextColor(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: Spacing.lg),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _BeginnerAction(
+                          label: 'Add Expense',
+                          icon: CupertinoIcons.arrow_up_circle_fill,
+                          color: AppStyles.loss(context),
+                          onTap: () => showQuickEntrySheet(context,
+                              branch: TransactionWizardBranch.expense),
+                        ),
+                      ),
+                      const SizedBox(width: Spacing.sm),
+                      Expanded(
+                        child: _BeginnerAction(
+                          label: 'Add Income',
+                          icon: CupertinoIcons.arrow_down_circle_fill,
+                          color: AppStyles.gain(context),
+                          onTap: () => showQuickEntrySheet(context,
+                              branch: TransactionWizardBranch.income),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: Spacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: _StarterTile(
+                    title: cash == null ? 'Set Cash' : 'Cash in Hand',
+                    subtitle: cash == null
+                        ? 'Start with cash balance'
+                        : CurrencyFormatter.format(cash.balance, decimals: 0),
+                    icon: CupertinoIcons.money_dollar_circle_fill,
+                    color: AppStyles.bioGreen,
+                    onTap: () => Navigator.of(context).push(
+                      FadeScalePageRoute(
+                        page: const AccountsScreen(
+                            initialCategoryType: AccountType.cash),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: Spacing.sm),
+                Expanded(
+                  child: _StarterTile(
+                    title: 'Bank / UPI',
+                    subtitle: 'Add when ready',
+                    icon: CupertinoIcons.creditcard_fill,
+                    color: AppStyles.accentBlue,
+                    onTap: () => Navigator.of(context)
+                        .push(FadeScalePageRoute(page: const ManageScreen())),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: Spacing.md),
+            _BeginnerChecklist(
+              txCount: txCount,
+              hasCash: cash != null,
+              hasBudget: budgetCtrl.budgets.isNotEmpty,
+              hasIncome: txCtrl.transactions.any((tx) =>
+                  tx.type == TransactionType.income ||
+                  tx.type == TransactionType.cashback),
+            ),
+            const SizedBox(height: Spacing.md),
+            Text(
+              'Advanced scorecards, AI insights, reports, and achievements unlock after your first few entries so the app stays clean while you learn.',
+              style: TextStyle(
+                fontSize: TypeScale.caption,
+                color: AppStyles.getSecondaryTextColor(context),
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _BeginnerAction extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _BeginnerAction({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyButton(
+      onPressed: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(Radii.lg),
+          border: Border.all(color: color.withValues(alpha: 0.28)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: TypeScale.footnote,
+                fontWeight: FontWeight.w800,
+                color: AppStyles.getTextColor(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StarterTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _StarterTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyButton(
+      onPressed: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(Spacing.md),
+        decoration:
+            AppStyles.sectionDecoration(context, tint: color, radius: 18),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: Spacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      fontWeight: FontWeight.w800,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BeginnerChecklist extends StatelessWidget {
+  final int txCount;
+  final bool hasCash;
+  final bool hasBudget;
+  final bool hasIncome;
+
+  const _BeginnerChecklist({
+    required this.txCount,
+    required this.hasCash,
+    required this.hasBudget,
+    required this.hasIncome,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = [
+      (done: hasCash, label: 'Cash in Hand ready'),
+      (done: txCount > 0, label: 'First transaction logged'),
+      (done: txCount >= 5, label: '5 entries for spending pattern'),
+      (done: hasIncome, label: 'Income added for savings rate'),
+      (done: hasBudget, label: 'Budget created when useful'),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: AppStyles.sectionDecoration(
+        context,
+        tint: AppStyles.accentBlue,
+        radius: 22,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Your starter path',
+            style: TextStyle(
+              fontSize: TypeScale.callout,
+              fontWeight: FontWeight.w800,
+              color: AppStyles.getTextColor(context),
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+          ...steps.map(
+            (step) => Padding(
+              padding: const EdgeInsets.only(bottom: Spacing.sm),
+              child: Row(
+                children: [
+                  Icon(
+                    step.done
+                        ? CupertinoIcons.checkmark_circle_fill
+                        : CupertinoIcons.circle,
+                    color: step.done
+                        ? AppStyles.bioGreen
+                        : AppStyles.getSecondaryTextColor(context)
+                            .withValues(alpha: 0.45),
+                    size: 17,
+                  ),
+                  const SizedBox(width: Spacing.sm),
+                  Expanded(
+                    child: Text(
+                      step.label,
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        color: AppStyles.getTextColor(context),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
