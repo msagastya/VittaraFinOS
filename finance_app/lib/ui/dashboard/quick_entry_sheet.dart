@@ -42,7 +42,8 @@ void showQuickEntrySheet(BuildContext context,
     String? initialDescription,
     DateTime? initialDate,
     String? initialAccountId,
-    String? initialCategoryName}) {
+    String? initialCategoryName,
+    VoidCallback? onSaved}) {
   showCupertinoModalPopup<void>(
     context: context,
     builder: (ctx) => RLayout.tabletConstrain(
@@ -56,6 +57,7 @@ void showQuickEntrySheet(BuildContext context,
         initialDate: initialDate,
         initialAccountId: initialAccountId,
         initialCategoryName: initialCategoryName,
+        onSaved: onSaved,
       ),
     ),
   );
@@ -72,6 +74,7 @@ class _QuickEntrySheet extends StatefulWidget {
   final DateTime? initialDate;
   final String? initialAccountId;
   final String? initialCategoryName;
+  final VoidCallback? onSaved;
   const _QuickEntrySheet({
     required this.initialBranch,
     this.existingTransaction,
@@ -81,6 +84,7 @@ class _QuickEntrySheet extends StatefulWidget {
     this.initialDate,
     this.initialAccountId,
     this.initialCategoryName,
+    this.onSaved,
   });
 
   @override
@@ -722,6 +726,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         await transactionsCtrl.addTransaction(tx);
         Haptics.success();
         dashboardSavedSignal.value++; // triggers FAB checkmark morph
+        widget.onSaved?.call();
         if (mounted) {
           await _triggerSaveFlash();
           if (mounted) Navigator.pop(context);
