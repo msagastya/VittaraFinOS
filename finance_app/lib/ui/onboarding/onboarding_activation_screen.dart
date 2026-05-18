@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/services/ai_voice_command_service.dart';
+import 'package:vittara_fin_os/services/dograh_assistant_service.dart';
 import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
@@ -784,7 +785,7 @@ class _Step4AIState extends State<_Step4AI> {
           _StepLabel(index: 4),
           const SizedBox(height: Spacing.sm),
           Text(
-            'Set up your AI assistant',
+            'Set up ${DograhAssistantService.fullName}',
             style: TextStyle(
               fontSize: TypeScale.largeTitle,
               fontWeight: FontWeight.w800,
@@ -794,7 +795,7 @@ class _Step4AIState extends State<_Step4AI> {
           ),
           const SizedBox(height: Spacing.sm),
           Text(
-            'Use voice to add transactions, navigate, read summaries, switch theme, and export statements. Double-press volume down anytime while the app is open.',
+            'Use local voice to add transactions, navigate, read summaries, switch theme, and export statements. Double-press volume down anytime while the app is open.',
             style: TextStyle(
               fontSize: TypeScale.body,
               color: AppStyles.getSecondaryTextColor(context),

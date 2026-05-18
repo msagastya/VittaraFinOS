@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/ai/device_intelligence_tier.dart';
 import 'package:vittara_fin_os/logic/ai/voice_controller.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
+import 'package:vittara_fin_os/services/dograh_assistant_service.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
@@ -292,32 +293,11 @@ class _VoiceOverlayWidgetState extends State<VoiceOverlayWidget> {
   }
 
   Widget _buildStatusText(VoiceController voice, BuildContext context) {
-    String text;
-    switch (voice.state) {
-      case VoiceState.idle:
-        text = widget.autoStart ? 'Ready to listen' : 'Tap mic and speak';
-        break;
-      case VoiceState.listening:
-        text = voice.currentQuestion != null
-            ? 'Speak your answer'
-            : 'Listening... pause 3 seconds or tap mic to finish';
-        break;
-      case VoiceState.processing:
-        text = 'Understanding...';
-        break;
-      case VoiceState.filling:
-        text = 'Follow-up question';
-        break;
-      case VoiceState.confirming:
-        text = 'Got it';
-        break;
-      case VoiceState.speaking:
-        text = '';
-        break;
-      case VoiceState.error:
-        text = 'Try again';
-        break;
-    }
+    final text = DograhAssistantService.statusText(
+      state: voice.state,
+      autoStart: widget.autoStart,
+      hasQuestion: voice.currentQuestion != null,
+    );
     if (text.isEmpty) return const SizedBox.shrink();
     return Text(
       text,
@@ -455,7 +435,7 @@ class _VoiceOverlayWidgetState extends State<VoiceOverlayWidget> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Or type the sentence',
+          'Or type for ${DograhAssistantService.name}',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 12,
@@ -470,7 +450,7 @@ class _VoiceOverlayWidgetState extends State<VoiceOverlayWidget> {
               child: CupertinoTextField(
                 controller: _typedCtrl,
                 enabled: !busy,
-                placeholder: '500 on Swiggy yesterday',
+                placeholder: DograhAssistantService.examples.first,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _submitTyped(voice),
                 padding: const EdgeInsets.symmetric(

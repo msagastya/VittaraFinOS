@@ -16,6 +16,7 @@ import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/services/dograh_assistant_service.dart';
 import 'package:vittara_fin_os/services/monthly_statement_service.dart';
 import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
 import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
@@ -143,7 +144,9 @@ class AIVoiceCommandService {
         return true;
       case VoiceIntent.unknown:
         toast.showInfo(
-            'Try: "open investments", "add 500 food", or "today summary".');
+          '${DograhAssistantService.name} can try: "open investments", '
+          '"add 500 food", or "today summary".',
+        );
         return false;
     }
   }

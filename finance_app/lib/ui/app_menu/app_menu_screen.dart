@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/services/ai_voice_command_service.dart';
+import 'package:vittara_fin_os/services/dograh_assistant_service.dart';
 import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
 import 'package:vittara_fin_os/ui/device_sync_screen.dart';
 import 'package:vittara_fin_os/ui/settings/csv_import_screen.dart';
@@ -54,9 +55,9 @@ class DashboardAppMenuScreen extends StatelessWidget {
                   title: 'Core Actions',
                   items: [
                     _MenuItem(
-                      title: 'AI Assistant',
+                      title: DograhAssistantService.fullName,
                       subtitle:
-                          'Voice commands, entries, summaries, exports, navigation',
+                          'Local voice commands, entries, summaries, exports, navigation',
                       icon: CupertinoIcons.sparkles,
                       color: AppStyles.aetherTeal,
                       onTap: () => AIVoiceCommandService.openAssistant(context),
