@@ -1973,6 +1973,8 @@ class _DashboardScreenContent extends StatelessWidget {
             // between the hero and engagement row.
             _buildHeaderSection(context),
 
+            if (!beginner) const _FinanceTrackerPulse(),
+
             // ENGAGEMENT: compact strip
             const EngagementStripWidget(),
 
@@ -3989,6 +3991,170 @@ class _BeginnerDashboard extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _FinanceTrackerPulse extends StatelessWidget {
+  const _FinanceTrackerPulse();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer2<AccountsController, TransactionsController>(
+      builder: (context, accountsCtrl, txCtrl, _) {
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final monthStart = DateTime(now.year, now.month, 1);
+
+        double cash = 0;
+        for (final account in accountsCtrl.accounts) {
+          if (!account.isHidden && account.type == AccountType.cash) {
+            cash += account.balance;
+          }
+        }
+
+        double todaySpent = 0;
+        double monthIncome = 0;
+        double monthOut = 0;
+        for (final tx in txCtrl.transactions) {
+          if (!tx.dateTime.isBefore(today) &&
+              tx.type == TransactionType.expense) {
+            todaySpent += tx.amount.abs();
+          }
+          if (tx.dateTime.isBefore(monthStart)) continue;
+          if (tx.type == TransactionType.expense ||
+              tx.type == TransactionType.investment ||
+              tx.type == TransactionType.lending) {
+            monthOut += tx.amount.abs();
+          } else if (tx.type == TransactionType.income ||
+              tx.type == TransactionType.cashback) {
+            monthIncome += tx.amount.abs();
+          }
+        }
+
+        final monthNet = monthIncome - monthOut;
+        final netColor =
+            monthNet >= 0 ? AppStyles.gain(context) : AppStyles.loss(context);
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+              Spacing.lg, Spacing.xs, Spacing.lg, Spacing.sm),
+          child: Row(
+            children: [
+              Expanded(
+                child: _PulseTile(
+                  label: 'Cash',
+                  value: CurrencyFormatter.format(cash, decimals: 0),
+                  icon: CupertinoIcons.money_dollar_circle_fill,
+                  color: AppStyles.bioGreen,
+                  onTap: () => Navigator.of(context).push(
+                    FadeScalePageRoute(
+                      page: const AccountsScreen(
+                          initialCategoryType: AccountType.cash),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: Spacing.sm),
+              Expanded(
+                child: _PulseTile(
+                  label: 'Today out',
+                  value: CurrencyFormatter.format(todaySpent, decimals: 0),
+                  icon: CupertinoIcons.arrow_up_circle_fill,
+                  color: AppStyles.loss(context),
+                  onTap: () => Navigator.of(context).push(
+                    FadeScalePageRoute(page: const TransactionHistoryScreen()),
+                  ),
+                ),
+              ),
+              const SizedBox(width: Spacing.sm),
+              Expanded(
+                child: _PulseTile(
+                  label: 'Month net',
+                  value: CurrencyFormatter.format(monthNet, decimals: 0),
+                  icon: monthNet >= 0
+                      ? CupertinoIcons.arrow_down_circle_fill
+                      : CupertinoIcons.exclamationmark_circle_fill,
+                  color: netColor,
+                  onTap: () => Navigator.of(context).push(
+                    FadeScalePageRoute(page: const ReportsAnalysisScreen()),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PulseTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _PulseTile({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyButton(
+      onPressed: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.sm,
+          vertical: Spacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: color.withValues(
+              alpha: AppStyles.isDarkMode(context) ? 0.14 : 0.08),
+          borderRadius: BorderRadius.circular(Radii.lg),
+          border: Border.all(color: color.withValues(alpha: 0.26)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 16),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'SpaceGrotesk',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

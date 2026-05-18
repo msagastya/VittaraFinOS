@@ -1575,7 +1575,16 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                           ),
                           const SizedBox(height: Spacing.lg),
 
-                          // Description
+                          // Finance tracker core fields: saving should never
+                          // depend on controls hidden under "More".
+                          _buildCategorySection(
+                              categories, isDark, secondaryText, primaryText),
+                          const SizedBox(height: Spacing.md),
+
+                          _buildAccountSection(
+                              isDark, secondaryText, primaryText),
+                          const SizedBox(height: Spacing.md),
+
                           _buildDescriptionField(isDark, secondaryText),
                           const SizedBox(height: Spacing.md),
 
@@ -1602,17 +1611,10 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                             firstChild: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Category
-                                _buildCategorySection(categories, isDark,
-                                    secondaryText, primaryText),
-                                const SizedBox(height: Spacing.lg),
-
-                                // Details divider
                                 _buildDetailsDivider(isDark, secondaryText),
                                 const SizedBox(height: Spacing.md),
 
-                                // Defaults (account selector)
-                                _buildDefaultsRow(
+                                _buildPaymentSection(
                                     isDark, secondaryText, primaryText),
                                 const SizedBox(height: Spacing.md),
 
@@ -1743,7 +1745,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
             ),
             const SizedBox(width: 4),
             Text(
-              _tier2Expanded ? 'Less' : 'More',
+              _tier2Expanded ? 'Less details' : 'More details',
               style: TextStyle(
                 fontSize: TypeScale.caption,
                 color: secondaryText,
@@ -1758,9 +1760,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
 
   Widget _buildTier2Summary(bool isDark, Color secondaryText) {
     final parts = <String>[];
-    if (_selectedCategory != null) parts.add(_selectedCategory!.name);
+    if (_selectedPaymentApp != null) parts.add('via $_selectedPaymentApp');
     if (_selectedTags.isNotEmpty) parts.addAll(_selectedTags.map((t) => '#$t'));
-    if (_selectedAccountName != null) parts.add(_selectedAccountName!);
     if (parts.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: Spacing.xs),
@@ -2607,14 +2608,13 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     );
   }
 
-  // ── Defaults row ─────────────────────────────────────────────────────────────
+  // ── Account section ──────────────────────────────────────────────────────────
 
-  Widget _buildDefaultsRow(
+  Widget _buildAccountSection(
       bool isDark, Color secondaryText, Color primaryText) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Account row
         Row(
           children: [
             SizedBox(
@@ -2637,8 +2637,17 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
             ),
           ],
         ),
-        const SizedBox(height: Spacing.xs),
-        // Payment App row
+      ],
+    );
+  }
+
+  // ── Payment section ──────────────────────────────────────────────────────────
+
+  Widget _buildPaymentSection(
+      bool isDark, Color secondaryText, Color primaryText) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Row(
           children: [
             SizedBox(
